@@ -22,7 +22,7 @@ void Fader::SetFade(STATE state)
 	}
 }
 
-void Fader::Init(void)
+void Fader::Initialize(void)
 {
 	state_ = STATE::NONE;
 	alpha_ = 0;

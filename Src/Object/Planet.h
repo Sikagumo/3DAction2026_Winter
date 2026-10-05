@@ -38,7 +38,7 @@ public:
 	// デストラクタ
 	~Planet(void);
 
-	void Init(void) override;
+	void Initialize(void) override;
 	void Update(void) override;
 	void Draw(void) override;
 	

@@ -1,22 +1,19 @@
+#include "Transform.h"
 #include <DxLib.h>
 #include "../../Utility/UtilityMath.h"
 #include "../../Utility/MatrixUtility.h"
-#include "Transform.h"
 
 Transform::Transform(void)
-	:
-	modelId(-1),
-	scl(UtilityMath::VECTOR_ONE),
-	rot(UtilityMath::VECTOR_ZERO),
-	pos(UtilityMath::VECTOR_ZERO),
-	localPos(UtilityMath::VECTOR_ZERO),
-	prePos(UtilityMath::VECTOR_ZERO),
-	matScl(MGetIdent()),
-	matRot(MGetIdent()),
-	matPos(MGetIdent()),
-	quaRot(Quaternion().Identity()),
-	quaRotLocal(Quaternion().Identity())
-
+	: scl(UtilityMath::VECTOR_ONE)
+	, rot(UtilityMath::VECTOR_ZERO)
+	, pos(UtilityMath::VECTOR_ZERO)
+	, localPos(UtilityMath::VECTOR_ZERO)
+	, prePos(UtilityMath::VECTOR_ZERO)
+	, matScl(MGetIdent())
+	, matRot(MGetIdent())
+	, matPos(MGetIdent())
+	, quaRot(Quaternion().Identity())
+	, quaRotLocal(Quaternion().Identity())
 {
 }
 
@@ -45,7 +42,6 @@ void Transform::Update(void)
 	{
 		MV1SetMatrix(modelId, mat);
 	}
-
 }
 
 void Transform::DrawModelDir(void)
@@ -83,13 +79,9 @@ void Transform::DrawModelDir(void)
 #endif
 }
 
-void Transform::Release(void)
+void Transform::SetModel(int modelHandleId)
 {
-}
-
-void Transform::SetModel(int _model)
-{
-	modelId = _model;
+	modelId = modelHandleId;
 	Update();
 }
 
@@ -130,7 +122,6 @@ void Transform::Translate(const VECTOR& _movePow)
 	pos = VAdd(pos, _movePow);
 	Update();
 }
-
 void Transform::Translate(const VECTOR& _dir, float _movePow)
 {
 	// ê≥ãKâªÇµÇƒà⁄ìÆ
@@ -194,4 +185,9 @@ VECTOR Transform::GetDown(void) const
 VECTOR Transform::GetDir(const VECTOR& dir) const
 {
 	return quaRot.PosAxis(dir);
+}
+
+void Transform::GetScale(float scale)
+{
+	scl = VGet(scale, scale, scale);
 }

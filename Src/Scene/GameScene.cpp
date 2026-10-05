@@ -41,7 +41,7 @@ void GameScene::Initialize(void)
 
 	// プレイヤー
 	player_ = std::make_unique<Player>();
-	player_->Init();
+	player_->Initialize();
 
 	// ステージ
 	//stage_ = std::make_unique<Stage>(*player_);
@@ -49,11 +49,11 @@ void GameScene::Initialize(void)
 
 	// スカイドーム
 	skyDome_ = std::make_unique<SkyDome>(player_->GetTransform());
-	skyDome_->Init();
+	skyDome_->Initialize();
 
-
-	mainCamera.SetFollow(&player_->GetTransform());
-	mainCamera.ChangeMode(Camera::MODE::FOLLOW);
+	
+	SceneManager::GetInstance().GetCamera().SetFollow(&player_->GetTransform());
+	SceneManager::GetInstance().GetCamera().ChangeMode(Camera::MODE::FOLLOW);
 
 	/*
 	// ポストエフェクト用スクリーン

@@ -25,7 +25,7 @@ public:
 	// 指定フェードを開始する
 	void SetFade(STATE state);
 
-	void Init(void);
+	void Initialize(void);
 	void Update(void);
 	void Draw(void);
 

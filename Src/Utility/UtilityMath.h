@@ -3,13 +3,10 @@
 #include<string>
 #include<vector>
 #include<DxLib.h>
-
 #include"../Common/Vector2.h"
 #include"../Common/Quaternion.h"
 
-/// <summary>
-/// 各種ベクトル・角度・補間などのユーティリティ関数群を提供する静的クラス
-/// </summary>
+/// @brief 各種ベクトル・角度・補間などのユーティリティ関数群を提供する静的クラス
 class UtilityMath
 {
 public:
@@ -32,96 +29,66 @@ public:
 
 	//回転軸
 
-	/// <summary>X軸方向の単位ベクトル</summary>
+	/// @brief X軸方向の単位ベクトル
 	static constexpr VECTOR AXIS_X = { 1.0f, 0.0f, 0.0f };
 
-	/// <summary>Y軸方向の単位ベクトル</summary>
+	/// @brief Y軸方向の単位ベクトル
 	static constexpr VECTOR AXIS_Y = { 0.0f, 1.0f, 0.0f };
 
-	/// <summary>Z軸方向の単位ベクトル</summary>
+	/// @brief Z軸方向の単位ベクトル
 	static constexpr VECTOR AXIS_Z = { 0.0f, 0.0f, 1.0f };
 
 	//方向
 
-	/// <summary>前方方向 (Z+)</summary>
+	/// @brief 前方方向 (Z+)
 	static constexpr VECTOR DIR_FORWARD = { 0.0f, 0.0f, 1.0f };
 
-	/// <summary>後方方向 (Z-)</summary>
+	/// @brief 後方方向 (Z-)
 	static constexpr VECTOR DIR_BACK = { 0.0f, 0.0f, -1.0f };
 
-	/// <summary>右方向 (X+)</summary>
+	/// @brief 右方向 (X+)
 	static constexpr VECTOR DIR_RIGHT = { 1.0f, 0.0f, 0.0f };
 
-	/// <summary>左方向 (X-)</summary>
+	/// @brief 左方向 (X-)
 	static constexpr VECTOR DIR_LEFT = { -1.0f, 0.0f, 0.0f };
 
-	/// <summary>上方向 (Y+)</summary>
+	/// @brief 上方向 (Y+)
 	static constexpr VECTOR DIR_UP = { 0.0f, 1.0f, 0.0f };
 
-	/// <summary>下方向 (Y-)</summary>
+	/// @brief 下方向 (Y-)
 	static constexpr VECTOR DIR_DOWN = { 0.0f, -1.0f, 0.0f };
 
-	/// <summary>浮動小数点の誤差比較用の最小値</summary>
+	/// @brief 浮動小数点の誤差比較用の最小値
 	static constexpr float kEpsilonNormalSqrt = 1e-15F;
 
 	static constexpr float HALF_NUM = 0.5f;
 
-	/// <summary>
-	/// 小数を四捨五入して整数に変換する
-	/// </summary>
-	/// <param name="v">対象の値</param>
-	/// <returns>四捨五入された整数</returns>
-	static int Round(float v);
+	// 描画する線分の長さ
+	static constexpr float DRAW_LINE_LENGTH = 50.0f;
 
-	/// <summary>
-	/// 文字列を指定文字で分割する
-	/// </summary>
-	/// <param name="line">分割対象の文字列</param>
-	/// <param name="delimiter">区切り文字</param>
-	/// <returns>分割された文字列の配列</returns>
-	static std::vector < std::string> Split(std::string& line, char delimiter);
 
-	/// <summary>
-	/// ラジアンから度（double）へ変換
-	/// </summary>
-	/// <param name="rad">ラジアン角</param>
-	/// <returns>度</returns>
-	static double Rad2DegD(double rad);
+	/// @brief 小数を四捨五入して整数に変換する
+	/// @param num 対象の値
+	/// @return 四捨五入された整数
+	static int Round(float num);
 
-	/// <summary>
-	/// 度からラジアン（float）へ変換
-	/// </summary>
-	/// <param name="deg">度</param>
-	/// <returns>ラジアン角</returns>
-	static float Rad2DegF(float rad);
+	/// @brief 文字列を指定文字で分割する
+	/// @param line 分割対象の文字列
+	/// @param delimiter 区切り文字
+	/// @return 分割された文字列の配列
+	static std::vector<std::string> Split(std::string& line, char delimiter);
 
-	/// <summary>
-	/// ラジアンから度に変換（int）
-	/// </summary>
-	/// <param name="rad">ラジアン値</param>
-	/// <returns>度数値</returns>
-	static int Rad2DegI(int rad);
+	/// @brief ラジアン値→度数値へ変換
+	/// @param rad ラジアン角
+	static double Rad2Deg(double rad);
+	static float Rad2Deg(float rad);
+	static int Rad2Deg(int rad);
 
-	/// <summary>
-	/// 度からラジアンに変換（double）
-	/// </summary>
-	/// <param name="deg">度数値</param>
-	/// <returns>ラジアン値</returns>
-	static double Deg2RadD(double deg);
-
-	/// <summary>
-	/// 度からラジアンに変換（float）
-	/// </summary>
-	/// <param name="deg">度数値</param>
-	/// <returns>ラジアン値</returns>
-	static float Deg2RadF(float deg);
-
-	/// <summary>
-	/// 度からラジアンに変換（int）
-	/// </summary>
-	/// <param name="deg">度数値</param>
-	/// <returns>ラジアン値</returns>
-	static int Deg2RadI(int deg);
+	/// @brief 度数値→ラジアン値に変換
+	/// @param deg 度数値
+	static double Deg2Rad(double deg);
+	static float Deg2Rad(float deg);
+	static int Deg2Rad(int deg);
 
 	/// <summary>
 	/// 角度を0～360に正規化
@@ -320,22 +287,22 @@ public:
 	static bool Equals(const VECTOR& _vec1, const VECTOR& _vec2);
 
 	/// @brief ベクトルがゼロベクトルか判定
-	/// @param _vec 対象のベクトル
-	static bool EqualsVZero(const VECTOR& _vec);
-	static bool EqualsVZero(const Vector2& _vec);
-	static bool EqualsVZero(const Vector2F& _vec);
+	/// @param vec 対象のベクトル
+	static bool EqualsVZero(const VECTOR& vec);
+	static bool EqualsVZero(const Vector2& vec);
+	static bool EqualsVZero(const Vector2F& vec);
 
 
 	/// @brief 2Dベクトルを正規化し3Dベクトルに変換
-	/// @param _vec 対象の2Dベクトル
-	static VECTOR Normalize(const Vector2& _vec);
+	/// @param vec 対象の2Dベクトル
+	static VECTOR Normalize(const Vector2& vec);
 
 	
 	/// @brief ベクトルを正規化
-	/// @param _vec 対象の3Dベクトル
-	static VECTOR VNormalize(const VECTOR& _vec);
-	static Vector2 VNormalize(const Vector2& _vec);
-	static Vector2F VNormalize(const Vector2F& _vec);
+	/// @param vec 対象の3Dベクトル
+	static VECTOR VNormalize(const VECTOR& vec);
+	static Vector2 VNormalize(const Vector2& vec);
+	static Vector2F VNormalize(const Vector2F& vec);
 
 	/// <summary>
 	/// 2つのベクトルの間の角度（度）を返す
@@ -367,12 +334,17 @@ public:
 	static void DrawLineXYZ(const VECTOR& pos, const MATRIX& rot, float len = 50.0f);
 
 	/// <summary>
-	/// 指定位置からクォータニオンの軸方向に線を描画する
+	/// 
 	/// </summary>
 	/// <param name="pos">開始位置</param>
 	/// <param name="rot">クォータニオン回転</param>
 	/// <param name="len">線の長さ（デフォルトは50.0f）</param>
 	/// <returns>なし</returns>
+	
+	/// @brief 指定位置からクォータニオンの軸方向に線を描画する
+	/// @param pos 開始位置
+	/// @param rot クォータニオン回転
+	/// @param len 線の長さ
 	static void DrawLineXYZ(const VECTOR& pos, const Quaternion& rot, float len = 50.0f);
 
 	/// @brief 指定した中心点から円周上の位置を計算する
@@ -382,18 +354,17 @@ public:
     /// @return 円周上の位置座標
 	static VECTOR GetCirclePos(const VECTOR& center, float radius, float angle);
 
-	//待機時間
-	//static bool IsTimeOver(float& totalTime, const float& waitTime);
-
-	// ランダムな数値を返す(float用)
+	/// @brief ランダムな数値を返す
+	/// @param min 最小値
+	/// @param max 最大値
+	/// @return ランダムな値(float)
 	static float  RandRangeF(float min, float max);
-
+	
 	/// @brief 線分上の最もターゲットに近い座標を算出
 	/// @param startPos 線分の開始点
 	/// @param endPos 線分の終了点
 	/// @param targetPos ターゲット座標
 	/// @return 線分上の最近接座標
-	static VECTOR GetNearestPointOnSegment(const VECTOR& _startPos,
-		const VECTOR& _endPos, const VECTOR& _targetPos);
+	static VECTOR GetNearestPointOnSegment(const VECTOR& startPos, const VECTOR& endPos, const VECTOR& targetPos);
 };
 

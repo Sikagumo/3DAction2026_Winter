@@ -18,7 +18,7 @@ void Application::CreateInstance(void)
 	{
 		instance_ = new Application();
 	}
-	instance_->Init();
+	instance_->Initialize();
 }
 
 Application& Application::GetInstance(void)
@@ -26,7 +26,7 @@ Application& Application::GetInstance(void)
 	return *instance_;
 }
 
-void Application::Init(void)
+void Application::Initialize(void)
 {
 
 	// アプリケーションの初期設定
@@ -81,12 +81,12 @@ void Application::Run(void)
 
 }
 
-void Application::Destroy(void)
+void Application::DestroyInstance(void)
 {
 
-	InputManager::GetInstance().Destroy();
+	InputManager::GetInstance().DestroyInstance();
 	ResourceManager::GetInstance().DestroyInstance();
-	SceneManager::GetInstance().Destroy();
+	SceneManager::GetInstance().DestroyInstance();
 
 	// Effekseerを終了する。
 	Effkseer_End();

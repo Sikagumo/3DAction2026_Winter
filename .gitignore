@@ -27,7 +27,6 @@
 *.lib
 
 # Executables
-*.exe
 *.out
 *.app
 
@@ -39,4 +38,3 @@ Win32/
 Debug/
 Release/
 Log.txt
-*.sln

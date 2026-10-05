@@ -68,11 +68,11 @@ public:
 	// インスタンスの取得
 	static InputManager& GetInstance(void);
 
-	void Init(void);
+	void Initialize(void);
 	void Update(void);
 
 	// リソースの破棄
-	void Destroy(void);
+	void DestroyInstance(void);
 
 	// 判定を行うキーを追加
 	void Add(int key);

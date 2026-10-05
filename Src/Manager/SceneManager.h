@@ -1,17 +1,18 @@
 #pragma once
 #include <memory>
 #include <chrono>
-
-// 推奨しませんが、どうしても使いたい方は
-#define mainCamera SceneManager::GetInstance().GetCamera()
+#include "../Scene/SceneBase.h"
+#include "../Common/Fader.h"
+#include "./Camera.h"
+#include "../Common/Performance.h"
 
 class SceneBase;
 class Fader;
 class Camera;
+class Performance;
 
 class SceneManager
 {
-
 public:
 
 	// シーン管理用
@@ -28,29 +29,30 @@ public:
 	// インスタンスの取得
 	static SceneManager& GetInstance(void);
 
-	void Init(void);
+	void Initialize(void);
 	void Init3D(void);
 	void Update(void);
 	void Draw(void);
 
 	// リソースの破棄
-	void Destroy(void);
+	void DestroyInstance(void);
 
-	// 状態遷移
+	/// @brief 状態遷移
 	void ChangeScene(SCENE_ID nextId);
 
-	// シーンIDの取得
-	SCENE_ID GetSceneID(void);
+	/// @brief 現在シーンID取得
+	SCENE_ID GetSceneID(void) { return sceneId_; };
 
-	// デルタタイムの取得
+	/// @brief デルタタイムの取得
 	float GetDeltaTime(void) const;
 
-	// カメラの取得
-	Camera& GetCamera(void);
+	/// @brief カメラの取得
+	Camera& GetCamera(void) { return *camera_; };
 
-	int GetMainScreen(void) const;
+	int GetMainScreen(void) const { return mainScreen_; };
 
-	float GetTotalTime(void) const;
+	float GetTotalTime(void) const { return totalTime_; };
+
 
 private:
 
@@ -62,42 +64,51 @@ private:
 
 
 	// 各種シーン
-	std::unique_ptr<SceneBase> scene_;
+	std::unique_ptr<SceneBase> scene_ = nullptr;
 
 	// フェード
-	std::unique_ptr<Fader> fader_;
+	std::unique_ptr<Fader> fader_ = nullptr;
+
+	// 演出管理
+	std::unique_ptr<Performance> performance_ = nullptr;
 
 	// カメラ
-	std::unique_ptr<Camera> camera_;
+	std::unique_ptr<Camera> camera_ = nullptr;
 
 	// シーン遷移中判定
-	bool isSceneChanging_;
+	bool isSceneChanging_ = false;
 
 	// デルタタイム
 	std::chrono::system_clock::time_point preTime_;
-	float deltaTime_;
+	float deltaTime_ = 0.0f;
 
 	// ゲーム実行時間
-	float totalTime_;
+	float totalTime_ = 0.0f;
 	
 	// メインスクリーン
-	int mainScreen_;
+	int mainScreen_ = -1;
+
 
 	// デフォルトコンストラクタをprivateにして、
 	// 外部から生成できない様にする
 	SceneManager(void);
-	// コピーコンストラクタも同様
-	SceneManager(const SceneManager& manager) = default;
+
 	// デストラクタも同様
 	~SceneManager(void) = default;
 
-	// デルタタイムをリセットする
+	/// @brief コピーコンストラクタ対策
+	SceneManager(const SceneManager&) = delete;
+	SceneManager& operator=(const SceneManager&) = delete;
+	SceneManager(SceneManager&&) = delete;
+	SceneManager& operator=(SceneManager&&) = delete;
+
+	/// @brief デルタタイムをリセットする
 	void ResetDeltaTime(void);
 
-	// シーン遷移
+	/// @brief シーン遷移
 	void DoChangeScene(SCENE_ID sceneId);
 
-	// フェード
+	/// @brief フェード
 	void Fade(void);
 
 };

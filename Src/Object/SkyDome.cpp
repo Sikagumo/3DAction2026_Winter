@@ -18,7 +18,7 @@ SkyDome::~SkyDome(void)
 {
 }
 
-void SkyDome::Init(void)
+void SkyDome::Initialize(void)
 {
 	// ÉÇÉfÉãêßå‰ÇÃäÓñ{èÓïÒ
 	transform_.SetModel(ResourceManager::GetInstance().LoadModelDuplicate(ResourceManager::SRC::MODEL_SKYDOME));
@@ -26,7 +26,7 @@ void SkyDome::Init(void)
 	transform_.pos = UtilityMath::VECTOR_ZERO;
 	transform_.quaRot = Quaternion::Euler(
 		0.0f, 
-		UtilityMath::Deg2RadF(180.0f),
+		UtilityMath::Deg2Rad(180.0f),
 		0.0f
 	);
 	transform_.quaRotLocal = Quaternion();

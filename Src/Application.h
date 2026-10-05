@@ -25,13 +25,13 @@ public:
 	static Application& GetInstance(void);
 
 	// 初期化
-	void Init(void);
+	void Initialize(void);
 
 	// ゲームループの開始
 	void Run(void);
 
 	// リソースの破棄
-	void Destroy(void);
+	void DestroyInstance(void);
 
 	// 初期化成功／失敗の判定
 	bool IsInitFail(void) const;

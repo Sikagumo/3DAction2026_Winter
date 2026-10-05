@@ -42,7 +42,7 @@ public:
 	Camera(void);
 	~Camera(void);
 
-	void Init(void);
+	void Initialize(void);
 	void Update(void);
 	void SetBeforeDraw(void);
 	void Draw(void);

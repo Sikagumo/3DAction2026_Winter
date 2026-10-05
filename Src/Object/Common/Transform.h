@@ -15,12 +15,14 @@ class Transform
 public:
 
 	// モデルのハンドルID
-	int modelId;
+	int modelId = -1;
 
 	// 大きさ
 	VECTOR scl;
+
 	// 回転
 	VECTOR rot;
+
 	// 位置
 	VECTOR pos;
 	VECTOR localPos;
@@ -38,66 +40,60 @@ public:
 	Quaternion quaRotLocal;
 
 
-	// コンストラクタ
 	Transform(void);
-
-	// デストラクタ
 	~Transform(void) = default;
 
-	// モデル制御の基本情報更新
+	/// @brief モデル制御の基本情報更新
 	void Update(void);
 	
 	void DrawModelDir(void);
 
-	// 解放
-	void Release(void);
-
-	// モデルのハンドルIDを設定
-	void SetModel(int modelHId);
+	/// @brief モデルのハンドルIDを設定
+	void SetModel(int modelHandleId);
 
 	/// @brief 数値初期
-	void InitTransform(const VECTOR& _scl,const Quaternion& _rot, const Quaternion& _rotLocal
-						, const VECTOR& _pos, const VECTOR& _posLocal = UtilityMath::VECTOR_ZERO);
-	void InitTransform(float _scl,const Quaternion& _rot, const Quaternion& _rotLocal
-						, const VECTOR& _pos, const VECTOR& _posLocal = UtilityMath::VECTOR_ZERO);
-	void InitTransform(float _scl,const Quaternion& _rot, const Quaternion& _rotLocal);
+	void InitTransform(const VECTOR& scl,const Quaternion& rot, const Quaternion& rotLocal
+						, const VECTOR& pos, const VECTOR& posLocal = UtilityMath::VECTOR_ZERO);
+	void InitTransform(float scl,const Quaternion& rot, const Quaternion& rotLocal
+						, const VECTOR& pos, const VECTOR& posLocal = UtilityMath::VECTOR_ZERO);
+	void InitTransform(float scl,const Quaternion& rot, const Quaternion& rotLocal);
 	void InitTransform(void);
 
 	/// @brief 移動処理
-	/// @param _movePow 移動量
-	void Translate(const VECTOR& _movePow);
-	void Translate(const VECTOR& _dir, float _movePow);
+	/// @param movePow 移動量
+	void Translate(const VECTOR& movePow);
+	void Translate(const VECTOR& dir, float movePow);
 
 	/// @brief 回転処理
-	/// @param _axis 回転方向
-	/// @param _pow 速度
-	void Rotate(const VECTOR& _axis, float _pow);
-	void Rotate(const Quaternion& _rot);
+	/// @param axis 回転方向
+	/// @param pow 速度
+	void Rotate(const VECTOR& axis, float pow);
+	void Rotate(const Quaternion& rot);
 
-	void SetScale(float _scale);
-	void SetScale(float _scaleX, float _scaleY, float _scaleZ);
+	/// @brief モデルのスケールを割り当て
+	void SetScale(float scale);
+	void SetScale(float scaleX, float scaleY, float scaleZ);
 
-
-	// 前方方向を取得
+	/// @brief 前方方向を取得
 	VECTOR GetForward(void) const;
 
-	// 後方方向を取得
+	/// @brief 後方方向を取得
 	VECTOR GetBack(void) const;
 
-	// 右方向を取得
+	/// @brief 右方向を取得
 	VECTOR GetRight(void) const;
 
-	// 左方向を取得
+	/// @brief 左方向を取得
 	VECTOR GetLeft(void) const;
 
-	// 上方向を取得
+	/// @brief 上方向を取得
 	VECTOR GetUp(void) const;
 
-	// 下方向を取得
+	/// @brief 下方向を取得
 	VECTOR GetDown(void) const;
 
-	// 対象方向を取得
+	/// @brief 対象方向を取得
 	VECTOR GetDir(const VECTOR& dir) const;
 
-	void GetScale(float _scale) { scl = VGet(_scale, _scale, _scale); };
+	void GetScale(float scale);
 };

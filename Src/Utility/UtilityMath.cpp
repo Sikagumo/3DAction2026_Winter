@@ -1,13 +1,11 @@
 #include "UtilityMath.h"
-
-#include<DxLib.h>
-#include<string>
-#include<fstream>
-#include<sstream>
-#include<vector>
-#include<math.h>
+#include <DxLib.h>
+#include <string>
+#include <fstream>
+#include <sstream>
+#include <vector>
+#include <math.h>
 #include <cstdlib>
-
 
 
 // 小数値を四捨五入して整数に変換する
@@ -32,39 +30,31 @@ std::vector<std::string> UtilityMath::Split(std::string& line, char delimiter)
 }
 
 // ラジアンを度に変換する（double）
-double UtilityMath::Rad2DegD(double rad)
+double UtilityMath::Rad2Deg(double rad)
 {
-	return rad * (180.0 / DX_PI);
+	return (rad * (180.0 / DX_PI));
+}
+float UtilityMath::Rad2Deg(float rad)
+{
+	return (rad * (180.0f / DX_PI_F));
+}
+int UtilityMath::Rad2Deg(int rad)
+{
+	return (rad * Round(180.0f / DX_PI_F));
 }
 
-// ラジアンを度に変換する（float）
-float UtilityMath::Rad2DegF(float rad)
+// 度をラジアンに変換する
+double UtilityMath::Deg2Rad(double deg)
 {
-	return rad * (180.0f / DX_PI_F);
+	return (deg * (DX_PI / 180.0));
 }
-
-// ラジアンを度に変換して整数にする
-int UtilityMath::Rad2DegI(int rad)
+float UtilityMath::Deg2Rad(float deg)
 {
-	return rad * Round(180.0f / DX_PI_F);
+	return (deg * (DX_PI_F / 180.0f));
 }
-
-// 度をラジアンに変換する（double）
-double UtilityMath::Deg2RadD(double deg)
+int UtilityMath::Deg2Rad(int deg)
 {
-	return deg * (DX_PI / 180.0);
-}
-
-// 度をラジアンに変換する（float）
-float UtilityMath::Deg2RadF(float deg)
-{
-	return deg * (DX_PI_F / 180.0f);
-}
-
-// 度をラジアンに変換して整数にする
-int UtilityMath::Deg2RadI(int deg)
-{
-	return deg * Round(DX_PI_F / 180.0f);
+	return (deg * Round(DX_PI_F / 180.0f));
 }
 
 // 角度を0～360度の範囲に正規化する
@@ -96,7 +86,7 @@ int UtilityMath::DirNearAroundRad(float from, float to)
 {
 	float ret = 1.0f;
 
-	float diff = to - from;
+	float diff = (to - from);
 
 	if (diff >= 0.0f)
 	{
@@ -464,9 +454,9 @@ Vector2F UtilityMath::VNormalize(const Vector2F& _vec)
 // 2つの3Dベクトルのなす角（度）を求める
 double UtilityMath::AngleDeg(const VECTOR& from, const VECTOR& to)
 {
-	auto fLen = SqrMagnitude(from);
-	auto tLen = SqrMagnitude(to);
-	auto denominator = sqrt(fLen * tLen);
+	double fLen = SqrMagnitude(from);
+	double tLen = SqrMagnitude(to);
+	double denominator = sqrt(fLen * tLen);
 	if (denominator < kEpsilonNormalSqrt)
 	{
 		return 0.0f;
@@ -484,7 +474,6 @@ double UtilityMath::AngleDeg(const VECTOR& from, const VECTOR& to)
 	}
 
 	return acos(dot) * (180.0 / DX_PI);
-
 }
 
 // 指定方向に線と終点に球体を描画する
@@ -501,7 +490,7 @@ void UtilityMath::DrawLineDir(const VECTOR& pos, const VECTOR& dir, int color, f
 // 回転行列を基にXYZ軸方向の線を描画する
 void UtilityMath::DrawLineXYZ(const VECTOR& pos, const MATRIX& rot, float len)
 {
-	VECTOR dir;
+	VECTOR dir = VECTOR_ZERO;
 
 	// X
 	dir = VTransform(UtilityMath::DIR_RIGHT, rot);
@@ -519,7 +508,7 @@ void UtilityMath::DrawLineXYZ(const VECTOR& pos, const MATRIX& rot, float len)
 // クォータニオンを基にXYZ軸方向の線を描画する
 void UtilityMath::DrawLineXYZ(const VECTOR& pos, const Quaternion& rot, float len)
 {
-	VECTOR dir;
+	VECTOR dir = VECTOR_ZERO;
 
 	// X
 	dir = rot.GetRight();
@@ -540,34 +529,19 @@ void UtilityMath::DrawLineXYZ(const VECTOR& pos, const Quaternion& rot, float le
 	DrawLineDir(pos, dir, 0xffffff, len);
 }
 
-//bool UtilityMath::IsTimeOver(float& totalTime, const float& waitTime)
-//{
-//	//デルタタイム
-//	auto delta = SceneManager::GetInstance().GetDeltaTime();
-//	totalTime += delta;
-//
-//	//待機時間を超過しているか判断
-//	if (totalTime >= waitTime)
-//	{
-//		return true;
-//	}
-//
-//	return false;
-//}
-
 VECTOR UtilityMath::GetCirclePos(const VECTOR& center, float radius, float angle)
 {
 	return VGet(center.x + std::cosf(angle) * radius,
-		center.y + std::sinf(angle) * radius, center.z);
+				center.y + std::sinf(angle) * radius,
+				center.z);
 }
 
 float UtilityMath::RandRangeF(float min, float max)
 {
-	return min + static_cast<float>(rand()) / static_cast<float>(RAND_MAX) * (max - min);
+	return (min + static_cast<float>(rand()) / static_cast<float>(RAND_MAX) * (max - min));
 }
 
-VECTOR UtilityMath::GetNearestPointOnSegment(const VECTOR& _startPos,
-	const VECTOR& _endPos, const VECTOR& _targetPos)
+VECTOR UtilityMath::GetNearestPointOnSegment(const VECTOR& _startPos, const VECTOR& _endPos, const VECTOR& _targetPos)
 {
 	VECTOR segmentVec = VSub(_endPos, _startPos);
 	VECTOR toTargetVec = VSub(_targetPos, _startPos);

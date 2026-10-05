@@ -458,7 +458,7 @@ Quaternion Quaternion::FromToRotation(VECTOR fromDir, VECTOR toDir)
 
 	// 軸を正規化し、angle-axis表現からクォータニオンを生成
 	axis = UtilityMath::VNormalize(axis);
-	return Quaternion::AngleAxis(UtilityMath::Deg2RadD(angle), axis);
+	return Quaternion::AngleAxis(UtilityMath::Deg2Rad(angle), axis);
 }
 
 Quaternion Quaternion::RotateTowards(const Quaternion& from, const Quaternion& to, float maxDegreesDelta)

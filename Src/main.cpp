@@ -61,7 +61,7 @@ int WINAPI WinMain(
 	instance.Run();
 
 	// ‰ð•ú
-	instance.Destroy();
+	instance.DestroyInstance();
 
 	return 0;
 

@@ -20,7 +20,7 @@ Camera::~Camera(void)
 {
 }
 
-void Camera::Init(void)
+void Camera::Initialize(void)
 {
 
 	ChangeMode(MODE::FIXED_POINT);
@@ -130,7 +130,7 @@ void Camera::SetDefault(void)
 	// ƒJƒƒ‰‚Ìã•ûŒü
 	cameraUp_ = UtilityMath::DIR_UP;
 
-	angles_.x = UtilityMath::Deg2RadF(30.0f);
+	angles_.x = UtilityMath::Deg2Rad(30.0f);
 	angles_.y = 0.0f;
 	angles_.z = 0.0f;
 
@@ -177,18 +177,18 @@ void Camera::ProcessRot(void)
 	if (ins.IsNew(KEY_INPUT_RIGHT))
 	{
 		// ‰E‰ñ“]
-		angles_.y += UtilityMath::Deg2RadF(1.0f);
+		angles_.y += UtilityMath::Deg2Rad(1.0f);
 	}
 	if (ins.IsNew(KEY_INPUT_LEFT))
 	{
 		// ¶‰ñ“]
-		angles_.y += UtilityMath::Deg2RadF(-1.0f);
+		angles_.y += UtilityMath::Deg2Rad(-1.0f);
 	}
 
 	// ã‰ñ“]
 	if (ins.IsNew(KEY_INPUT_UP))
 	{
-		angles_.x += UtilityMath::Deg2RadF(1.0f);
+		angles_.x += UtilityMath::Deg2Rad(1.0f);
 		if (angles_.x > LIMIT_X_UP_RAD)
 		{
 			angles_.x = LIMIT_X_UP_RAD;
@@ -198,7 +198,7 @@ void Camera::ProcessRot(void)
 	// ‰º‰ñ“]
 	if (ins.IsNew(KEY_INPUT_DOWN))
 	{
-		angles_.x += UtilityMath::Deg2RadF(-1.0f);
+		angles_.x += UtilityMath::Deg2Rad(-1.0f);
 		if (angles_.x < -LIMIT_X_DW_RAD)
 		{
 			angles_.x = -LIMIT_X_DW_RAD;

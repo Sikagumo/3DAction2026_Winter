@@ -48,7 +48,7 @@ Player::~Player(void)
 {
 }
 
-void Player::Init(void)
+void Player::Initialize(void)
 {
 	// モデルの基本設定
 	transform_.SetModel(ResourceManager::GetInstance().LoadModelDuplicate(ResourceManager::SRC::MODEL_PLAYER));
@@ -56,7 +56,7 @@ void Player::Init(void)
 	transform_.pos = { 0.0f, -30.0f, 0.0f };
 	transform_.quaRot = Quaternion();
 	transform_.quaRotLocal =
-		Quaternion::Euler({ 0.0f, UtilityMath::Deg2RadF(180.0f), 0.0f });
+		Quaternion::Euler({ 0.0f, UtilityMath::Deg2Rad(180.0f), 0.0f });
 	transform_.Update();
 
 	// アニメーションの設定
@@ -285,7 +285,7 @@ void Player::ProcessMove(void)
 	movePow_ = UtilityMath::VECTOR_ZERO;
 
 	// X軸回転を除いた、重力方向に垂直なカメラ角度(XZ平面)を取得
-	Quaternion cameraRot = mainCamera.GetQuaRotOutX();
+	Quaternion cameraRot = SceneManager::GetInstance().GetCamera().GetQuaRotOutX();
 
 	// 回転したい角度
 	double rotRad = 0;
@@ -295,28 +295,28 @@ void Player::ProcessMove(void)
 	// カメラ方向に前進したい
 	if (ins.IsNew(KEY_INPUT_W))
 	{
-		rotRad = UtilityMath::Deg2RadD(0.0);
+		rotRad = UtilityMath::Deg2Rad(0.0);
 		dir = cameraRot.GetForward();
 	}
 
 	// カメラ方向から後退したい
 	if (ins.IsNew(KEY_INPUT_S))
 	{
-		rotRad = UtilityMath::Deg2RadD(180.0);
+		rotRad = UtilityMath::Deg2Rad(180.0);
 		dir = cameraRot.GetBack();
 	}
 
 	// カメラ方向から右側へ移動したい
 	if (ins.IsNew(KEY_INPUT_D))
 	{
-		rotRad = UtilityMath::Deg2RadD(90.0);
+		rotRad = UtilityMath::Deg2Rad(90.0);
 		dir = cameraRot.GetRight();
 	}
 
 	// カメラ方向から左側へ移動したい
 	if (ins.IsNew(KEY_INPUT_A))
 	{
-		rotRad = UtilityMath::Deg2RadD(270.0);
+		rotRad = UtilityMath::Deg2Rad(270.0);
 		dir = cameraRot.GetLeft();
 	}
 
@@ -402,7 +402,7 @@ void Player::ProcessJump(void)
 void Player::SetGoalRotate(double rotRad)
 {
 
-	VECTOR cameraRot = mainCamera.GetAngles();
+	VECTOR cameraRot = SceneManager::GetInstance().GetCamera().GetAngles();
 	Quaternion axis = Quaternion::AngleAxis((double)cameraRot.y + rotRad, UtilityMath::AXIS_Y);
 
 	// 現在設定されている回転との角度差を取る
