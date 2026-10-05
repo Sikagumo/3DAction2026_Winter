@@ -5,12 +5,21 @@
 #include "Manager/SceneManager.h"
 #include "Application.h"
 
+namespace
+{
+
+};
 Application* Application::instance_ = nullptr;
 
 const std::string Application::PATH_IMAGE = "Data/Image/";
 const std::string Application::PATH_MODEL = "Data/Model/";
 const std::string Application::PATH_EFFECT = "Data/Effect/";
 const std::string Application::PATH_SHADER = "Data/Shader/";
+
+Application::Application(void)
+{
+
+}
 
 void Application::CreateInstance(void)
 {
@@ -28,20 +37,24 @@ Application& Application::GetInstance(void)
 
 void Application::Initialize(void)
 {
-
 	// アプリケーションの初期設定
-	SetWindowText("3DAction");
+	SetWindowText("");
 
 	// ウィンドウサイズ
 	SetGraphMode(SCREEN_SIZE_X, SCREEN_SIZE_Y, 32);
-	ChangeWindowMode(true);
+	
+#ifdef _DEBUG
+	ChangeWindowMode(TRUE);
+#else
+	ChangeWindowMode(FALSE);
+#endif
 
 	// DxLibの初期化
 	SetUseDirect3DVersion(DX_DIRECT3D_11);
-	isInitFail_ = false;
+	isInitializeFail_ = false;
 	if (DxLib_Init() == -1)
 	{
-		isInitFail_ = true;
+		isInitializeFail_ = true;
 		return;
 	}
 
@@ -52,43 +65,33 @@ void Application::Initialize(void)
 	SetUseDirectInputFlag(true);
 	InputManager::CreateInstance();
 
-	// リソース管理初期化
+	// 管理マネージャ初期化
 	ResourceManager::CreateInstance();
-
-	// シーン管理初期化
 	SceneManager::CreateInstance();
-
 }
 
 void Application::Run(void)
 {
-
-	auto& inputManager = InputManager::GetInstance();
-	auto& sceneManager = SceneManager::GetInstance();
-
 	// ゲームループ
 	while (ProcessMessage() == 0 && CheckHitKey(KEY_INPUT_ESCAPE) == 0)
 	{
+		InputManager::GetInstance().Update();
+		SceneManager::GetInstance().Update();
 
-		inputManager.Update();
-		sceneManager.Update();
-
-		sceneManager.Draw();
+		SceneManager::GetInstance().Draw();
 
 		ScreenFlip();
-
 	}
-
 }
 
 void Application::DestroyInstance(void)
 {
-
+	// 管理マネージャのメモリ解放
 	InputManager::GetInstance().DestroyInstance();
 	ResourceManager::GetInstance().DestroyInstance();
 	SceneManager::GetInstance().DestroyInstance();
 
-	// Effekseerを終了する。
+	// Effekseerを終了
 	Effkseer_End();
 
 	// DxLib終了
@@ -98,23 +101,6 @@ void Application::DestroyInstance(void)
 	}
 
 	delete instance_;
-
-}
-
-bool Application::IsInitFail(void) const
-{
-	return isInitFail_;
-}
-
-bool Application::IsReleaseFail(void) const
-{
-	return isReleaseFail_;
-}
-
-Application::Application(void)
-{
-	isInitFail_ = false;
-	isReleaseFail_ = false;
 }
 
 void Application::InitEffekseer(void)

@@ -6,11 +6,11 @@ class Performance
 {
 public:
 
-	// ヒットストップ フレーム数
-	static constexpr int HIT_STOP = 30;
+	// ヒットストップ時間
+	static constexpr float HIT_STOP_TIME = 0.5f;
 
 	// 振動演出を行う最小カウント
-	static constexpr int SHAKE_STOP_COUNT = 10;
+	static constexpr float SHAKE_STOP_TIME = 0.17f;
 
 	// 画面揺れ回数 切替間隔
 	static constexpr int SHAKE_COUNT_X = 2;
@@ -21,7 +21,7 @@ public:
 	static constexpr int SHAKE_WIDTH_Y = 4;
 
 	// 遅延カウンタ 初期値
-	static constexpr int SLOW_COUNT = 30;
+	static constexpr int SLOW_TIME = 0.5f;
 
 	// 遅延間隔（Nフレームに1回更新）
 	static constexpr int SLOW_INTERVAL = 5;
@@ -33,11 +33,29 @@ public:
 	void Initialize(void);
 	void Update(void);
 
+	/// @brief ヒットストップ
+	/// @param seconds 停止時間
+	/// @param shakeWidthX 横振動値
+	/// @param shakeWidthY 縦振動値
+	/// @param slowTime 遅延時間
+	void StartHitStop(float seconds, int shakeWidthX = SHAKE_WIDTH_X, int shakeWidthY = SHAKE_WIDTH_Y
+		, float slowTime = SLOW_TIME);
+
 	/// @brief ヒットストップ(強)
 	void StartHitStrong(void);
 
 	/// @brief ヒットストップ(弱)
 	void StartHitWeak(void);
+
+	/// @brief 遅延処理
+	/// @param seconds 遅延時間
+	/// @param interval フレームに1回だけ更新を掛ける値
+	void StartHitSlow(float seconds, int interval = SLOW_INTERVAL);
+
+
+	/// @brief スロー演出中か否か
+	[[nodiscard("判定として利用してください")]]
+	bool IsSlow(void) const;
 
 	/// @brief ヒットストップ中か否か
 	[[nodiscard("判定として利用してください")]]
@@ -55,11 +73,13 @@ public:
 
 private:
 
-	// ヒットストップカウンタ
-	int hitStopCnt_ = 0;
+	// 演出時間
+	float hitStopTime_ = 0.0f;
+	float slowTime_ = 0.0f;
 
-	// 画面遅延カウンタ
-	int slowCounter_ = 0;
+	// 遅延の間引き判定用のフレームカウンタ
+	int slowFrameCount_ = 0;
+	int slowInterval_ = SLOW_INTERVAL;
 
 	// 揺れ数カウンタ
 	int shakeCounterX_ = 0;
@@ -67,4 +87,6 @@ private:
 
 	// 振動位置
 	Vector2 shakePos_;
+
+	void UpdateShake(void);
 };

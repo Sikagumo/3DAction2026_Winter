@@ -109,6 +109,7 @@ private:
 	void DoChangeScene(SCENE_ID sceneId);
 
 	/// @brief フェード
-	void Fade(void);
+	void FadeScreen(void);
 
+	void UpdateDeltaTime(void);
 };

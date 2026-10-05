@@ -107,34 +107,30 @@ void SceneManager::Update(void)
 {
 	if (scene_ == nullptr) { return; }
 
-	if (performance_->IsHitStop())
+	const bool IS_PRE_HIT_STOP = performance_->IsHitStop();
+
+	UpdateDeltaTime();
+
+	performance_->Update();
+
+	// 遅延の間引きフレームでは更新しない
+	if (performance_->IsSkipFrame()) { return; }
+
+	if (!IS_PRE_HIT_STOP)
 	{
-		performance_->Update();
-
-		if (performance_->IsSkipFrame()) { return; }
-	}
-
-	else
-	{
-		// デルタタイム
-		auto nowTime = std::chrono::system_clock::now();
-		deltaTime_ = static_cast<float>(
-			std::chrono::duration_cast<std::chrono::nanoseconds>(nowTime - preTime_).count() / 1000000000.0);
-		preTime_ = nowTime;
-
 		// ゲーム実行時間
 		totalTime_ += deltaTime_;
 
 		if (CheckHitKey(KEY_INPUT_RETURN))
 		{
-			performance_->StartHitStrong();
+			performance_->StartHitSlow(3.0f);
 		}
 
 		fader_->Update();
 
 		if (isSceneChanging_)
 		{
-			Fade();
+			FadeScreen();
 		}
 		else
 		{
@@ -242,7 +238,7 @@ void SceneManager::DoChangeScene(SCENE_ID sceneId)
 	waitSceneId_ = SCENE_ID::NONE;
 }
 
-void SceneManager::Fade(void)
+void SceneManager::FadeScreen(void)
 {
 	Fader::STATE fState = fader_->GetState();
 
@@ -273,6 +269,14 @@ void SceneManager::Fade(void)
 		}
 		break;
 	}
+}
+
+void SceneManager::UpdateDeltaTime(void)
+{
+	auto nowTime = std::chrono::system_clock::now();
+	deltaTime_ = static_cast<float>(
+		std::chrono::duration_cast<std::chrono::nanoseconds>(nowTime - preTime_).count() / 1000000000.0);
+	preTime_ = nowTime;
 }
 
 

@@ -3,12 +3,12 @@
 
 class Application
 {
-
 public:
 
 	// スクリーンサイズ
-	static constexpr int SCREEN_SIZE_X = 1024;
-	static constexpr int SCREEN_SIZE_Y = 640;
+	static constexpr int SCREEN_ASPECT = 100;/*120*/
+	static constexpr int SCREEN_SIZE_X = (16 * SCREEN_ASPECT);
+	static constexpr int SCREEN_SIZE_Y = (9 * SCREEN_ASPECT);
 
 	// データパス関連
 	//-------------------------------------------
@@ -18,26 +18,25 @@ public:
 	static const std::string PATH_SHADER;
 	//-------------------------------------------
 
-	// 明示的にインステンスを生成する
+	/// @brief 明示的にインステンスを生成する
 	static void CreateInstance(void);
 
-	// 静的インスタンスの取得
+	/// @brief 静的インスタンスの取得
 	static Application& GetInstance(void);
 
-	// 初期化
-	void Initialize(void);
-
-	// ゲームループの開始
-	void Run(void);
-
-	// リソースの破棄
+	/// @brief リソースの破棄
 	void DestroyInstance(void);
 
-	// 初期化成功／失敗の判定
-	bool IsInitFail(void) const;
+	void Initialize(void);
 
-	// 解放成功／失敗の判定
-	bool IsReleaseFail(void) const;
+	void Run(void);
+
+	/// @brief 初期化を失敗したか否か
+	bool IsInitFail(void) const { return isInitializeFail_; };
+
+	/// @brief メモリ解放を失敗したか否か
+	bool IsReleaseFail(void) const { return isReleaseFail_; };
+
 
 private:
 
@@ -45,18 +44,22 @@ private:
 	static Application* instance_;
 
 	// 初期化失敗
-	bool isInitFail_;
+	bool isInitializeFail_ = false;
 
 	// 解放失敗
-	bool isReleaseFail_;
+	bool isReleaseFail_ = false;
+
 
 	// デフォルトコンストラクタをprivateにして、
 	// 外部から生成できない様にする
 	Application(void);
-	Application(const Application& manager) = default;
 	~Application(void) = default;
 
-	// Effekseerの初期化
-	void InitEffekseer(void);
+	Application(const Application&) = delete;
+	Application& operator=(const Application&) = delete;
+	Application(Application&&) = delete;
+	Application& operator=(Application&&) = delete;
 
+	/// @brief Effekseerの初期化
+	void InitEffekseer(void);
 };
