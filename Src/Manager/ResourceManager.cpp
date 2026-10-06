@@ -21,14 +21,14 @@ const std::string PATH_DATA = "Data/";
 
 
 // ファイルパスの割り当て
-const std::string ResourceManager::PATH_EFFECT = PATH_DATA + "Effect/";
-const std::string ResourceManager::PATH_IMAGE  = PATH_DATA + "Image/";
-const std::string ResourceManager::PATH_MODEL  = PATH_DATA + "Model/";
-const std::string ResourceManager::PATH_ANIM   = PATH_DATA + "Model/Animation/";
-const std::string ResourceManager::PATH_SE     = PATH_DATA + "Sound/SE/";
-const std::string ResourceManager::PATH_BGM    = PATH_DATA + "Sound/BGM/";
-const std::string ResourceManager::PATH_MOVIE  = PATH_DATA + "Movie/";
-const std::string ResourceManager::PATH_SHADER = PATH_DATA + "Shader/";
+const std::string ResourceManager::PATH_EFFECT    = PATH_DATA + "Effect/";
+const std::string ResourceManager::PATH_IMAGE     = PATH_DATA + "Image/";
+const std::string ResourceManager::PATH_MODEL     = PATH_DATA + "Model/";
+const std::string ResourceManager::PATH_ANIMATION = PATH_DATA + "Model/Animation/";
+const std::string ResourceManager::PATH_SE        = PATH_DATA + "Sound/SE/";
+const std::string ResourceManager::PATH_BGM       = PATH_DATA + "Sound/BGM/";
+const std::string ResourceManager::PATH_MOVIE     = PATH_DATA + "Movie/";
+const std::string ResourceManager::PATH_SHADER    = PATH_DATA + "Shader/";
 
 
 void ResourceManager::CreateInstance(void)
@@ -174,14 +174,11 @@ void ResourceManager::Initialize(void)
 	_SetResource(LOAD_TYPE::MODEL, SRC::MODEL_BOSS, PATH_MODEL + "Enemy/Boss/Boss.mv1");
 
 	/* アニメーション */
-	_SetResource(LOAD_TYPE::ANIM, SRC::ANIM_IDLE, PATH_ANIM + "Idle.mv1");
-	_SetResource(LOAD_TYPE::ANIM, SRC::ANIM_RUN, PATH_ANIM + "Run.mv1");
-	_SetResource(LOAD_TYPE::ANIM, SRC::ANIM_THROW_RUN, PATH_ANIM + "Throw_Run.mv1");
-	_SetResource(LOAD_TYPE::ANIM, SRC::ANIM_THROW_LEFT, PATH_ANIM + "Throw_Left.mv1");
-	_SetResource(LOAD_TYPE::ANIM, SRC::ANIM_THROW_RIGHT, PATH_ANIM + "Throw_Right.mv1");
-	_SetResource(LOAD_TYPE::ANIM, SRC::ANIM_JUMP, PATH_ANIM + "Jump.mv1");
-	_SetResource(LOAD_TYPE::ANIM, SRC::ANIM_DODGE, PATH_ANIM + "Rolling.mv1");
-	_SetResource(LOAD_TYPE::ANIM, SRC::ANIM_DEFEAT, PATH_ANIM + "Defeat.mv1");
+	_SetResource(LOAD_TYPE::ANIMATION, SRC::ANIMATION_PLAYER_IDLE, PATH_ANIMATION + "Idle.mv1");
+	_SetResource(LOAD_TYPE::ANIMATION, SRC::ANIMATION_PLAYER_WALK, PATH_ANIMATION + "Walk.mv1");
+	_SetResource(LOAD_TYPE::ANIMATION, SRC::ANIMATION_PLAYER_RUN, PATH_ANIMATION + "Run.mv1");
+	_SetResource(LOAD_TYPE::ANIMATION, SRC::ANIMATION_PLAYER_DODGE, PATH_ANIMATION + "Rolling.mv1");
+	_SetResource(LOAD_TYPE::ANIMATION, SRC::ANIMATION_PLAYER_DEFEAT, PATH_ANIMATION + "Defeat.mv1");
 
 	/* BGM */
 	_SetResource(LOAD_TYPE::SOUND, SRC::BGM_TITLE_SEA, PATH_BGM + "Sea.mp3");
@@ -272,7 +269,7 @@ Resource ResourceManager::Load(SRC _src)
 const int ResourceManager::LoadHandleId(SRC _src)
 {
 	// リソースの
-	return Load(_src).GetHandleId();
+	return Load(_src).LoadHandleId();
 }
 void ResourceManager::LoadHandleIds(SRC _src, int* _target)
 {
@@ -344,7 +341,7 @@ int ResourceManager::LoadModelDuplicate(SRC src)
 	}
 
 	// 重複するモデルのハンドルを取得
-	int id = MV1DuplicateModel(resource->GetHandleId());
+	int id = MV1DuplicateModel(resource->LoadHandleId());
 
 	// 重複モデルリストにハンドル追加
 	resource->SetDuplicateModelId(id);

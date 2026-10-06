@@ -19,12 +19,15 @@ void TitleScene::Initialize(void)
 {
 	// ‰æ‘œ“Ç‚İ‚İ
 	imageTitle_ = ResourceManager::GetInstance().LoadHandleId(ResourceManager::SRC::IMAGE_TITLE);
+
+	// ƒJƒƒ‰“o˜^
+	SceneManager::GetInstance().GetCamera().ChangeMode(Camera::MODE::FIXED_POINT);
 }
 
 void TitleScene::Update(void)
 {
 	// ƒV[ƒ“‘JˆÚ
-	if (InputManager::GetInstance().IsTrgDown(KEY_INPUT_SPACE))
+	if (InputManager::GetInstance().IsTrgDown(InputManager::TYPE::GAME_STATE_CHANGE))
 	{
 		SceneManager::GetInstance().ChangeScene(SceneManager::SCENE_ID::GAME);
 	}

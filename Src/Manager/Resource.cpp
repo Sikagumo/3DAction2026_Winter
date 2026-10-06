@@ -44,7 +44,7 @@ void Resource::Load(void)
 			Load_Images();
 		break;
 
-		case LOAD_TYPE::MODEL: case LOAD_TYPE::ANIM:
+		case LOAD_TYPE::MODEL: case LOAD_TYPE::ANIMATION:
 			Load_ModelAndAnimation();
 		break;
 		
@@ -58,11 +58,11 @@ void Resource::Load(void)
 
 		case LOAD_TYPE::VERTEX_SHADER:
 			Load_VertexShader();
-			break;
+		break;
 
 		case LOAD_TYPE::PIXEL_SHADER:
 			Load_PixelShader();
-			break;
+		break;
 	}
 
 }
@@ -139,7 +139,7 @@ void Resource::Release(void)
 			Release_Images();
 		break;
 
-		case LOAD_TYPE::MODEL: case LOAD_TYPE::ANIM:
+		case LOAD_TYPE::MODEL: case LOAD_TYPE::ANIMATION:
 			Release_ModelAndAnimation();
 		break;
 

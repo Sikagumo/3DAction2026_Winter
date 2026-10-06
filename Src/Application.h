@@ -6,25 +6,22 @@ class Application
 public:
 
 	// スクリーンサイズ
-	static constexpr int SCREEN_ASPECT = 100;/*120*/
+	static constexpr int SCREEN_ASPECT = (120 - 20);
 	static constexpr int SCREEN_SIZE_X = (16 * SCREEN_ASPECT);
 	static constexpr int SCREEN_SIZE_Y = (9 * SCREEN_ASPECT);
+	static constexpr int SCREEN_HALF_X = (SCREEN_SIZE_X / 2);
+	static constexpr int SCREEN_HALF_Y = (SCREEN_SIZE_Y / 2);
 
-	// データパス関連
-	//-------------------------------------------
-	static const std::string PATH_IMAGE;
-	static const std::string PATH_MODEL;
-	static const std::string PATH_EFFECT;
-	static const std::string PATH_SHADER;
-	//-------------------------------------------
+	// 重力最大値(default:9.8f)
+	static constexpr float GRAVITY_MAX = 9.8f;
 
-	/// @brief 明示的にインステンスを生成する
+	// 重力増加値(default:0.25f)
+	static constexpr float GRAVITY_ACC = 0.25f;
+
+
+	/// @brief インスタンス処理
 	static void CreateInstance(void);
-
-	/// @brief 静的インスタンスの取得
 	static Application& GetInstance(void);
-
-	/// @brief リソースの破棄
 	void DestroyInstance(void);
 
 	void Initialize(void);
@@ -32,10 +29,13 @@ public:
 	void Run(void);
 
 	/// @brief 初期化を失敗したか否か
-	bool IsInitFail(void) const { return isInitializeFail_; };
+	bool IsInitFail(void) const { return isInitializeFail_; }
 
 	/// @brief メモリ解放を失敗したか否か
-	bool IsReleaseFail(void) const { return isReleaseFail_; };
+	bool IsReleaseFail(void) const { return isReleaseFail_; }
+
+	/// @brief ゲーム終了処理
+	void IsGameEnd(void) { isGameEnd_ = true; }
 
 
 private:
@@ -49,12 +49,15 @@ private:
 	// 解放失敗
 	bool isReleaseFail_ = false;
 
+	// ゲームを終了するか否か
+	bool isGameEnd_ = false;
+
 
 	// デフォルトコンストラクタをprivateにして、
 	// 外部から生成できない様にする
 	Application(void);
 	~Application(void) = default;
-
+ 
 	Application(const Application&) = delete;
 	Application& operator=(const Application&) = delete;
 	Application(Application&&) = delete;

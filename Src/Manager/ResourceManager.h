@@ -47,14 +47,11 @@ public:
 		MODEL_TREE_POSITION,
 
 		/* 外部アニメーション */
-		ANIM_IDLE,
-		ANIM_RUN,
-		ANIM_THROW_RUN,
-		ANIM_THROW_LEFT,
-		ANIM_THROW_RIGHT,
-		ANIM_JUMP,
-		ANIM_DODGE,
-		ANIM_DEFEAT,
+		ANIMATION_PLAYER_IDLE,
+		ANIMATION_PLAYER_WALK,
+		ANIMATION_PLAYER_RUN,
+		ANIMATION_PLAYER_DODGE,
+		ANIMATION_PLAYER_DEFEAT,
 
 		/* エフェクト */
 		EFFECT_WAVE,
@@ -111,7 +108,7 @@ public:
 	static const std::string PATH_MODEL;
 
 	// アニメーションファイルパス
-	static const std::string PATH_ANIM;
+	static const std::string PATH_ANIMATION;
 
 	// BGMファイルパス
 	static const std::string PATH_BGM;

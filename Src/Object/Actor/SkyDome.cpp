@@ -1,8 +1,14 @@
 #include "SkyDome.h"
-#include "../Manager/ResourceManager.h"
-#include "../Manager/SceneManager.h"
-#include "../Utility/UtilityMath.h"
-#include "Common/Transform.h"
+#include "../../Manager/ResourceManager.h"
+#include "../../Manager/SceneManager.h"
+#include "../../Utility/UtilityMath.h"
+#include "../Common/Transform.h"
+
+namespace
+{
+	static constexpr float SCALE = 10.0f;
+	static constexpr VECTOR SCALES = { SCALE, SCALE, SCALE };
+};
 
 SkyDome::SkyDome(const Transform& syncTransform)
 	: syncTransform_(syncTransform)
@@ -14,31 +20,28 @@ SkyDome::SkyDome(const Transform& syncTransform)
 	stateChanges_.emplace(STATE::FOLLOW, std::bind(&SkyDome::ChangeStateFollow, this));
 }
 
-SkyDome::~SkyDome(void)
+void SkyDome::InitLoad(void)
 {
+	transform_.SetModel(ResourceManager::GetInstance().LoadModelDuplicate(ResourceManager::SRC::MODEL_SKYDOME));
 }
 
-void SkyDome::Initialize(void)
+void SkyDome::InitTransform(void)
 {
 	// モデル制御の基本情報
-	transform_.SetModel(ResourceManager::GetInstance().LoadModelDuplicate(ResourceManager::SRC::MODEL_SKYDOME));
-	transform_.scl = SCALES;
-	transform_.pos = UtilityMath::VECTOR_ZERO;
-	transform_.quaRot = Quaternion::Euler(
-		0.0f, 
-		UtilityMath::Deg2Rad(180.0f),
-		0.0f
-	);
-	transform_.quaRotLocal = Quaternion();
-	transform_.Update();
+	transform_.InitTransform(SCALES
+		, Quaternion::Euler(0.0f, UtilityMath::Deg2Rad(180.0f), 0.0f), Quaternion::Identity()
+		, UtilityMath::VECTOR_ZERO);
+}
 
+void SkyDome::InitPost(void)
+{
 	// Zバッファ無効(突き抜け対策)
 	MV1SetUseZBuffer(transform_.modelId, false);
 	MV1SetWriteZBuffer(transform_.modelId, false);
 
 	// 状態遷移
 	auto sceneId = SceneManager::GetInstance().GetSceneID();
-	if(sceneId == SceneManager::SCENE_ID::TITLE)
+	if (sceneId == SceneManager::SCENE_ID::TITLE)
 	{
 		ChangeState(STATE::STAY);
 	}

@@ -10,13 +10,13 @@ public:
 	{
 		NONE = -1,
 
-		IMAGE,  // 単一画像
-		IMAGES, // 複数画像
-		MODEL,  // 3Dモデル
-		MOVIE,  // 映像ファイル
-		ANIM,   // アニメーションファイル
-		EFFECT, // エフェクト
-		SOUND,  // 音声
+		IMAGE,     // 単一画像
+		IMAGES,    // 複数画像
+		MODEL,     // 3Dモデル
+		MOVIE,     // 映像ファイル
+		ANIMATION, // アニメーションファイル
+		EFFECT,    // エフェクト
+		SOUND,     // 音声
 		VERTEX_SHADER, // 頂点シェーダ
 		PIXEL_SHADER,  // ピクセルシェーダ
 	};
@@ -52,7 +52,7 @@ public:
 	void SetDuplicateModelId(int _id);
 
 	/// @brief リソースのIDを取得
-	int GetHandleId(void)const { return handleId_; };
+	int LoadHandleId(void)const { return handleId_; };
 
 	/// @brief 複数画像の個別取得
 	/// @param 取得する画像番号

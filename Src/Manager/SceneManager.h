@@ -53,6 +53,9 @@ public:
 
 	float GetTotalTime(void) const { return totalTime_; };
 
+	bool GetIsDebugMode(void)const { return isDebugMode_; };
+	void ChangeIsDebugMode(void)const { !isDebugMode_; };
+
 
 private:
 
@@ -62,6 +65,7 @@ private:
 	SCENE_ID sceneId_;
 	SCENE_ID waitSceneId_;
 
+	bool isDebugMode_ = false;
 
 	// äeéÌÉVÅ[Éì
 	std::unique_ptr<SceneBase> scene_ = nullptr;

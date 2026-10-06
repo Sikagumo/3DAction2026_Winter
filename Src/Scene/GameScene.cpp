@@ -5,20 +5,15 @@
 #include "../Manager/SceneManager.h"
 #include "../Manager/Camera.h"
 #include "../Manager/InputManager.h"
-#include "../Object/Common/Capsule.h"
-#include "../Object/Common/Collider.h"
-#include "../Object/SkyDome.h"
-//#include "../Object/Stage.h"
-#include "../Object/Player.h"
+#include "../Object/Actor/SkyDome.h"
+#include "../Object/Collider/ColliderBase.h"
+#include "../Object/Actor/Character/Player.h"
+//#include "../Object/Actor/Stage.h"
 //#include "../Object/Model.h"
 
 GameScene::GameScene(void)
 	: SceneBase()
 	, mode_(MODE::MAIN)
-	, player_(nullptr)
-	, skyDome_(nullptr)
-	//, stage_(nullptr)
-	//, postEffectScreen_(-1)
 {
 }
 
@@ -39,19 +34,23 @@ void GameScene::Initialize(void)
 	SetFogColor(FOG_COLOR_R, FOG_COLOR_G, FOG_COLOR_B);
 	SetFogStartEnd(FOG_POS_START, FOG_POS_END);
 
-	// プレイヤー
-	player_ = std::make_unique<Player>();
-	player_->Initialize();
 
 	// ステージ
 	//stage_ = std::make_unique<Stage>(*player_);
 	//stage_->Initialize();
+	//const ColliderBase* stageCollider = stage_->GetOwnCollider(static_cast<int>(Stage::COLLIDER_TYPE::MODEL));
+
+	// プレイヤー
+	player_ = std::make_unique<Player>();
+	player_->Initialize();
+	// ステージモデルのコライダーをプレイヤーに登録
+	//player_->AddHitCollider(stageCollider);
 
 	// スカイドーム
 	skyDome_ = std::make_unique<SkyDome>(player_->GetTransform());
 	skyDome_->Initialize();
 
-	
+	// カメラ登録
 	SceneManager::GetInstance().GetCamera().SetFollow(&player_->GetTransform());
 	SceneManager::GetInstance().GetCamera().ChangeMode(Camera::MODE::FOLLOW);
 
@@ -111,14 +110,14 @@ void GameScene::Update(void)
 {
 
 	// シーン遷移
-	InputManager& ins = InputManager::GetInstance();
-	if (ins.IsTrgDown(KEY_INPUT_SPACE))
+	if (InputManager::GetInstance().IsTrgDown(InputManager::TYPE::GAME_STATE_CHANGE))
 	{
 		SceneManager::GetInstance().ChangeScene(SceneManager::SCENE_ID::TITLE);
 	}
 
 	// モード切替
-	if (ins.IsTrgDown(KEY_INPUT_BACKSLASH))
+	/*
+	if (InputManager::GetInstance().IsTrgDown(KEY_INPUT_BACKSLASH))
 	{
 		int tmp = (int)mode_;
 		tmp++;
@@ -128,6 +127,7 @@ void GameScene::Update(void)
 		}
 		mode_ = (MODE)tmp;
 	}
+	*/
 
 	skyDome_->Update();
 
@@ -141,7 +141,6 @@ void GameScene::Draw(void)
 	// 背景
 	skyDome_->Draw();
 	//stage_->Draw();
-	
 	
 	player_->Draw();
 

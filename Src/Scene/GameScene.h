@@ -38,21 +38,20 @@ public:
 
 private:
 
-	// プレイヤー
-	std::unique_ptr<Player> player_;
-
 	// ステージ
-	//std::unique_ptr<Stage> stage_;
+	//std::unique_ptr<Stage> stage_ = nullptr;
+
+	// プレイヤー
+	std::unique_ptr<Player> player_ = nullptr;
 
 	// スカイドーム
-	std::unique_ptr<SkyDome> skyDome_;
-
+	std::unique_ptr<SkyDome> skyDome_ = nullptr;
 
 	// ポストエフェクトモード
 	MODE mode_;
 
 	// ポストエフェクト用スクリーン
-	//int postEffectScreen_;
+	//int postEffectScreen_ = -1;
 	
 	// ポストエフェクト用(モノクロ)
 	//std::unique_ptr<PixelMaterial> monoMaterial_;

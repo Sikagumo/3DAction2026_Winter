@@ -1,5 +1,6 @@
 #include <DxLib.h>
 #include <EffekseerForDXLib.h>
+#include <string>
 #include "Manager/InputManager.h"
 #include "Manager/ResourceManager.h"
 #include "Manager/SceneManager.h"
@@ -7,14 +8,9 @@
 
 namespace
 {
-
+	const std::string GAME_TITLE = "";
 };
 Application* Application::instance_ = nullptr;
-
-const std::string Application::PATH_IMAGE = "Data/Image/";
-const std::string Application::PATH_MODEL = "Data/Model/";
-const std::string Application::PATH_EFFECT = "Data/Effect/";
-const std::string Application::PATH_SHADER = "Data/Shader/";
 
 Application::Application(void)
 {
@@ -38,7 +34,7 @@ Application& Application::GetInstance(void)
 void Application::Initialize(void)
 {
 	// アプリケーションの初期設定
-	SetWindowText("");
+	SetWindowText(GAME_TITLE.c_str());
 
 	// ウィンドウサイズ
 	SetGraphMode(SCREEN_SIZE_X, SCREEN_SIZE_Y, 32);
@@ -73,8 +69,14 @@ void Application::Initialize(void)
 void Application::Run(void)
 {
 	// ゲームループ
-	while (ProcessMessage() == 0 && CheckHitKey(KEY_INPUT_ESCAPE) == 0)
+	while (ProcessMessage() == 0 && !isGameEnd_)
 	{
+#ifdef _DEBUG
+		if (CheckHitKey(KEY_INPUT_ESCAPE) != 0)
+		{
+			IsGameEnd();
+		}
+#endif
 		InputManager::GetInstance().Update();
 		SceneManager::GetInstance().Update();
 

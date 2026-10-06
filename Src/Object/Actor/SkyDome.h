@@ -1,16 +1,12 @@
 #pragma once
 #include <map>
 #include <functional>
-#include "Common/Transform.h"
+#include "../Common/Transform.h"
 #include "ActorBase.h"
 
 class SkyDome : public ActorBase
 {
-
 public:
-
-	static constexpr float SCALE = 100.0f;
-	static constexpr VECTOR SCALES = { SCALE, SCALE, SCALE };
 
 	// 状態
 	enum class STATE
@@ -20,15 +16,13 @@ public:
 		FOLLOW
 	};
 
-	// コンストラクタ
+	
 	SkyDome(const Transform& syncTransform);
+	~SkyDome(void)override = default;
 
-	// デストラクタ
-	~SkyDome(void);
-
-	void Initialize(void) override;
 	void Update(void) override;
 	void Draw(void) override;
+
 
 private:
 
@@ -43,6 +37,12 @@ private:
 
 	// 状態管理(更新ステップ)
 	std::function<void(void)> stateUpdate_;
+
+	void InitLoad(void)override;
+	void InitTransform(void)override;
+	void InitCollider(void)override {};
+	void InitAnimation(void)override {};
+	void InitPost(void)override;
 
 	void ChangeState(STATE state);
 	void ChangeStateNone(void);
