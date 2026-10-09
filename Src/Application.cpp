@@ -1,14 +1,15 @@
+#include "Application.h"
 #include <DxLib.h>
 #include <EffekseerForDXLib.h>
 #include <string>
 #include "Manager/InputManager.h"
 #include "Manager/ResourceManager.h"
 #include "Manager/SceneManager.h"
-#include "Application.h"
+#include "./resource.h"
 
 namespace
 {
-	const std::string GAME_TITLE = "";
+	const std::string GAME_TITLE = "悪逆ノ流儀";
 };
 Application* Application::instance_ = nullptr;
 
@@ -26,11 +27,6 @@ void Application::CreateInstance(void)
 	instance_->Initialize();
 }
 
-Application& Application::GetInstance(void)
-{
-	return *instance_;
-}
-
 void Application::Initialize(void)
 {
 	// アプリケーションの初期設定
@@ -39,6 +35,9 @@ void Application::Initialize(void)
 	// ウィンドウサイズ
 	SetGraphMode(SCREEN_SIZE_X, SCREEN_SIZE_Y, 32);
 	
+	// ウィンドウアイコン
+	SetWindowIconID(IDI_ICON1);
+
 #ifdef _DEBUG
 	ChangeWindowMode(TRUE);
 #else

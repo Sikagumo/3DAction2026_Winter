@@ -15,46 +15,46 @@ class SceneManager
 {
 public:
 
-	// シーン管理用
+	/// @brief シーン管理用
 	enum class SCENE_ID
 	{
-		NONE,
+		NONE = -1,
 		TITLE,
 		GAME
 	};
 	
-	// インスタンスの生成
+	/// @brief インスタンス処理
 	static void CreateInstance(void);
-
-	// インスタンスの取得
 	static SceneManager& GetInstance(void);
+	void DestroyInstance(void);
 
 	void Initialize(void);
 	void Init3D(void);
 	void Update(void);
 	void Draw(void);
 
-	// リソースの破棄
-	void DestroyInstance(void);
 
 	/// @brief 状態遷移
+	/// @param nextId 遷移後のシーン
 	void ChangeScene(SCENE_ID nextId);
 
 	/// @brief 現在シーンID取得
-	SCENE_ID GetSceneID(void) { return sceneId_; };
+	SCENE_ID GetSceneID(void) { return sceneId_; }
 
 	/// @brief デルタタイムの取得
 	float GetDeltaTime(void) const;
 
 	/// @brief カメラの取得
-	Camera& GetCamera(void) { return *camera_; };
+	Camera& GetCamera(void) { return *camera_; }
+
+	Performance& GetPerformance(void) { return *performance_; }
 
 	int GetMainScreen(void) const { return mainScreen_; };
 
 	float GetTotalTime(void) const { return totalTime_; };
 
 	bool GetIsDebugMode(void)const { return isDebugMode_; };
-	void ChangeIsDebugMode(void)const { !isDebugMode_; };
+	void ChangeIsDebugMode(void) { isDebugMode_ = !isDebugMode_; };
 
 
 private:

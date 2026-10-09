@@ -21,7 +21,7 @@ public:
 
 	/// @brief インスタンス処理
 	static void CreateInstance(void);
-	static Application& GetInstance(void);
+	static Application& GetInstance(void) { return *instance_; };
 	void DestroyInstance(void);
 
 	void Initialize(void);

@@ -3,6 +3,7 @@
 #include "../../../Utility/Utilitymath.h"
 #include "../../../Manager/SceneManager.h"
 #include "../../../Manager/ResourceManager.h"
+#include "../../Common/ActionController.h"
 #include "../../Collider/ColliderBase.h"
 #include "../../Collider/ColliderLine.h"
 #include "../../Collider/ColliderModel.h"
@@ -38,12 +39,18 @@ void CharaBase::InitAnimation(void)
 
 	// 各アニメーション初期化
 	InitAnimationPost();
+
+	// 行動
+	actionController_ = std::make_unique<ActionController>(animation_);
+	InitActionPost();
 }
 
 void CharaBase::Update(void)
 {
 	// 移動前座標を更新
 	prevPos_ = transform_.pos;
+
+	actionController_->Update();
 
 	// 各キャラクターごとの更新処理
 	UpdateProcess();
@@ -52,7 +59,7 @@ void CharaBase::Update(void)
 	DelayRotate();
 
 	// 重力による移動量
-	CalcGravityPow();
+	//CalcGravityPow();
 
 	// 衝突判定前準備
 	CollisionReserve();
@@ -68,7 +75,6 @@ void CharaBase::Update(void)
 
 	// 各キャラクターごとの更新後処理
 	UpdateProcessPost();
-
 }
 
 void CharaBase::Release(void)
@@ -124,8 +130,8 @@ void CharaBase::CollisionGravity(void)
 	if (colliderLine_ == nullptr) { return; }
 
 	// 線分の始点と終点を取得
-	VECTOR s = colliderLine_->GetPosStart();
-	VECTOR e = colliderLine_->GetPosEnd();
+	VECTOR start = colliderLine_->GetPosStart();
+	VECTOR end = colliderLine_->GetPosEnd();
 
 	// 登録されている衝突物を全てチェック
 	for (const auto& hitCol : hitColliders_)
@@ -141,7 +147,7 @@ void CharaBase::CollisionGravity(void)
 
 		// ステージモデル(地面)との衝突
 		auto hits = MV1CollCheck_LineDim(
-			colliderModel->GetFollow()->modelId, -1, s, e);
+			colliderModel->GetFollow()->modelId, -1, start, end);
 
 		for (int i = 0; i < hits.HitNum; i++)
 		{

@@ -31,8 +31,9 @@ public:
 
 		// プレイヤーアクション
 		PLAYER_ATTACK_JUB,	  // 弱攻撃
-		PLAYER_ATTACK_STRONG, // 弱攻撃
-		PLAYER_DASH,   // ダッシュ
+		PLAYER_ATTACK_STRONG, // 強攻撃
+		PLAYER_DASH,      // ダッシュ
+		PLAYER_DEFENSE,   // 守備
 
 		GAME_STATE_CHANGE, // ゲーム状態遷移
 

@@ -3,6 +3,7 @@
 #include <memory>
 
 class AnimationController;
+class ActionController;
 
 class CharaBase : public ActorBase
 {
@@ -38,7 +39,9 @@ protected:
 	static constexpr float COLLISION_BACK_DIS = 1.0f;
 
 
-	std::unique_ptr<AnimationController> animation_;
+	std::unique_ptr<AnimationController> animation_ = nullptr;
+
+	std::unique_ptr<ActionController> actionController_ = nullptr;
 
 	int shadowHandle_ = -1;
 
@@ -61,6 +64,7 @@ protected:
 	virtual void InitLoadPost(void) = 0;
 	virtual void InitAnimation(void)override final;
 	virtual void InitAnimationPost(void) = 0;
+	virtual void InitActionPost(void) {};
 
 	virtual void UpdateProcess(void) = 0;
 	virtual void UpdateProcessPost(void) = 0;

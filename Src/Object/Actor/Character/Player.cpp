@@ -1,8 +1,11 @@
 #include "Player.h"
+#include <array>
+#include <functional>
 #include "../../../Manager/ResourceManager.h"
 #include "../../../Utility/UtilityMath.h"
 #include "../../../Utility/MatrixUtility.h"
 #include "../../Common/AnimationController.h"
+#include "../../Common/ActionController.h"
 #include "../../../Manager/InputManager.h"
 #include "../../../Manager/SceneManager.h"
 #include "../../../Manager/Camera.h"
@@ -12,38 +15,46 @@
 namespace
 {
 	// 衝突判定用線分開始
-	static constexpr VECTOR COL_LINE_START_LOCAL_POS = { 0.0f, 80.0f, 0.0f };
+	constexpr VECTOR COL_LINE_START_LOCAL_POS = { 0.0f, 80.0f, 0.0f };
 
 	// 衝突判定用線分終了
-	static constexpr VECTOR COL_LINE_END_LOCAL_POS = { 0.0f, -10.0f, 0.0f };
+	constexpr VECTOR COL_LINE_END_LOCAL_POS = { 0.0f, -10.0f, 0.0f };
 
 	// 衝突判定用線分開始(ジャンプ時)
-	static constexpr VECTOR COL_LINE_JUMP_START_LOCAL_POS = { 0.0f, 130.0f, 0.0f };
+	constexpr VECTOR COL_LINE_JUMP_START_LOCAL_POS = { 0.0f, 130.0f, 0.0f };
 
 	// 衝突判定用線分終了(ジャンプ時)
-	static constexpr VECTOR COL_LINE_JUMP_END_LOCAL_POS = { 0.0f, 50.0f, 0.0f };
-
+	constexpr VECTOR COL_LINE_JUMP_END_LOCAL_POS = { 0.0f, 50.0f, 0.0f };
 
 	// 衝突判定用カプセル上部球体
-	static constexpr VECTOR COL_CAPSULE_TOP_LOCAL_POS = { 0.0f, 110.0f, 0.0f };
+	constexpr VECTOR COL_CAPSULE_TOP_LOCAL_POS = { 0.0f, 110.0f, 0.0f };
 
 	// 衝突判定用カプセル下部球体
-	static constexpr VECTOR COL_CAPSULE_DOWN_LOCAL_POS = { 0.0f, 30.0f, 0.0f };
+	constexpr VECTOR COL_CAPSULE_DOWN_LOCAL_POS = { 0.0f, 30.0f, 0.0f };
 
 	// 衝突判定用カプセル上部球体(ジャンプ時)
-	static constexpr VECTOR COL_CAPSULE_TOP_JUMP_LOCAL_POS = { 0.0f, 160.0f, 0.0f };
+	constexpr VECTOR COL_CAPSULE_TOP_JUMP_LOCAL_POS = { 0.0f, 160.0f, 0.0f };
 
 	// 衝突判定用カプセル下部球体(ジャンプ時)
-	static constexpr VECTOR COL_CAPSULE_DOWN_JUMP_LOCAL_POS = { 0.0f, 80.0f, 0.0f };
+	constexpr VECTOR COL_CAPSULE_DOWN_JUMP_LOCAL_POS = { 0.0f, 80.0f, 0.0f };
 
 	// 衝突判定用カプセル球体半径
-	static constexpr float COL_CAPSULE_RADIUS = 20.0f;
+	constexpr float COL_CAPSULE_RADIUS = 20.0f;
 
 	// 移動速度(通常)
-	static constexpr float SPEED_MOVE = 5.0f;
+	constexpr float SPEED_MOVE = 5.0f;
 
 	// 移動速度(ダッシュ)
-	static constexpr float SPEED_DASH = 10.0f;
+	constexpr float SPEED_DASH = 10.0f;
+
+	constexpr float PARRY_TIME = 0.5f;
+
+	constexpr float DODGE_TOTAL_ACTIVE = 0.2f;
+	constexpr float DODGE_TIMING_ACTION = 0.05f;
+	constexpr float DODGE_TOTAL_END = 0.25f;
+
+	constexpr float DEFENCE_TOTAL_ACTIVE = 0.2f;
+	constexpr float DEFENCE_TIMING_ACTION = 0.05f;
 };
 
 Player::Player(void)
@@ -60,7 +71,7 @@ void Player::InitLoadPost(void)
 void Player::InitTransform(void)
 {
 	transform_.InitTransform(1.0f,
-							 Quaternion::Identity(), Quaternion::AngleAxis(180.0f, UtilityMath::AXIS_Y),
+							 Quaternion::Identity(), Quaternion::AngleAxis(0.0f, UtilityMath::AXIS_Y),
 							 UtilityMath::VECTOR_ZERO);
 }
 
@@ -99,6 +110,17 @@ void Player::InitAnimationPost(void)
 	PlayAnimation(ANIMATION_TYPE::IDLE);
 }
 
+void Player::InitActionPost(void)
+{
+	actionController_->SetAction(static_cast<int>(ACTION_TYPE::DEFENSE),
+		ActionController::ActionParam{
+			.timeActive = DEFENCE_TOTAL_ACTIVE,
+			.timeActionTiming = DEFENCE_TIMING_ACTION,
+		}
+		, MakeActionCommand([this]() { Defense(); })
+		);
+}
+
 void Player::InitPost(void)
 {
 }
@@ -109,11 +131,20 @@ void Player::UpdateProcess(void)
 
 	// 移動操作
 	ProcessMove();
+
+	ProcessDefense();
+
+	ProcessDodge();
 }
 
 void Player::UpdateProcessPost(void)
 {
 	
+}
+
+void Player::ChangeAction(ACTION_TYPE action)
+{
+
 }
 
 void Player::CollisionReserve(void)
@@ -248,6 +279,30 @@ void Player::ProcessJump(void)
 	{
 		transform_.pos.y = -(LIMIT_POS_Y);
 	}
+}
+
+void Player::ProcessDodge(void)
+{
+	
+}
+
+void Player::ProcessDefense(void)
+{
+	if (InputManager::GetInstance().IsTrgDown(InputManager::TYPE::PLAYER_DEFENSE))
+	{
+		actionController_->Active(static_cast<int>(ACTION_TYPE::DEFENSE));
+	}
+
+	if (actionController_->GetCurActionNum() == static_cast<int>(ACTION_TYPE::DEFENSE))
+	{
+		parryTime_ -= ((parryTime_ > 0.0f) ? SceneManager::GetInstance().GetDeltaTime() : 0.0f);
+	}
+}
+void Player::Defense(void)
+{
+	parryTime_ = PARRY_TIME;
+
+	SceneManager::GetInstance().GetPerformance().StartHitStrong();
 }
 
 void Player::PlayAnimation(Player::ANIMATION_TYPE _type, bool _isLoop)

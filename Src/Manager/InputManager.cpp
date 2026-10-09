@@ -45,9 +45,10 @@ void InputManager::Init(void)
 	RegisterTrigger(TYPE::PLAYER_ROTATION_LEFT, { KEY_INPUT_LEFT }, { }, { STICK::R_STICK_LEFT }, MOUSE::MOVE_LEFT);
 	RegisterTrigger(TYPE::PLAYER_ROTATION_RIGHT, { KEY_INPUT_RIGHT }, { }, { STICK::R_STICK_RIGHT }, MOUSE::MOVE_RIGHT);
 
-	RegisterTrigger(TYPE::PLAYER_ATTACK_JUB, { }, { BTN::RB_LEFT }, { }, MOUSE::CLICK_LEFT);
-	RegisterTrigger(TYPE::PLAYER_ATTACK_STRONG, { }, { BTN::RB_TOP }, { }, MOUSE::CLICK_RIGHT);
+	RegisterTrigger(TYPE::PLAYER_ATTACK_JUB, { }, { BTN::RB_TOP }, { }, MOUSE::CLICK_LEFT);
+	RegisterTrigger(TYPE::PLAYER_ATTACK_STRONG, { KEY_INPUT_R }, { BTN::RB_RIGHT }, { });
 	RegisterTrigger(TYPE::PLAYER_DASH, { KEY_INPUT_LSHIFT, KEY_INPUT_RSHIFT, }, { BTN::L_STICK }, { });
+	RegisterTrigger(TYPE::PLAYER_DEFENSE, { }, { BTN::RB_LEFT }, { }, MOUSE::CLICK_RIGHT);
 
 	// ÉÅÉjÉÖÅ[ëÄçÏ
 	RegisterTrigger(TYPE::SELECT_LEFT,  { KEY_INPUT_A, KEY_INPUT_LEFT },  { BTN::L_BUTTON }, { STICK::L_STICK_LEFT });
@@ -59,7 +60,7 @@ void InputManager::Init(void)
 	RegisterTrigger(TYPE::PAUSE,           { KEY_INPUT_ESCAPE, KEY_INPUT_BACK },   { BTN::SELECT }, { });
 
 	// ÉQÅ[ÉÄèÛë‘ëJà⁄
-	RegisterTrigger(TYPE::GAME_STATE_CHANGE, { KEY_INPUT_SPACE }, { BTN::RB_RIGHT }, { });
+	RegisterTrigger(TYPE::GAME_STATE_CHANGE, { KEY_INPUT_SPACE }, { BTN::RB_RIGHT, BTN::RB_BOTTOM }, { });
 
 	RegisterTrigger(TYPE::DEBUG_MODE, { KEY_INPUT_TAB }, { }, { });
 	RegisterTrigger(TYPE::DEBUG_SCENE_CHANGE, { KEY_INPUT_RSHIFT }, { }, { });

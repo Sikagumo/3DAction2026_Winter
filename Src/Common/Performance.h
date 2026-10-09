@@ -21,7 +21,7 @@ public:
 	static constexpr int SHAKE_WIDTH_Y = 4;
 
 	// 遅延カウンタ 初期値
-	static constexpr int SLOW_TIME = 0.5f;
+	static constexpr float SLOW_TIME = 0.5f;
 
 	// 遅延間隔（Nフレームに1回更新）
 	static constexpr int SLOW_INTERVAL = 5;

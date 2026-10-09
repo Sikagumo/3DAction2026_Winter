@@ -10,7 +10,7 @@ class Camera : public ActorBase
 public:
 
 	// カメラの初期座標
-	static constexpr VECTOR DERFAULT_POS = { 0.0f, 200.0f, -500.0f };
+	static constexpr VECTOR DERFAULT_POS = { 0.0f, 275.0f, -500.0f };
 
 	// カメラの初期角度
 	static constexpr VECTOR DERFAULT_ANGLES = { 
