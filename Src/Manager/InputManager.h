@@ -34,6 +34,7 @@ public:
 		PLAYER_ATTACK_STRONG, // 強攻撃
 		PLAYER_DASH,      // ダッシュ
 		PLAYER_DEFENSE,   // 守備
+		PLAYER_DODGE,   // 回避
 
 		GAME_STATE_CHANGE, // ゲーム状態遷移
 
@@ -107,19 +108,19 @@ public:
 	Vector2 GetMouseMove(void) const;
 
 	/// @brief 左スティックの倒れた度合いを取得
-	/// @param _num パッド番号
+	/// @param num パッド番号
 	Vector2 GetKnockLStickSize(Input::JOYPAD_NO num = Input::JOYPAD_NO::PAD1) const;
 	
 	/// @brief 右スティックの倒れた度合いを取得
-	/// @param _num パッド番号
+	/// @param num パッド番号
 	Vector2 GetKnockRStickSize(Input::JOYPAD_NO num = Input::JOYPAD_NO::PAD1) const;
 
 	/// @brief 左スティックの倒れた方向を取得
-	/// @param _num パッド番号
+	/// @param num パッド番号
 	VECTOR GetDirXZ_LStick(Input::JOYPAD_NO num = Input::JOYPAD_NO::PAD1, float _threshold = STICK_THRESHOLD) const;
 	
 	/// @brief 右スティックの倒れた方向を取得
-	/// @param _num パッド番号
+	/// @param num パッド番号
 	VECTOR GetDirXZ_RStick(Input::JOYPAD_NO num = Input::JOYPAD_NO::PAD1, float _threshold = STICK_THRESHOLD) const;
 
 

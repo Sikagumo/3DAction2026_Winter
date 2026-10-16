@@ -2,6 +2,7 @@
 #include <DxLib.h>
 #include <EffekseerForDXLib.h>
 #include <string>
+#include "Manager/StatusManager.h"
 #include "Manager/InputManager.h"
 #include "Manager/ResourceManager.h"
 #include "Manager/SceneManager.h"
@@ -61,6 +62,7 @@ void Application::Initialize(void)
 	InputManager::CreateInstance();
 
 	// 管理マネージャ初期化
+	StatusManager::CreateInstance();
 	ResourceManager::CreateInstance();
 	SceneManager::CreateInstance();
 }
@@ -89,6 +91,7 @@ void Application::DestroyInstance(void)
 {
 	// 管理マネージャのメモリ解放
 	InputManager::GetInstance().DestroyInstance();
+	StatusManager::GetInstance().DestroyInstance();
 	ResourceManager::GetInstance().DestroyInstance();
 	SceneManager::GetInstance().DestroyInstance();
 

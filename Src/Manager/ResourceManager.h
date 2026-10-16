@@ -116,6 +116,9 @@ public:
 	// 効果音ファイルパス
 	static const std::string PATH_SE;
 
+	// CSVファイルパス
+	static const std::string PATH_CSV;
+
 	// 動画ファイルパス
 	static const std::string PATH_MOVIE;
 
@@ -141,8 +144,8 @@ public:
 
 	/// @brief 複数画像のハンドルを画像ハンドルに割り当て
 	/// @param _src 読み込み対象
-	/// @param _target 複数画像配列の先頭パス
-	void LoadHandleIds(SRC _src, int* _target);
+	/// @param target 複数画像配列の先頭パス
+	void LoadHandleIds(SRC _src, int* target);
 
 	/// @brief 複数画像のハンドルを画像ハンドルの部分割り当て
 	/// @param _src 複数画像の読み込み対象
@@ -189,11 +192,11 @@ private:
 	/// @param _loadType 読み込み方法
 	/// @param _src リソース対象
 	/// @param _path パス
-	/// @param _allNum 画像の数
-	/// @param _numX 最大横画像数
-	/// @param _numY 最大縦画像数
+	/// @param allNum 画像の数
+	/// @param numX 最大横画像数
+	/// @param numY 最大縦画像数
 	void _SetResource(Resource::LOAD_TYPE _loadType, SRC _src, std::string _path
-					  , int _allNum = -1, int _numX = -1, int _numY = -1);
+					  , int allNum = -1, int numX = -1, int numY = -1);
 
 	/// @brief 内部ロード処理
 	/// @param _source 読み込み対象

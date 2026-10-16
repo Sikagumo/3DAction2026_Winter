@@ -19,6 +19,7 @@ public:
 	void Initialize(void);
 	virtual void Update(void) = 0;
 	virtual void Draw(void);
+	virtual void DrawDebug(void) {};
 	virtual void Release(void);
 
 	/// @brief ‘å‚«‚³A‰ñ“]AÀ•W“™‚Ìæ“¾

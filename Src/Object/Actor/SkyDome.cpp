@@ -6,8 +6,8 @@
 
 namespace
 {
-	static constexpr float SCALE = 10.0f;
-	static constexpr VECTOR SCALES = { SCALE, SCALE, SCALE };
+	static constexpr float MODEL_SCALE = 10.0f;
+	static constexpr VECTOR SCALES = { MODEL_SCALE, MODEL_SCALE, MODEL_SCALE };
 };
 
 SkyDome::SkyDome(const Transform& syncTransform)

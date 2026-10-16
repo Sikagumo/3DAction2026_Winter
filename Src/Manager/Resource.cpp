@@ -10,20 +10,20 @@ Resource::Resource(void)
 {
 }
 
-Resource::Resource(LOAD_TYPE _type, const std::string& _path)
-	: resType_(_type)
+Resource::Resource(LOAD_TYPE type, const std::string& _path)
+	: resType_(type)
 	, path_(_path)
 	, allNum_(0), numX_(0), numY_(0)
 	, handleId_(-1), handleIds_{}
 {
 }
 
-Resource::Resource(LOAD_TYPE _type, const std::string& _path
-				   , int _allNum, int _numX, int _numY)
-	: resType_(_type)
+Resource::Resource(LOAD_TYPE type, const std::string& _path
+				   , int allNum, int numX, int numY)
+	: resType_(type)
 	, path_(_path)
-	, allNum_(_allNum), numX_(_numX), numY_(_numY)
-	, handleId_(-1), handleIds_(_allNum, -1)
+	, allNum_(allNum), numX_(numX), numY_(numY)
+	, handleId_(-1), handleIds_(allNum, -1)
 {
 	
 }

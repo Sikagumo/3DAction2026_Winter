@@ -5,7 +5,7 @@
 
 ActionController::ActionController(std::unique_ptr<AnimationController>& animation)
 	: animation_(animation)
-	, actionState_(STATE::NONE)
+	, actionState_(ACTION_STATE::NONE)
 {
 }
 
@@ -52,7 +52,7 @@ void ActionController::Active(int actionNum)
 	}
 
 #ifdef _DEBUG
-	if (actionState_ != STATE::NONE)
+	if (actionState_ != ACTION_STATE::NONE)
 	{
 		OutputDebugString("\n行動中でしたが、行動を上書きしました。\n");
 	}
@@ -60,7 +60,7 @@ void ActionController::Active(int actionNum)
 
 	const ActionParam& param = it->second.param;
 
-	actionState_ = STATE::ACTION;
+	actionState_ = ACTION_STATE::ACTION;
 	curActionNum_ = actionNum;
 	curTimeAction_ = param.timeActive;
 	curTimeStopActive_ = param.timeStopTiming;
@@ -74,24 +74,26 @@ bool ActionController::IsActiveInput(void) const
 	if (curActionNum_ == -1) { return false; }
 	if (actions_.at(curActionNum_).param.timeInput <= 0.0f) { return false; }
 
-	return (curTimeInput_ <= 0.0f && actionState_ == STATE::ACTION);
+	return (curTimeInput_ <= 0.0f && actionState_ == ACTION_STATE::ACTION);
 }
 
 void ActionController::Update(void)
 {
-	if (curActionNum_ == -1 || actionState_ == STATE::NONE) { return; }
+	if (curActionNum_ == -1 || actionState_ == ACTION_STATE::NONE) { return; }
 
-	const bool isStop = (animation_ != nullptr && animation_->IsStop());
+	const bool isStop = (animation_ != nullptr);
+	//const bool isStop = (animation_ != nullptr && animation_->IsStop());
+
 	if (!isStop)
 	{
 		curTimeAction_ -= SceneManager::GetInstance().GetDeltaTime();
 	}
 
-	if (actionState_ == STATE::ACTION)
+	if (actionState_ == ACTION_STATE::ACTION)
 	{
 		Update_Action();
 	}
-	else if (actionState_ == STATE::END)
+	else if (actionState_ == ACTION_STATE::END)
 	{
 		Update_End();
 	}
@@ -113,7 +115,7 @@ void ActionController::Update_Action(void)
 		}
 	}
 
-	if (animation_ != nullptr && animation_->IsStop()) { return; }
+	//if (animation_ != nullptr && animation_->IsStop()) { return; }
 
 	curTimeInput_ = ((curTimeInput_ > 0.0f) ? (curTimeInput_ - delta) : 0.0f);
 
@@ -130,7 +132,7 @@ void ActionController::Update_Action(void)
 
 	if (curTimeAction_ < 0.0f)
 	{
-		actionState_ = STATE::END;
+		actionState_ = ACTION_STATE::END;
 		curTimeAction_ = entry.param.timeEnd;
 	}
 }
@@ -139,7 +141,7 @@ void ActionController::Update_End(void)
 {
 	if (curTimeAction_ < 0.0f)
 	{
-		actionState_ = STATE::NONE;
+		actionState_ = ACTION_STATE::NONE;
 		curActionNum_ = -1;
 	}
 }
@@ -147,10 +149,10 @@ void ActionController::Update_End(void)
 void ActionController::DrawDebug(void)
 {
 #ifdef _DEBUG
-	if (actionState_ == STATE::NONE) { return; }
+	if (actionState_ == ACTION_STATE::NONE) { return; }
 
 	DrawFormatString(0, 16, 0xffff00, "Action(type:%s, active: %.1f, input:%.1f, num:%d)"
-		, (actionState_ == STATE::ACTION) ? "ACTION" : "END"
+		, (actionState_ == ACTION_STATE::ACTION) ? "ACTION" : "END"
 		, curTimeAction_, curTimeInput_, curActionNum_);
 #endif
 }

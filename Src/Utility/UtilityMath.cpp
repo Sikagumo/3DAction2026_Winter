@@ -365,9 +365,9 @@ double UtilityMath::Distance(const VECTOR& v1, const VECTOR& v2)
 }
 
 // 2つの3Dベクトルが等しいかどうかを判定する
-bool UtilityMath::Equals(const VECTOR& _vec1, const VECTOR& _vec2)
+bool UtilityMath::Equals(const VECTOR& vec1, const VECTOR& vec2)
 {
-	if (_vec1.x == _vec2.x && _vec1.y == _vec2.y && _vec1.z == _vec2.z)
+	if (vec1.x == vec2.x && vec1.y == vec2.y && vec1.z == vec2.z)
 	{
 		return true;
 	}
@@ -376,30 +376,30 @@ bool UtilityMath::Equals(const VECTOR& _vec1, const VECTOR& _vec2)
 }
 
 /* ベクトルがゼロベクトルか判定 */
-bool UtilityMath::EqualsVZero(const VECTOR& _vec)
+bool UtilityMath::EqualsVZero(const VECTOR& vec)
 {
 	const VECTOR& ZERO = VECTOR_ZERO;
-	if (_vec.x == ZERO.x && _vec.y == ZERO.y && _vec.z == ZERO.z)
+	if (vec.x == ZERO.x && vec.y == ZERO.y && vec.z == ZERO.z)
 	{
 		return true;
 	}
 
 	return false;
 }
-bool UtilityMath::EqualsVZero(const Vector2& _vec)
+bool UtilityMath::EqualsVZero(const Vector2& vec)
 {
 	const Vector2& ZERO = VECTOR2_ZERO;
-	if (_vec.x == ZERO.x && _vec.y == ZERO.y)
+	if (vec.x == ZERO.x && vec.y == ZERO.y)
 	{
 		return true;
 	}
 
 	return false;
 }
-bool UtilityMath::EqualsVZero(const Vector2F& _vec)
+bool UtilityMath::EqualsVZero(const Vector2F& vec)
 {
 	const Vector2F& ZERO = VECTOR2F_ZERO;
-	if (_vec.x == ZERO.x && _vec.y == ZERO.y)
+	if (vec.x == ZERO.x && vec.y == ZERO.y)
 	{
 		return true;
 	}
@@ -425,30 +425,30 @@ VECTOR UtilityMath::Normalize(const Vector2& v)
 }
 
 /* ベクトルを正規化 */
-VECTOR UtilityMath::VNormalize(const VECTOR& _vec)
+VECTOR UtilityMath::VNormalize(const VECTOR& vec)
 {
 	// ゼロ除算対策で元のゼロベクトルを返す
-	if (UtilityMath::EqualsVZero(_vec)) { return _vec; }
+	if (UtilityMath::EqualsVZero(vec)) { return vec; }
 
-	return VNorm(_vec);
+	return VNorm(vec);
 }
-Vector2 UtilityMath::VNormalize(const Vector2& _vec)
+Vector2 UtilityMath::VNormalize(const Vector2& vec)
 {
 	// ゼロ除算対策で元のゼロベクトルを返す
-	if (UtilityMath::EqualsVZero(_vec)) { return _vec; }
+	if (UtilityMath::EqualsVZero(vec)) { return vec; }
 
-	float mag = sqrtf((_vec.x * _vec.x) + (_vec.y * _vec.y));
+	float mag = sqrtf(static_cast<float>((vec.x * vec.x) + (vec.y * vec.y)));
 
-	return Vector2(static_cast<int>(_vec.x / mag), static_cast<int>(_vec.y / mag));
+	return Vector2(static_cast<int>(vec.x / mag), static_cast<int>(vec.y / mag));
 }
-Vector2F UtilityMath::VNormalize(const Vector2F& _vec)
+Vector2F UtilityMath::VNormalize(const Vector2F& vec)
 {
 	// ゼロ除算対策で元のゼロベクトルを返す
-	if (UtilityMath::EqualsVZero(_vec)) { return _vec; }
+	if (UtilityMath::EqualsVZero(vec)) { return vec; }
 
-	float mag = sqrtf((_vec.x * _vec.x) + (_vec.y * _vec.y));
+	float mag = sqrtf((vec.x * vec.x) + (vec.y * vec.y));
 
-	return Vector2F(_vec.x / mag, _vec.y / mag);
+	return Vector2F(vec.x / mag, vec.y / mag);
 }
 
 // 2つの3Dベクトルのなす角（度）を求める
@@ -541,10 +541,10 @@ float UtilityMath::RandRangeF(float min, float max)
 	return (min + static_cast<float>(rand()) / static_cast<float>(RAND_MAX) * (max - min));
 }
 
-VECTOR UtilityMath::GetNearestPointOnSegment(const VECTOR& _startPos, const VECTOR& _endPos, const VECTOR& _targetPos)
+VECTOR UtilityMath::GetNearestPointOnSegment(const VECTOR& _startPos, const VECTOR& _endPos, const VECTOR& targetPos)
 {
 	VECTOR segmentVec = VSub(_endPos, _startPos);
-	VECTOR toTargetVec = VSub(_targetPos, _startPos);
+	VECTOR toTargetVec = VSub(targetPos, _startPos);
 
 	float lenSquare = static_cast<float>(SqrMagnitude(segmentVec));
 

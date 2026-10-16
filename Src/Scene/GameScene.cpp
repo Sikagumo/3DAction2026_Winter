@@ -150,6 +150,10 @@ void GameScene::Draw(void)
 	DrawFormatString(840, 60, 0x000000, "ダッシュ：右Shift");
 	DrawFormatString(840, 80, 0x000000, "ジャンプ：＼(バクスラ)");
 
+#ifdef _DEBUG
+
+	player_->DrawDebug();
+#endif
 
 	int mainScreen = SceneManager::GetInstance().GetMainScreen();
 

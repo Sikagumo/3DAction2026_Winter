@@ -27,7 +27,6 @@ SceneManager* SceneManager::instance_ = nullptr;
 SceneManager::SceneManager(void)
 	: sceneId_(SCENE_ID::NONE)
 	, waitSceneId_(SCENE_ID::NONE)
-	, mainScreen_(-1)
 	, deltaTime_(1.0f / 60.0f)
 {
 }

@@ -6,13 +6,12 @@
 
 class AnimationController;
 
-/// @brief 行動コントローラ(Commandパターンの Invoker)
-///        プレイヤー・敵・ボス共通で利用する
+/// @brief 行動コントローラ
 class ActionController
 {
 public:
 
-	enum class STATE
+	enum class ACTION_STATE
 	{
 		NONE = -1,
 		ACTION,
@@ -70,7 +69,7 @@ public:
 	/// @brief コマンド実行が済んでいるか否か
 	bool IsEndActionActive(void) const { return (curTimeActionActive_ <= 0.0f); }
 
-	STATE GetActionState(void) const { return actionState_; }
+	ACTION_STATE GetActionState(void) const { return actionState_; }
 
 private:
 
@@ -84,7 +83,7 @@ private:
 
 	std::unique_ptr<AnimationController>& animation_;
 
-	STATE actionState_;
+	ACTION_STATE actionState_;
 
 	int curActionNum_ = -1;
 	float curTimeAction_ = 0.0f;

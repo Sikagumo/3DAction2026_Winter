@@ -282,9 +282,9 @@ public:
 
 	
 	/// @brief 2つのベクトルが等しいか判定
-	/// @param _vec1 比較するベクトル１
-	/// @param _vec2 比較するベクトル２
-	static bool Equals(const VECTOR& _vec1, const VECTOR& _vec2);
+	/// @param vec1 比較するベクトル１
+	/// @param vec2 比較するベクトル２
+	static bool Equals(const VECTOR& vec1, const VECTOR& vec2);
 
 	/// @brief ベクトルがゼロベクトルか判定
 	/// @param vec 対象のベクトル

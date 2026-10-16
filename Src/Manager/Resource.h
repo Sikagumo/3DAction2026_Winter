@@ -32,11 +32,11 @@ public:
 	/// @brief 複数画像時のコンストラクタ
 	/// @param _loadType 読み込むファイルの種類
 	/// @param _path ファイルパス
-	/// @param _allNum 画像数
-	/// @param _numX 横画像数
-	/// @param _numY 縦画像数
-	Resource(LOAD_TYPE _type, const std::string& _path
-			 , int _allNum, int _numX, int _numY);
+	/// @param allNum 画像数
+	/// @param numX 横画像数
+	/// @param numY 縦画像数
+	Resource(LOAD_TYPE type, const std::string& _path
+			 , int allNum, int numX, int numY);
 
 	~Resource(void) = default;
 

@@ -27,6 +27,7 @@ const std::string ResourceManager::PATH_MODEL     = PATH_DATA + "Model/";
 const std::string ResourceManager::PATH_ANIMATION = PATH_DATA + "Model/Animation/";
 const std::string ResourceManager::PATH_SE        = PATH_DATA + "Sound/SE/";
 const std::string ResourceManager::PATH_BGM       = PATH_DATA + "Sound/BGM/";
+const std::string ResourceManager::PATH_CSV       = PATH_DATA + "CSV/";
 const std::string ResourceManager::PATH_MOVIE     = PATH_DATA + "Movie/";
 const std::string ResourceManager::PATH_SHADER    = PATH_DATA + "Shader/";
 
@@ -209,9 +210,9 @@ void ResourceManager::Initialize(void)
 
 }
 void ResourceManager::_SetResource(Resource::LOAD_TYPE _loadType, SRC _src, std::string _path
-								   , int _allNum, int _numX, int _numY)
+								   , int allNum, int numX, int numY)
 {
-	if (_allNum == -1)
+	if (allNum == -1)
 	{
 		// その他読み込み
 		resourcesMap_.emplace(_src, Resource(_loadType, _path));
@@ -220,7 +221,7 @@ void ResourceManager::_SetResource(Resource::LOAD_TYPE _loadType, SRC _src, std:
 	{
 		// 複数画像読み込み
 		resourcesMap_.emplace(_src,
-			Resource(_loadType, _path, _allNum, _numX, _numY));
+			Resource(_loadType, _path, allNum, numX, numY));
 	}
 	
 }
@@ -271,17 +272,17 @@ const int ResourceManager::LoadHandleId(SRC _src)
 	// リソースの
 	return Load(_src).LoadHandleId();
 }
-void ResourceManager::LoadHandleIds(SRC _src, int* _target)
+void ResourceManager::LoadHandleIds(SRC _src, int* target)
 {
 	// 複数画像ではない場合、処理終了
 	Resource::LOAD_TYPE loadType = resourcesMap_[_src].GetLoadType();
 	if (loadType != Resource::LOAD_TYPE::IMAGES) { return; }
 
 	// 複数画像の対象にコピー
-	Load(_src).CopyHandle(_target);
+	Load(_src).CopyHandle(target);
 
 #ifdef _DEBUG
-	if (*_target == -1)
+	if (*target == -1)
 	{
 		OutputDebugString("\n複数画像が読み込まれませんでした。画像数/画像１枚のサイズ/画像パス名を確認してください。\n");
 	}

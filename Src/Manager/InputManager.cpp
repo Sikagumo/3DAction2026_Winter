@@ -49,6 +49,7 @@ void InputManager::Init(void)
 	RegisterTrigger(TYPE::PLAYER_ATTACK_STRONG, { KEY_INPUT_R }, { BTN::RB_RIGHT }, { });
 	RegisterTrigger(TYPE::PLAYER_DASH, { KEY_INPUT_LSHIFT, KEY_INPUT_RSHIFT, }, { BTN::L_STICK }, { });
 	RegisterTrigger(TYPE::PLAYER_DEFENSE, { }, { BTN::RB_LEFT }, { }, MOUSE::CLICK_RIGHT);
+	RegisterTrigger(TYPE::PLAYER_DODGE, { KEY_INPUT_SPACE }, { BTN::RB_BOTTOM }, { });
 
 	// メニュー操作
 	RegisterTrigger(TYPE::SELECT_LEFT,  { KEY_INPUT_A, KEY_INPUT_LEFT },  { BTN::L_BUTTON }, { STICK::L_STICK_LEFT });
@@ -144,27 +145,27 @@ Vector2 InputManager::GetMouseMove(void) const
 	return input_->GetMousePosDistance();
 }
 
-Vector2 InputManager::GetKnockLStickSize(Input::JOYPAD_NO _num) const
+Vector2 InputManager::GetKnockLStickSize(Input::JOYPAD_NO num) const
 {
-	auto padInfo = input_->GetJPadInputState(_num);
+	auto padInfo = input_->GetJPadInputState(num);
 
 	return Vector2(padInfo.AKeyLX, padInfo.AKeyLY);
 }
-Vector2 InputManager::GetKnockRStickSize(Input::JOYPAD_NO _num) const
+Vector2 InputManager::GetKnockRStickSize(Input::JOYPAD_NO num) const
 {
-	auto padInfo = input_->GetJPadInputState(_num);
+	auto padInfo = input_->GetJPadInputState(num);
 	return Vector2(padInfo.AKeyRX, padInfo.AKeyRY);
 }
 
-VECTOR InputManager::GetDirXZ_LStick(Input::JOYPAD_NO _num, float _threshold) const
+VECTOR InputManager::GetDirXZ_LStick(Input::JOYPAD_NO num, float _threshold) const
 {
 	VECTOR ret = {};
 
 	// 指定のコントローラ未割当時、ゼロを返す
-	if (GetJoypadNum() <= static_cast<int>(_num)) { return ret; }
+	if (GetJoypadNum() <= static_cast<int>(num)) { return ret; }
 
 
-	auto padInfo = input_->GetJPadInputState(_num);
+	auto padInfo = input_->GetJPadInputState(num);
 
 	float dirX = static_cast<float>(padInfo.AKeyLX);
 	float dirZ = static_cast<float>(padInfo.AKeyLY);
@@ -187,15 +188,15 @@ VECTOR InputManager::GetDirXZ_LStick(Input::JOYPAD_NO _num, float _threshold) co
 	return ret;
 }
 
-VECTOR InputManager::GetDirXZ_RStick(Input::JOYPAD_NO _num, float _threshold) const
+VECTOR InputManager::GetDirXZ_RStick(Input::JOYPAD_NO num, float _threshold) const
 {
 	VECTOR ret = {};
 
 	// 指定のコントローラ未割当時、ゼロを返す
-	if (GetJoypadNum() <= static_cast<int>(_num)) { return ret; }
+	if (GetJoypadNum() <= static_cast<int>(num)) { return ret; }
 
 
-	auto padInfo = input_->GetJPadInputState(_num);
+	auto padInfo = input_->GetJPadInputState(num);
 
 	float dirX = static_cast<float>(padInfo.AKeyRX);
 	float dirZ = static_cast<float>(padInfo.AKeyRY);
