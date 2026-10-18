@@ -184,11 +184,6 @@ void StatusManager::LoadEnemy(void)
 	);
 }
 
-std::string& StatusManager::GetHandlePathPlayer(void)
-{
-	return player_->GetHandlePath();
-}
-
 std::string& StatusManager::GetHandlePathEnemy(int type)
 {
 	return enemy_[type]->GetHandlePath();

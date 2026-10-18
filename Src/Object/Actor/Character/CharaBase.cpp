@@ -59,7 +59,7 @@ void CharaBase::Update(void)
 	DelayRotate();
 
 	// d—Í‚É‚æ‚éˆÚ“®—Ê
-	//CalcGravityPow();
+	CalcGravityPow();
 
 	// Õ“Ë”»’è‘O€”õ
 	CollisionReserve();
@@ -363,8 +363,12 @@ void CharaBase::DrawPre(void)
 
 void CharaBase::DelayRotate(void)
 {
+	// ˆÚ“®•ûŒü‚ª‚È‚¢ê‡‚Íˆ—I—¹
+	if (UtilityMath::EqualsVZero(moveDir_)) { return; }
+
 	// ˆÚ“®•ûŒü‚©‚ç‰ñ“]‚É•ÏŠ·‚·‚é
 	Quaternion goalRot = Quaternion::LookRotation(moveDir_);
+
 	// ‰ñ“]‚Ì•âŠÔ
 	transform_.quaRot =
 		Quaternion::Slerp(transform_.quaRot, goalRot, 0.2f);

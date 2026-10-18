@@ -21,7 +21,7 @@ public:
 		int modelId	        = -1;   // アニメーションモデル
 		int attachNo        = -1;
 		int animationIndex	= 0;    // モデル内アニメーション番号
-		float speed		    = 0.0f; // 再生速度
+		float speedWalk		    = 0.0f; // 再生速度
 		float totalTime     = 0.0f; // 最大再生時間
 		float step          = 0.0f;	// 現在再生時間
 
@@ -48,19 +48,19 @@ public:
 	/// @brief 同じモデル内のアニメーションを準備
 	/// @param type アニメーション種類
 	/// @param speed アニメーション速度 
-	void AddInternal(int type, float speed = ANIM_SPEED_DEFAULT);
+	void AddInternal(int type, float speedWalk = ANIM_SPEED_DEFAULT);
 
 	/// @brief 同じモデル内のアニメーションを準備し、再生座標固定
 	/// @param type アニメーション種類
 	/// @param speed アニメーション速度 
-	void AddInternal(int type, const VECTOR& localPos, float speed = ANIM_SPEED_DEFAULT);
+	void AddInternal(int type, const VECTOR& localPos, float speedWalk = ANIM_SPEED_DEFAULT);
 
 
 	/// @brief 別の読み込み済みアニメーションモデルから準備
 	/// @param type アニメーション種類
 	/// @param handle アニメーションのハンドル
 	/// @param speed アニメーション速度 
-	void AddExternal(int type, int handle, float speed = ANIM_SPEED_DEFAULT);
+	void AddExternal(int type, int handle, float speedWalk = ANIM_SPEED_DEFAULT);
 
 	/// @brief 別の読み込み済みアニメーションモデルから準備し、再生座標固定
 	/// @param type アニメーション種類
@@ -69,7 +69,7 @@ public:
 	/// @param placeLocalPos 固定するアニメーションローカル位置
 	void AddExternal(int type, int handle
 					, const VECTOR& localPos
-					, float speed = ANIM_SPEED_DEFAULT);
+					, float speedWalk = ANIM_SPEED_DEFAULT);
 
 	/// @brief 別の読み込み済みアニメーションモデルから準備し、再生座標固定
 	/// @param type アニメーション種類
@@ -78,7 +78,7 @@ public:
 	/// @param placeLocalPos 固定するアニメーションローカル位置
 	void AddExternal(int type, int handle
 					, const VECTOR& localPos
-					, const VECTOR& localPosEnd, float speed = ANIM_SPEED_DEFAULT);
+					, const VECTOR& localPosEnd, float speedWalk = ANIM_SPEED_DEFAULT);
 
 
 	/// @brief アニメーション再生

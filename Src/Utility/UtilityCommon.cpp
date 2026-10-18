@@ -213,99 +213,73 @@ void UtilityCommon::ChangeString(const std::string& text, float& target)
 }
 
 
-unsigned int UtilityCommon::SetColor(UtilityCommon::Color _color)
-{
-    return GetColor(_color.r, _color.g, _color.b);
-}
-unsigned int UtilityCommon::SetColor(COLOR_F _color)
-{
-    int r, g, b;
-    r = ((_color.r <= 1.0f) ? static_cast<int>(_color.r * COLOR_RATE_MAX) : COLOR_RATE_MAX);
-    g = ((_color.g <= 1.0f) ? static_cast<int>(_color.g * COLOR_RATE_MAX) : COLOR_RATE_MAX);
-    b = ((_color.b <= 1.0f) ? static_cast<int>(_color.b * COLOR_RATE_MAX) : COLOR_RATE_MAX);
-
-    return GetColor(r, g, b);
-}
-
-unsigned int UtilityCommon::SetColor(float _red, float _green, float _blue)
-{
-    int r, g, b;
-    r = ((_red <= 1.0f)   ? static_cast<int>(_red * COLOR_RATE_MAX)   : COLOR_RATE_MAX);
-    g = ((_green <= 1.0f) ? static_cast<int>(_green * COLOR_RATE_MAX) : COLOR_RATE_MAX);
-    b = ((_blue <= 1.0f)  ? static_cast<int>(_blue * COLOR_RATE_MAX)  : COLOR_RATE_MAX);
-
-    return GetColor(r, g, b);
-}
-
-COLOR_F UtilityCommon::GetColorRate(const Color& _color)
-{
-    float r, g, b, a;
-    r = static_cast<float>(_color.r) / 255;
-    g = static_cast<float>(_color.g) / 255;
-    b = static_cast<float>(_color.b) / 255;
-    a = static_cast<float>(_color.a) / 255;
-
-    return COLOR_F(r, g, b, a);
-}
-
-bool UtilityCommon::WrapValue(VECTOR& _vec, const VECTOR& _maxVec, const VECTOR& _minVec)
+bool UtilityCommon::WrapValue(VECTOR& _vec, const VECTOR& maxVec, const VECTOR& minVec)
 {
     // 最小値を超えている場合は最大値に、最大値を超えている場合は最小値で返す
-    bool isWrap = (WrapValue(_vec.x, _maxVec.x, _minVec.x) ||
-                   WrapValue(_vec.y, _maxVec.y, _minVec.y) ||
-                   WrapValue(_vec.z, _maxVec.z, _minVec.z));
+    bool isWrap = (WrapValue(_vec.x, maxVec.x, minVec.x) ||
+                   WrapValue(_vec.y, maxVec.y, minVec.y) ||
+                   WrapValue(_vec.z, maxVec.z, minVec.z));
     return isWrap;
 }
-bool UtilityCommon::WrapValue(Vector2& _vec, const Vector2& _maxVec, const Vector2& _minVec)
+bool UtilityCommon::WrapValue(Vector2& _vec, const Vector2& maxVec, const Vector2& minVec)
 {
-    bool isWrap = (WrapValue(_vec.x, _maxVec.x, _minVec.x) ||
-                   WrapValue(_vec.y, _maxVec.y, _minVec.y));
+    bool isWrap = (WrapValue(_vec.x, maxVec.x, minVec.x) ||
+                   WrapValue(_vec.y, maxVec.y, minVec.y));
     return isWrap;
 }
-bool UtilityCommon::WrapValue(int& _num, int _maxNum, int _minNum)
+bool UtilityCommon::WrapValue(int& _num, int maxNum, int minNum)
 {
     bool isWrap = false;
 
     // 最小値を超えている場合は最大値に、最大値を超えている場合は最小値で返す
-    if (_num < _minNum)
+    if (_num < minNum)
     {
         isWrap = true;
-        _num = _maxNum;
+        _num = maxNum;
     }
-    else if (_num > _maxNum)
+    else if (_num > maxNum)
     {
         isWrap = true;
-        _num = _minNum;
+        _num = minNum;
     }
 
     return isWrap;
 }
-bool UtilityCommon::WrapValue(float& _num, float _maxNum, float _minNum)
+bool UtilityCommon::WrapValue(float& _num, float maxNum, float minNum)
 {
     bool isWrap = false;
 
     // 最小値を超えている場合は最大値に、最大値を超えている場合は最小値で返す
-    if (_num < _minNum)
+    if (_num < minNum)
     {
         isWrap = true;
-        _num = _maxNum;
+        _num = maxNum;
     }
-    else if (_num > _maxNum)
+    else if (_num > maxNum)
     {
         isWrap = true;
-        _num = _minNum;
+        _num = minNum;
     }
 
     return isWrap;
 }
 
-float UtilityCommon::EasingLine(float _curNum, float _maxNum, float _powNum)
+float UtilityCommon::EaseLine(float curNum, float maxNum, float powNum)
 {
     /* 線形補間処理 */
-    float num = (_curNum / _maxNum);
+    float num = (curNum / maxNum);
 
     // 補正値を最大に補正
     if (num > 1.0f) { num = 1.0f; }
 
-    return (1.0f - powf((1.0f - num), _powNum));
+    return (1.0f - powf((1.0f - num), powNum));
+}
+
+float UtilityCommon::EaseInOutQuart(float term)
+{
+    /* EaseOutQuart補間：1 - (1 - term)^4 */
+    term = std::clamp(term, 0.0f, 1.0f);
+    const float unit = (1.0f - term);
+
+    return 1.0f - unit * unit * unit * unit;
 }

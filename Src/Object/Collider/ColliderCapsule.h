@@ -51,7 +51,7 @@ public:
 	// 指定された回数と距離で三角形の法線方向に押し戻す
 	void PushBackAlongNormal(
 		const ColliderModel* _colliderModel, Transform* _transform,
-		int _maxTryCnt, float _pushDistance,
+		int maxTryCnt, float _pushDistance,
 		bool isExclude = false, bool isTarget = false) const;
 	
 	/// @brief モデルと衝突しているか否か

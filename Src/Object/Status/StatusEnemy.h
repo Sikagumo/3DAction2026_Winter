@@ -30,8 +30,8 @@ public:
 		RADIUS,          // ”¼Œa
 		HP_MAX,              // HP
 		POWER,           // UŒ‚—Í
-		MOVE_SPEED,			 // ˆÚ“®‘¬“x
-		SPEED_ACC,       // ˆÚ“®‚Ì‰Á‘¬“x
+		SPEED_INIT,			 // ˆÚ“®‘¬“x
+		SPEED_WALK,       // ˆÚ“®‚Ì‰Á‘¬“x
 		ATTACK_INTERVAL, // UŒ‚ŠÔŠu
 		ATTACK_RANEGE,   // UŒ‚”ÍˆÍ
 		SEARCH_RANGE,    // õ“G”ÍˆÍ
@@ -76,8 +76,8 @@ public:
 		UtilityCommon::ChangeString(_loadString[static_cast<int>(PARAM::HP_MAX)], hp, 1);
 		UtilityCommon::ChangeString(_loadString[static_cast<int>(PARAM::POWER)], power_, 0);
 		UtilityCommon::ChangeString(_loadString[static_cast<int>(PARAM::RADIUS)], radius_, 0.0f);
-		UtilityCommon::ChangeString(_loadString[static_cast<int>(PARAM::MOVE_SPEED)], speedMax_, 0.0f);
-		UtilityCommon::ChangeString(_loadString[static_cast<int>(PARAM::SPEED_ACC)], speedAcc_, 0.0f);
+		UtilityCommon::ChangeString(_loadString[static_cast<int>(PARAM::SPEED_INIT)], speedMax_, 0.0f);
+		UtilityCommon::ChangeString(_loadString[static_cast<int>(PARAM::SPEED_WALK)], speedAcc_, 0.0f);
 		UtilityCommon::ChangeString(_loadString[static_cast<int>(PARAM::ATTACK_INTERVAL)], atkInterval_, 0.0f);
 		UtilityCommon::ChangeString(_loadString[static_cast<int>(PARAM::ATTACK_RANEGE)], atkRange_, 0.0f);
 		UtilityCommon::ChangeString(_loadString[static_cast<int>(PARAM::SEARCH_RANGE)], searchRange_, 0.0f);

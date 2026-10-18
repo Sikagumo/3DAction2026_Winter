@@ -118,20 +118,6 @@ void ResourceManager::Initialize(void)
 	_SetResource(LOAD_TYPE::IMAGES, SRC::IMGS_PLAYER_WEAPON_INFO, PATH_IMAGE + "WeaponInfo.png"
 		, imagesAllNum, imagesNumX, imagesNumY);
 
-	// マルチ用の文字
-	imagesAllNum = 4;
-	imagesNumX = 1;
-	imagesNumY = 4;
-	_SetResource(LOAD_TYPE::IMAGES, SRC::IMGS_MULTI_TEX, PATH_IMAGE + "junbi.png"
-		, imagesAllNum, imagesNumX, imagesNumY);
-
-	// 接続用の文字
-	imagesAllNum = 2;
-	imagesNumX = 1;
-	imagesNumY = 2;
-	_SetResource(LOAD_TYPE::IMAGES, SRC::IMGS_CONECT_TEX, PATH_IMAGE + "butai.png"
-		, imagesAllNum, imagesNumX, imagesNumY);
-
 	// ポーズシーンの文字
 	imagesAllNum = 4;
 	imagesNumX = 1;

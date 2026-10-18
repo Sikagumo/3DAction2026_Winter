@@ -1,5 +1,4 @@
-#include "GameScene.h"
-#include <DxLib.h>
+#include "SceneBase.h"
 #include "../Application.h"
 #include "../Utility/UtilityMath.h"
 #include "../Manager/SceneManager.h"
@@ -8,8 +7,10 @@
 #include "../Object/Actor/SkyDome.h"
 #include "../Object/Collider/ColliderBase.h"
 #include "../Object/Actor/Character/Player.h"
-//#include "../Object/Actor/Stage.h"
+#include "../Object/Actor/Stage.h"
 //#include "../Object/Model.h"
+#include <DxLib.h>
+#include "GameScene.h"
 
 GameScene::GameScene(void)
 	: SceneBase()
@@ -35,16 +36,17 @@ void GameScene::Initialize(void)
 	SetFogStartEnd(FOG_POS_START, FOG_POS_END);
 
 
-	// ステージ
-	//stage_ = std::make_unique<Stage>(*player_);
-	//stage_->Initialize();
-	//const ColliderBase* stageCollider = stage_->GetOwnCollider(static_cast<int>(Stage::COLLIDER_TYPE::MODEL));
-
 	// プレイヤー
 	player_ = std::make_unique<Player>();
 	player_->Initialize();
+
+	// ステージ
+	stage_ = std::make_unique<Stage>(player_);
+	stage_->Initialize();
+	const ColliderBase* stageCollider = stage_->GetOwnCollider(0);
+
 	// ステージモデルのコライダーをプレイヤーに登録
-	//player_->AddHitCollider(stageCollider);
+	player_->AddHitCollider(stage_->GetOwnCollider(0));
 
 	// スカイドーム
 	skyDome_ = std::make_unique<SkyDome>(player_->GetTransform());
@@ -131,7 +133,7 @@ void GameScene::Update(void)
 
 	skyDome_->Update();
 
-	//stage_->Update();
+	stage_->Update();
 
 	player_->Update();
 }
@@ -140,7 +142,7 @@ void GameScene::Draw(void)
 {
 	// 背景
 	skyDome_->Draw();
-	//stage_->Draw();
+	stage_->Draw();
 	
 	player_->Draw();
 

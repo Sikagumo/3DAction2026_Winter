@@ -20,8 +20,9 @@ public:
 		STAMINA_MAX,  // 最大スタミナ
 		POWER_WEAK,   // 弱攻撃力
 		POWER_STRONG, // 強攻撃力
-		MOVE_SPEED,   // 移動速度
-		SPEED_ACC,    // 移動時の加速度
+		SPEED_INIT,   // 初期移動速度
+		SPEED_WALK,   // 歩行速度
+		SPEED_DASH,   // ダッシュ速度
 		DASH_SPEED_MULT, // ダッシュ時の増加倍率
 		TIME_INVINCIBLE, // 無敵時間
 		TIME_EVASION,    // 回避時間
@@ -57,7 +58,7 @@ public:
 		TIME_TIMING_ACTIVE,// 有効のタイミング
 		TIME_TIMING_HIT_STOP,// ヒットストップのタイミング
 
-		MOVE_SPEED, // モーションアニメーション速度
+		SPEED_INIT, // モーションアニメーション速度
 
 		MAX,
 	};
@@ -78,9 +79,14 @@ public:
 		int powerWeak = 0;
 		int powerStrong = 0;
 
-		float speed = 0.0f;
+		// 初速
+		float speedInit = 0.0f;
 
-		float speedAcc = 0.0f;
+		// 歩行速度
+		float speedWalk = 0.0f;
+
+		// ダッシュ速度
+		float speedDash = 0.0f;
 
 		float dashSpeedMult = 0.0f;
 
@@ -119,12 +125,14 @@ public:
 		playerParam_.handlePath = _loadString[static_cast<int>(PARAM::HANDLE_PATH)];
 
 		UtilityCommon::ChangeString(_loadString[static_cast<int>(PARAM::MODEL_SCALE)], playerParam_.scale, 0.0f);
-		UtilityCommon::ChangeString(_loadString[static_cast<int>(PARAM::HP_MAX)], playerParam_.hp, 0);
 		UtilityCommon::ChangeString(_loadString[static_cast<int>(PARAM::RADIUS)], playerParam_.radius, 0.0f);
+		UtilityCommon::ChangeString(_loadString[static_cast<int>(PARAM::HP_MAX)], playerParam_.hp, 0);
+		UtilityCommon::ChangeString(_loadString[static_cast<int>(PARAM::STAMINA_MAX)], playerParam_.stamina, 0);
 		UtilityCommon::ChangeString(_loadString[static_cast<int>(PARAM::POWER_WEAK)], playerParam_.powerWeak, 0);
 		UtilityCommon::ChangeString(_loadString[static_cast<int>(PARAM::POWER_STRONG)], playerParam_.powerStrong, 0);
-		UtilityCommon::ChangeString(_loadString[static_cast<int>(PARAM::MOVE_SPEED)], playerParam_.speed, 0.0f);
-		UtilityCommon::ChangeString(_loadString[static_cast<int>(PARAM::SPEED_ACC)], playerParam_.speedAcc, 0.0f);
+		UtilityCommon::ChangeString(_loadString[static_cast<int>(PARAM::SPEED_INIT)], playerParam_.speedInit, 0.0f);
+		UtilityCommon::ChangeString(_loadString[static_cast<int>(PARAM::SPEED_WALK)], playerParam_.speedWalk, 0.0f);
+		UtilityCommon::ChangeString(_loadString[static_cast<int>(PARAM::SPEED_DASH)], playerParam_.speedDash, 0.0f);
 		UtilityCommon::ChangeString(_loadString[static_cast<int>(PARAM::DASH_SPEED_MULT)], playerParam_.dashSpeedMult, 1.0f);
 		UtilityCommon::ChangeString(_loadString[static_cast<int>(PARAM::TIME_INVINCIBLE)], playerParam_.timeInv, 0.0f);
 		UtilityCommon::ChangeString(_loadString[static_cast<int>(PARAM::TIME_EVASION)], playerParam_.timeEvasion, 0.0f);
@@ -144,28 +152,12 @@ public:
 		UtilityCommon::ChangeString(_loadString[static_cast<int>(MOTION_PARAM::TIME_HIT_STOP)], motion.timeInput, 0.0f);
 		UtilityCommon::ChangeString(_loadString[static_cast<int>(MOTION_PARAM::TIME_END)], motion.timeEnd, 0.0f);
 		UtilityCommon::ChangeString(_loadString[static_cast<int>(MOTION_PARAM::TIME_TIMING_ACTIVE)], motion.timeTimingActive, 0.0f);
-		UtilityCommon::ChangeString(_loadString[static_cast<int>(MOTION_PARAM::MOVE_SPEED)], motion.animationSpeed, 0.0f);
+		UtilityCommon::ChangeString(_loadString[static_cast<int>(MOTION_PARAM::SPEED_INIT)], motion.animationSpeed, 0.0f);
 		motion_.emplace(type, motion);
 	}
 
-	/// @brief 各パラメータ読み込み
-	std::string& GetHandlePath(void) { return playerParam_.handlePath; }
-	float GetScale(void)const { return playerParam_.scale; }
-	float GetRadius(void)const { return playerParam_.radius; }
-	int GetHp(void)const { return playerParam_.hp; }
-	int GetPowerWeak(void)const { return playerParam_.powerWeak; }
-	int GetPowerStrong(void)const { return playerParam_.powerStrong; }
-	float GetSpeed(void)const { return playerParam_.speed; }
-	float GetSpeedAcc(void)const { return playerParam_.speedAcc; }
-
-	/// @brief ダッシュ時の加速倍率取得
-	float GetDashSpeedMult(void)const { return playerParam_.dashSpeedMult; }
-
-	/// @brief 無敵時間取得
-	float GetTimeInvincible(void)const { return playerParam_.timeInv; }
-
-	/// @brief 回避時間
-	float GetTimeEvasion(void)const { return playerParam_.timeEvasion; }
+	/// @brief プレイヤーパラメータ取得
+	const PlayerParam& GetPlayerParam(void) { return playerParam_; }
 
 
 	/// @brief アニメーション速度
@@ -193,9 +185,6 @@ public:
 	// アニメーション速度
 	float GetMotionSpeed(MOTION_TYPE type) { return motion_[type].animationSpeed; }
 	float GetMotionSpeed(int type) { return motion_[static_cast<MOTION_TYPE>(type)].animationSpeed; }
-
-
-	const PlayerParam& GetPlayerParam(void) { return playerParam_; }
 
 
 private:

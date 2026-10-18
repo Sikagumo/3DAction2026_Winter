@@ -1,5 +1,6 @@
 #pragma once
 #include "./CharaBase.h"
+#include "../../Status/StatusPlayer.h"
 
 class Player : public CharaBase
 {
@@ -10,7 +11,6 @@ public:
 		IDLE,          // 待機
 		WALK,          // 歩行
 		RUN,           // ダッシュ
-		FALL,          // 落下
 		ATTACK_LIGHT,  // 弱攻撃
 		ATTACK_STRONG, // 強攻撃
 		DEFENSE,       // 守備
@@ -33,6 +33,7 @@ public:
 	Player(void);
 	~Player(void)override = default;
 
+	void DrawDebug(void)override;
 
 	void ChangeAction(ACTION_TYPE action);
 
@@ -52,11 +53,21 @@ protected:
 
 	void CollisionReserve(void)override;
 
+
 private:
+
+	const StatusPlayer::PlayerParam& status_;
+
+	int hp_ = 0;
+
+	float moveTime_ = 0.0f;
+
+	float curSpeed_ = 0.0f;
 
 	bool isDash_ = false;
 
 	float parryTime_ = 0.0f;
+
 
 	// 操作
 	void ProcessMove(void);

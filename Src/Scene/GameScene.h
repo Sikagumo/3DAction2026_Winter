@@ -1,10 +1,9 @@
 #pragma once
-#include "SceneBase.h"
 #include <memory>
-#include <vector>
+#include <map>
 #include <DxLib.h>
 //#include "../Object/Shield.h"
-//class Stage;
+class Stage;
 class SkyDome;
 class Player;
 //class PixelMaterial;
@@ -16,7 +15,17 @@ class Player;
 class GameScene : public SceneBase
 {
 public:
-	
+
+	/// @brief モデルの種類(描画順)
+	enum class OBJECT_TYPE
+	{
+		STAGE,   // ステージ
+		PLAYER,  // プレイヤー
+		ENEMY,   // 雑魚敵
+		BOSS,    // ボス敵
+		SKYDOME, // スカイドーム
+	};
+
 	// ポストエフェクトモード
 	enum class MODE
 	{
@@ -39,7 +48,7 @@ public:
 private:
 
 	// ステージ
-	//std::unique_ptr<Stage> stage_ = nullptr;
+	std::unique_ptr<Stage> stage_ = nullptr;
 
 	// プレイヤー
 	std::unique_ptr<Player> player_ = nullptr;

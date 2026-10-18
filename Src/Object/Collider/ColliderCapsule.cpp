@@ -102,7 +102,7 @@ VECTOR ColliderCapsule::GetPosPushBackAlongNormal(const MV1_COLL_RESULT_POLY& hi
 	return tempTransform.pos;
 }
 
-void ColliderCapsule::PushBackAlongNormal(const ColliderModel* _colliderModel, Transform* _transform, int _maxTryCnt, float _pushDistance, bool isExclude, bool isTarget) const
+void ColliderCapsule::PushBackAlongNormal(const ColliderModel* _colliderModel, Transform* _transform, int maxTryCnt, float _pushDistance, bool isExclude, bool isTarget) const
 {
 	auto hits = MV1CollCheck_Capsule(_colliderModel->GetFollow()->modelId, -1,
 									 GetPosTop(), GetPosDown(), GetRadius());
@@ -123,7 +123,7 @@ void ColliderCapsule::PushBackAlongNormal(const ColliderModel* _colliderModel, T
 		}
 
 		// 指定回数と距離で三角形の法線方向に押し戻す
-		_transform->pos = GetPosPushBackAlongNormal(hitPoly, _maxTryCnt, _pushDistance);
+		_transform->pos = GetPosPushBackAlongNormal(hitPoly, maxTryCnt, _pushDistance);
 	}
 
 	// 検出した地面ポリゴン情報の後始末

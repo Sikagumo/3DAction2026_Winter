@@ -3,17 +3,22 @@
 #include <functional>
 #include "../../../Manager/ResourceManager.h"
 #include "../../../Utility/UtilityMath.h"
+#include "../../../Utility/UtilityCommon.h"
 #include "../../../Utility/MatrixUtility.h"
 #include "../../Common/AnimationController.h"
 #include "../../Common/ActionController.h"
 #include "../../../Manager/InputManager.h"
 #include "../../../Manager/SceneManager.h"
 #include "../../../Manager/Camera.h"
+#include "../../../Manager/StatusManager.h"
 #include "../../Collider/ColliderLine.h"
 #include "../../Collider/ColliderCapsule.h"
 
 namespace
 {
+	constexpr float LOCAL_ROT_Y = 180.0f;
+	constexpr VECTOR START_POS = { 0.0f, 2.5f, 0.0f };
+
 	// 衝突判定用線分開始
 	constexpr VECTOR COL_LINE_START_LOCAL_POS = { 0.0f, 80.0f, 0.0f };
 
@@ -58,8 +63,9 @@ namespace
 };
 
 Player::Player(void)
-	: CharaBase::CharaBase(),
-	isDash_(false)
+	: CharaBase::CharaBase()
+	, isDash_(false)
+	, status_(StatusManager::GetInstance().GetPlayerStatus().GetPlayerParam())
 {
 }
 
@@ -70,9 +76,10 @@ void Player::InitLoadPost(void)
 
 void Player::InitTransform(void)
 {
-	transform_.InitTransform(1.0f,
-							 Quaternion::Identity(), Quaternion::AngleAxis(0.0f, UtilityMath::AXIS_Y),
-							 UtilityMath::VECTOR_ZERO);
+	transform_.InitTransform(status_.scale
+							, Quaternion::Identity()
+							, Quaternion::AngleAxis(UtilityMath::Deg2Rad(LOCAL_ROT_Y), UtilityMath::AXIS_Y)
+							, START_POS);
 }
 
 void Player::InitCollider(void)
@@ -142,6 +149,11 @@ void Player::UpdateProcessPost(void)
 	
 }
 
+void Player::DrawDebug(void)
+{
+	DrawFormatString(0, 0, 0xff0000, "Player:speed(time:%.2f, speed:%.2f)", moveTime_, moveSpeed_);
+}
+
 void Player::ChangeAction(ACTION_TYPE action)
 {
 
@@ -151,7 +163,8 @@ void Player::CollisionReserve(void)
 {
 	/* アニメーションごとの衝突位置調整 */
 
-	if (animation_->GetPlayType() == static_cast<int>(ANIMATION_TYPE::FALL))
+	//if (animation_->GetPlayType() == static_cast<int>(ANIMATION_TYPE::FALL))
+	if (false)
 	{
 		// ジャンプ中は線分を伸ばす
 		if (ownColliders_.count(static_cast<int>(COLLIDER_TYPE::LINE)) != 0)
@@ -217,10 +230,23 @@ void Player::ProcessMove(void)
 
 	if (!UtilityMath::EqualsVZero(dir))
 	{
-		//movePow_ = UtilityMath::VECTOR_ZERO;
+		// 移動を正規化
+		const float len = std::sqrtf((dir.x * dir.x) + (dir.z * dir.z));
+		dir.x /= len;
+		dir.z /= len;
 
-		// ダッシュ入力時にダッシュ加速度にする
-		moveSpeed_ = ((isDash_) ? SPEED_DASH : SPEED_MOVE);
+		moveTime_ += SceneManager::GetInstance().GetDeltaTime();
+
+		// 徐々に最高速度に到達させる
+		const float SPEED_MAX = ((isDash_) ? status_.speedDash : status_.speedWalk);
+		if (moveSpeed_ < SPEED_MAX)
+		{
+			// 最高速度到達度
+			constexpr float MOVE_ACCEL_TIME = 1.5f;
+
+			const float rate = UtilityCommon::EaseInOutQuart(moveTime_ / MOVE_ACCEL_TIME);
+			moveSpeed_ = status_.speedInit + (SPEED_MAX - status_.speedInit) * rate;
+		}
 
 		if (isDash_)
 		{
@@ -228,6 +254,9 @@ void Player::ProcessMove(void)
 		}
 		else
 		{
+			// 移動速度の上限制限
+			moveSpeed_ = ((moveSpeed_ > status_.speedWalk) ? status_.speedWalk : moveSpeed_);
+
 			PlayAnimation(ANIMATION_TYPE::WALK);
 		}
 
@@ -243,6 +272,14 @@ void Player::ProcessMove(void)
 	else
 	{
 		movePow_ = UtilityMath::VECTOR_ZERO;
+
+		moveTime_ = 0.0f;
+		moveSpeed_ = 0.0f;
+
+		if (!actionController_->IsActiveAction())
+		{
+			PlayAnimation(ANIMATION_TYPE::IDLE);
+		}
 	}
 }
 
@@ -268,9 +305,6 @@ void Player::ProcessJump(void)
 		jumpPow_ = VScale(UtilityMath::DIR_UP, jumpSpeed);
 
 		isFall_ = true;
-
-		// アニメーション再生
-		PlayAnimation(ANIMATION_TYPE::FALL, false);
 	}
 
 	// Y軸制限

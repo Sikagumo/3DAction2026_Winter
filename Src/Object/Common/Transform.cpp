@@ -135,9 +135,9 @@ void Transform::Rotate(const Quaternion& rot)
 	quaRot = Quaternion::Mult(quaRot, rot);
 	Update();
 }
-void Transform::Rotate(const VECTOR& _axis, float _pow)
+void Transform::Rotate(const VECTOR& _axis, float pow)
 {
-	Quaternion qua = Quaternion::AngleAxis(_pow, _axis);
+	Quaternion qua = Quaternion::AngleAxis(pow, _axis);
 	Rotate(qua);
 }
 

@@ -18,8 +18,8 @@ namespace
 	constexpr VECTOR LIGHT_DIR = { 0.3f, -0.7f, 0.8f };
 
 	constexpr COLOR_U8 COLOR_FOG = { 0, 0, 0 };
-	constexpr float FOG_START = 10000.0f;
-	constexpr float FOG_END = 20000.0f;
+	constexpr float FOG_START = 25000.0f;
+	constexpr float FOG_END = 50000.0f;
 };
 
 SceneManager* SceneManager::instance_ = nullptr;

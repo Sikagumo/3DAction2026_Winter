@@ -83,6 +83,17 @@ void Application::Run(void)
 
 		SceneManager::GetInstance().Draw();
 
+#ifdef _DEBUG
+		if (isDebugMode_)
+		{
+			DrawString(SCREEN_HALF_X, 0, "デバッグモード有効化中", 0xff0000);
+		}
+		if (InputManager::GetInstance().IsTrgDown(InputManager::TYPE::DEBUG_MODE))
+		{
+			// デバッグモード切替
+			isDebugMode_ = !isDebugMode_;
+		}
+#endif
 		ScreenFlip();
 	}
 }

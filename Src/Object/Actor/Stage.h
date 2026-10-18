@@ -1,17 +1,17 @@
 #pragma once
 #include <memory>
 #include <map>
-#include "Common/Transform.h"
-#include "Player.h"
+#include "./ActorBase.h"
 class ResourceManager;
 class Player;
 
-class Stage
+class Stage : public ActorBase
 {
 public:
 
 	// ステージの切り替え間隔
 	static constexpr float TIME_STAGE_CHANGE = 1.0f;
+
 
 	// ステージ名
 	enum class NAME
@@ -31,14 +31,24 @@ public:
 	};
 
 	Stage(std::unique_ptr<Player>& player);
-	~Stage(void);
+	~Stage(void)override = default;
 
-	void Initialize(void);
-	void Update(void);
-	void Draw(void);
+	void Update(void)override;
 
+
+protected:
+
+	void InitLoad(void)override;
+	void InitTransform(void)override;
+	void InitCollider(void)override;
+	void InitAnimation(void)override;
+	void InitPost(void)override;
 
 private:
 
 	std::unique_ptr<Player>& player_;
+
+	Transform collisionTransform_;
+
+	void DrawLate(void)override;
 };

@@ -34,6 +34,9 @@ public:
 	/// @brief メモリ解放を失敗したか否か
 	bool IsReleaseFail(void) const { return isReleaseFail_; }
 
+	/// @brief デバッグモードが有効中か否か
+	bool IsDebugMode(void) const { return isDebugMode_;  }
+
 	/// @brief ゲーム終了処理
 	void IsGameEnd(void) { isGameEnd_ = true; }
 
@@ -51,6 +54,8 @@ private:
 
 	// ゲームを終了するか否か
 	bool isGameEnd_ = false;
+
+	bool isDebugMode_ = false;
 
 
 	// デフォルトコンストラクタをprivateにして、

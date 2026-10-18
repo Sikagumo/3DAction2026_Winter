@@ -31,7 +31,7 @@ void AnimationController::AddInternal(int type, float _speed)
 	animation.animationIndex = type;
 
 	// アニメーション速度割り当て
-	animation.speed = _speed;
+	animation.speedWalk = _speed;
 
 	// アニメーション状態割り当て
 	animation.type = ANIMATION_TYPE::INTERNAL;
@@ -51,7 +51,7 @@ void AnimationController::AddInternal(int type, const VECTOR& _localPos, float _
 	animation.animationIndex = type;
 
 	// アニメーション速度割り当て
-	animation.speed = _speed;
+	animation.speedWalk = _speed;
 
 	// アニメーション状態割り当て
 	animation.type = ANIMATION_TYPE::INTERNAL;
@@ -79,7 +79,7 @@ void AnimationController::AddExternal(int type, int _handle, float _speed)
 	animation.modelId = _handle;
 
 	// アニメーション速度割り当て
-	animation.speed = _speed;
+	animation.speedWalk = _speed;
 
 	// アニメーション状態割り当て
 	animation.type = ANIMATION_TYPE::EXTERNAL;
@@ -100,7 +100,7 @@ void AnimationController::AddExternal(int type, int _handle
 	animation.modelId = _handle;
 
 	// アニメーション速度割り当て
-	animation.speed = _speed;
+	animation.speedWalk = _speed;
 
 	// アニメーション状態割り当て
 	animation.type = ANIMATION_TYPE::EXTERNAL;
@@ -127,7 +127,7 @@ void AnimationController::AddExternal(int type, int _handle
 	animation.modelId = _handle;
 
 	// アニメーション速度割り当て
-	animation.speed = _speed;
+	animation.speedWalk = _speed;
 
 	// アニメーション状態割り当て
 	animation.type = ANIMATION_TYPE::EXTERNAL;
@@ -203,7 +203,7 @@ void AnimationController::Play(int type, bool _isLoop, float playSpeed, float _b
 	playAnimation.step = 0.0f;
 
 	// 再生速度割り当て
-	playSpeed_ = ((playSpeed >= 0.0f) ? playSpeed : playAnimation.speed);
+	playSpeed_ = ((playSpeed >= 0.0f) ? playSpeed : playAnimation.speedWalk);
 	
 
 	// モデルにアニメーションを付ける
@@ -214,10 +214,23 @@ void AnimationController::Play(int type, bool _isLoop, float playSpeed, float _b
 	}
 	else
 	{
-		// 別のモデルファイルからアニメーションをアタッチする
-		// DxModelViewerを確認すること(大体0か1)
+		// 別モデルファイルからアニメをアタッチ
 		int animIdx = 0;
+		if (MV1GetAnimNum(playAnimation.modelId) > 1)
+		{
+			// 複数保存されている場合は番号1
+			animIdx = 1;
+		}
 		playAnimation.attachNo = MV1AttachAnim(modelId_, animIdx, playAnimation.modelId);
+
+		if (playAnimation.attachNo == -1)
+		{
+#ifdef _DEBUG
+			
+			OutputDebugString("\nアタッチ番号割り当て時に失敗しました。；；\n");
+#endif
+			return;
+		}
 	}
 
 	// アニメーション総時間の取得
