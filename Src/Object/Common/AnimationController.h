@@ -143,6 +143,9 @@ private:
 	// アニメーションするモデルのハンドルID
 	int modelId_ = -1;
 
+	// ROOTフレーム番号
+	int frameRootNum_ = -1;
+
 	// 種類別のアニメーションデータ
 	std::unordered_map<int, Animation> animations_;
 

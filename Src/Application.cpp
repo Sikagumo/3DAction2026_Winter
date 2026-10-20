@@ -6,6 +6,7 @@
 #include "Manager/InputManager.h"
 #include "Manager/ResourceManager.h"
 #include "Manager/SceneManager.h"
+#include "Common/FrameRate.h"
 #include "./resource.h"
 
 namespace
@@ -59,6 +60,9 @@ void Application::Initialize(void)
 
 	// キー制御初期化
 	SetUseDirectInputFlag(true);
+
+	frameRate_ = std::make_unique<FrameRate>();
+
 	InputManager::CreateInstance();
 
 	// 管理マネージャ初期化
@@ -72,28 +76,43 @@ void Application::Run(void)
 	// ゲームループ
 	while (ProcessMessage() == 0 && !isGameEnd_)
 	{
-#ifdef _DEBUG
-		if (CheckHitKey(KEY_INPUT_ESCAPE) != 0)
+		if (SceneManager::GetInstance().GetSceneID() == SceneManager::SCENE_ID::TITLE
+			&& CheckHitKey(KEY_INPUT_ESCAPE) != 0)
 		{
 			IsGameEnd();
 		}
-#endif
-		InputManager::GetInstance().Update();
-		SceneManager::GetInstance().Update();
 
-		SceneManager::GetInstance().Draw();
+		frameRate_->Update();
+
+		// フレームレート制限
+		if (frameRate_->GetLimitFrameRate() == false)
+		{
+			frameRate_->SetFrameRate();
+
+			InputManager::GetInstance().Update();
+			SceneManager::GetInstance().Update();
+
+			SceneManager::GetInstance().Draw();
 
 #ifdef _DEBUG
-		if (isDebugMode_)
-		{
-			DrawString(SCREEN_HALF_X, 0, "デバッグモード有効化中", 0xff0000);
-		}
-		if (InputManager::GetInstance().IsTrgDown(InputManager::TYPE::DEBUG_MODE))
-		{
-			// デバッグモード切替
-			isDebugMode_ = !isDebugMode_;
-		}
+			if (SceneManager::GetInstance().GetIsDebugMode())
+			{
+				frameRate_->Draw();
+
+				DrawString(SCREEN_HALF_X, 0, "デバッグモード有効化中", 0xff0000);
+
+				// データ再ロード
+				if (CheckHitKey(KEY_INPUT_DELETE) &&
+					SceneManager::GetInstance().GetIsDebugMode() &&
+					SceneManager::GetInstance().GetSceneID() == SceneManager::SCENE_ID::TITLE)
+				{
+					StatusManager::GetInstance().Load();
+					OutputDebugString("\nリソースデータを再ロードしました。(・ω・)b ｸﾞｯ!\n");
+				}
+			}
 #endif
+		}
+
 		ScreenFlip();
 	}
 }

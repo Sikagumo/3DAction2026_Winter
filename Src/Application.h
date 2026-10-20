@@ -1,5 +1,7 @@
 #pragma once
 #include <string>
+#include <memory>
+class FrameRate;
 
 class Application
 {
@@ -34,9 +36,6 @@ public:
 	/// @brief メモリ解放を失敗したか否か
 	bool IsReleaseFail(void) const { return isReleaseFail_; }
 
-	/// @brief デバッグモードが有効中か否か
-	bool IsDebugMode(void) const { return isDebugMode_;  }
-
 	/// @brief ゲーム終了処理
 	void IsGameEnd(void) { isGameEnd_ = true; }
 
@@ -46,6 +45,8 @@ private:
 	// 静的インスタンス
 	static Application* instance_;
 
+	std::unique_ptr<FrameRate> frameRate_ = nullptr;
+
 	// 初期化失敗
 	bool isInitializeFail_ = false;
 
@@ -54,8 +55,6 @@ private:
 
 	// ゲームを終了するか否か
 	bool isGameEnd_ = false;
-
-	bool isDebugMode_ = false;
 
 
 	// デフォルトコンストラクタをprivateにして、

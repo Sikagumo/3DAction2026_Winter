@@ -106,14 +106,13 @@ MV1_COLL_RESULT_POLY ColliderModel::GetNearestHitPolyLine(const VECTOR& start, c
 			if (!IsTargetFrame(hit.FrameIndex)) { continue; }
 		}
 
-
 		// Õ“Ë”»’è
 		isCollision = true;
 
 		// ‹——£”»’è
 		float dist = VSize(VSub(hit.HitPosition, start));
 
-		if (minDist > dist/* && minDist > VIEW_NEAR*/)
+		if (minDist > dist)
 		{
 			// ’Ç]‘ÎÛ‚Éˆê”Ô‹ß‚¢Õ“Ë“_‚ğ—Dæ
 			minDist = dist;

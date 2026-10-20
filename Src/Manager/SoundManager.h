@@ -17,8 +17,8 @@ public:
 		BGM_GAMEOVER,
 
 		SE_CLICK,  // ƒNƒŠƒbƒN
-		SE_SWORD_JUB, // ãUŒ‚
-		SE_SWORD_STRONG, // ‹­UŒ‚
+		SE_SWORD_LIGHT, // ãUŒ‚
+		SE_SWORD_HEAVY, // ‹­UŒ‚
 		SE_SWORD_SPECIAL, // •KEUŒ‚
 		SE_KNOCK,  // Œ‚”j
 	};
@@ -41,10 +41,10 @@ public:
 	static constexpr float VOLUME_CLICK = 0.9f;
 
 	// ãUŒ‚SE‚Ì‰¹—Ê
-	static constexpr float VOLUME_JUB = 1.0f;
+	static constexpr float VOLUME_LIGHT = 1.0f;
 
 	// ‹­UŒ‚SE‚Ì‰¹—Ê
-	static constexpr float VOLUME_STRONG = 0.95f;
+	static constexpr float VOLUME_HEAVY = 0.95f;
 
 	// Œ‚”jSE‚Ì‰¹—Ê
 	static constexpr float VOLUME_KNOCK = 1.5f;
@@ -154,10 +154,10 @@ private:
 	static const std::string PATH_SE_CLICK;
 
 	// UŒ‚SE
-	static const std::string PATH_SE_SWORD_JUB;
+	static const std::string PATH_SE_SWORD_LIGHT;
 
 	// Œ‚”jSE
-	static const std::string PATH_SE_SWORD_STRONG;
+	static const std::string PATH_SE_SWORD_HEAVY;
 
 	// Œ‚”jSE
 	static const std::string PATH_SE_KNOCK;

@@ -18,11 +18,12 @@ public:
 		RADIUS,       // 半径
 		HP_MAX,       // 最大HP
 		STAMINA_MAX,  // 最大スタミナ
-		POWER_WEAK,   // 弱攻撃力
-		POWER_STRONG, // 強攻撃力
-		SPEED_INIT,   // 初期移動速度
-		SPEED_WALK,   // 歩行速度
-		SPEED_DASH,   // ダッシュ速度
+		POWER_LIGHT,     // 弱攻撃力
+		POWER_HEAVY,     // 強攻撃力
+		ANIMATION_SPEED,      // 初期移動速度
+		SPEED_ACC_TIME,  // 最高速度到達度
+		SPEED_WALK,      // 歩行速度
+		SPEED_DASH,      // ダッシュ速度
 		DASH_SPEED_MULT, // ダッシュ時の増加倍率
 		TIME_INVINCIBLE, // 無敵時間
 		TIME_EVASION,    // 回避時間
@@ -34,31 +35,28 @@ public:
 		MAX,
 	};
 
-	enum class MOTION_TYPE
+	enum class ACTION_TYPE
 	{
-		NONE = -1,
-		JUB_1,
-		JUB_2,
-		JUB_END,
-
-		SPECIAL,
-		STRONG_1,
-		STRONG_2,
-		STRONG_3,
+		NONE = -1,    // 未割当
+		ATTACK_LIGHT, // 弱攻撃
+		ATTACK_HEAVY, // 強攻撃
+		DEFENSE,      // 防御
+		DODGE,        // 回避
 
 		MAX,
 	};
-	enum class MOTION_PARAM
+	enum class ACTION_PARAM
 	{
 		NAME = 0,       // モーション名
+
 		TIME_ACTIVE,    // 有効時間
 		TIME_INPUT,     // 入力時間
 		TIME_HIT_STOP,  // ヒットストップ時間
 		TIME_END,       // 後隙時間
-		TIME_TIMING_ACTIVE,// 有効のタイミング
+		TIME_TIMING_ACTIVE,  // 有効のタイミング
 		TIME_TIMING_HIT_STOP,// ヒットストップのタイミング
 
-		SPEED_INIT, // モーションアニメーション速度
+		ANIMATION_SPEED, // モーションアニメーション速度
 
 		MAX,
 	};
@@ -76,11 +74,14 @@ public:
 		int stamina = 0;
 
 		// 攻撃力
-		int powerWeak = 0;
-		int powerStrong = 0;
+		int powerLight = 0;
+		int powerHeavy = 0;
 
 		// 初速
 		float speedInit = 0.0f;
+
+		// 最高速度到達度
+		float speedAccTime = 0.0f;
 
 		// 歩行速度
 		float speedWalk = 0.0f;
@@ -96,7 +97,7 @@ public:
 		float timeInv = 0.0f;
 	};
 
-	struct Motion
+	struct ActionParam
 	{
 		std::string motionName = "";
 
@@ -128,9 +129,10 @@ public:
 		UtilityCommon::ChangeString(_loadString[static_cast<int>(PARAM::RADIUS)], playerParam_.radius, 0.0f);
 		UtilityCommon::ChangeString(_loadString[static_cast<int>(PARAM::HP_MAX)], playerParam_.hp, 0);
 		UtilityCommon::ChangeString(_loadString[static_cast<int>(PARAM::STAMINA_MAX)], playerParam_.stamina, 0);
-		UtilityCommon::ChangeString(_loadString[static_cast<int>(PARAM::POWER_WEAK)], playerParam_.powerWeak, 0);
-		UtilityCommon::ChangeString(_loadString[static_cast<int>(PARAM::POWER_STRONG)], playerParam_.powerStrong, 0);
-		UtilityCommon::ChangeString(_loadString[static_cast<int>(PARAM::SPEED_INIT)], playerParam_.speedInit, 0.0f);
+		UtilityCommon::ChangeString(_loadString[static_cast<int>(PARAM::POWER_LIGHT)], playerParam_.powerLight, 0);
+		UtilityCommon::ChangeString(_loadString[static_cast<int>(PARAM::POWER_HEAVY)], playerParam_.powerHeavy, 0);
+		UtilityCommon::ChangeString(_loadString[static_cast<int>(PARAM::ANIMATION_SPEED)], playerParam_.speedInit, 0.0f);
+		UtilityCommon::ChangeString(_loadString[static_cast<int>(PARAM::SPEED_ACC_TIME)], playerParam_.speedAccTime, 0.0f);
 		UtilityCommon::ChangeString(_loadString[static_cast<int>(PARAM::SPEED_WALK)], playerParam_.speedWalk, 0.0f);
 		UtilityCommon::ChangeString(_loadString[static_cast<int>(PARAM::SPEED_DASH)], playerParam_.speedDash, 0.0f);
 		UtilityCommon::ChangeString(_loadString[static_cast<int>(PARAM::DASH_SPEED_MULT)], playerParam_.dashSpeedMult, 1.0f);
@@ -142,49 +144,30 @@ public:
 		UtilityCommon::ChangeString(_loadString[static_cast<int>(PARAM::ANIM_SPEED_DASH)], animationSpeedRun_, 0.0f);
 	}
 
-	void LoadMotionParam(MOTION_TYPE type, const std::array<std::string, static_cast<int>(MOTION_PARAM::MAX)>& _loadString)
+	void LoadMotionParam(ACTION_TYPE type, const std::array<std::string, static_cast<int>(ACTION_PARAM::MAX)>& _loadString)
 	{
-		Motion motion = Motion();
+		ActionParam motion = ActionParam();
 
-		motion.motionName = _loadString[static_cast<int>(MOTION_PARAM::NAME)];
-		UtilityCommon::ChangeString(_loadString[static_cast<int>(MOTION_PARAM::TIME_ACTIVE)], motion.timeActive, 0.0f);
-		UtilityCommon::ChangeString(_loadString[static_cast<int>(MOTION_PARAM::TIME_INPUT)], motion.timeInput, 0.0f);
-		UtilityCommon::ChangeString(_loadString[static_cast<int>(MOTION_PARAM::TIME_HIT_STOP)], motion.timeInput, 0.0f);
-		UtilityCommon::ChangeString(_loadString[static_cast<int>(MOTION_PARAM::TIME_END)], motion.timeEnd, 0.0f);
-		UtilityCommon::ChangeString(_loadString[static_cast<int>(MOTION_PARAM::TIME_TIMING_ACTIVE)], motion.timeTimingActive, 0.0f);
-		UtilityCommon::ChangeString(_loadString[static_cast<int>(MOTION_PARAM::SPEED_INIT)], motion.animationSpeed, 0.0f);
+		motion.motionName = _loadString[static_cast<int>(ACTION_PARAM::NAME)];
+		UtilityCommon::ChangeString(_loadString[static_cast<int>(ACTION_PARAM::TIME_ACTIVE)], motion.timeActive, 0.0f);
+		UtilityCommon::ChangeString(_loadString[static_cast<int>(ACTION_PARAM::TIME_INPUT)], motion.timeInput, 0.0f);
+		UtilityCommon::ChangeString(_loadString[static_cast<int>(ACTION_PARAM::TIME_HIT_STOP)], motion.timeHitStop, 0.0f);
+		UtilityCommon::ChangeString(_loadString[static_cast<int>(ACTION_PARAM::TIME_END)], motion.timeEnd, 0.0f);
+		UtilityCommon::ChangeString(_loadString[static_cast<int>(ACTION_PARAM::TIME_TIMING_ACTIVE)], motion.timeTimingActive, 0.0f);
+		UtilityCommon::ChangeString(_loadString[static_cast<int>(ACTION_PARAM::TIME_TIMING_HIT_STOP)], motion.timeTimingHitStop, 0.0f);
+		UtilityCommon::ChangeString(_loadString[static_cast<int>(ACTION_PARAM::ANIMATION_SPEED)], motion.animationSpeed, 0.0f);
 		motion_.emplace(type, motion);
 	}
 
 	/// @brief プレイヤーパラメータ取得
 	const PlayerParam& GetPlayerParam(void) { return playerParam_; }
 
+	const std::unordered_map<ACTION_TYPE, ActionParam>& GetPlayerMotion(void) { return motion_; }
 
 	/// @brief アニメーション速度
 	float GetAnimationSpeedIdle(void)const { return animationSpeedIdle_; }
 	float GetAnimationSpeedWalk(void)const { return animationSpeedWalk_; }
 	float GetAnimationSpeedRun(void)const { return animationSpeedRun_; }
-
-
-	// モーション開始時間
-	float GetMotionStart(MOTION_TYPE type) { return motion_[type].timeActive; }
-	float GetMotionStart(int type) { return motion_[static_cast<MOTION_TYPE>(type)].timeActive; }
-
-	// 入力猶予時間
-	float GetMotionInput(MOTION_TYPE type) { return motion_[type].timeInput; }
-	float GetMotionInput(int type) { return motion_[static_cast<MOTION_TYPE>(type)].timeInput; }
-
-	// モーション終了時間
-	float GetMotionEnd(MOTION_TYPE type) { return motion_[type].timeEnd; }
-	float GetMotionEnd(int type) { return motion_[static_cast<MOTION_TYPE>(type)].timeEnd; }
-
-	// 攻撃時間
-	float GetMotionAtk(MOTION_TYPE type) { return motion_[type].timeTimingActive; }
-	float GetMotionAtk(int type) { return motion_[static_cast<MOTION_TYPE>(type)].timeTimingActive; }
-
-	// アニメーション速度
-	float GetMotionSpeed(MOTION_TYPE type) { return motion_[type].animationSpeed; }
-	float GetMotionSpeed(int type) { return motion_[static_cast<MOTION_TYPE>(type)].animationSpeed; }
 
 
 private:
@@ -196,6 +179,6 @@ private:
 	float animationSpeedWalk_ = 0.0f;
 	float animationSpeedRun_ = 0.0f;
 
-
-	std::unordered_map<MOTION_TYPE, Motion> motion_;
+	// モーションパラメータ
+	std::unordered_map<ACTION_TYPE, ActionParam> motion_;
 };

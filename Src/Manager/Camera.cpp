@@ -8,6 +8,20 @@
 #include "../Object/Collider/ColliderModel.h"
 #include "../Object/Collider/ColliderSphere.h"
 
+namespace
+{
+	// Õ“Ë‚Ì‰Ÿ‚µ–ß‚µs‰ñ”
+	static constexpr int CNT_TRY_COLLISION_CAMERA = 30;
+
+	// Õ“Ë‚Ì‰Ÿ‚µ–ß‚µ—Ê
+	static constexpr float COLLISION_BACK_DIS = 2.0f;
+
+	// Õ“Ë”»’è—p‹…‘Ì”¼Œa
+	static constexpr float COL_CAPSULE_SPHERE = 50.0f;
+
+	// ƒJƒƒ‰‚Ì•âŠÔˆÚ“®—¦
+	static constexpr float LERP_RATE_MOVE = 0.1f;
+};
 
 Camera::Camera(void)
 	: ActorBase::ActorBase()

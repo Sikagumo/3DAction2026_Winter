@@ -5,17 +5,13 @@
 #include <algorithm>
 #include "../../Manager/SceneManager.h"
 
-namespace
-{
-	// ROOTフレーム番号
-	constexpr int FRAME_ROOT_NUM = 1;
-};
-
 AnimationController::AnimationController(int modelId)
 	: animations_{}
 	, modelId_(modelId)
 	, preAnimationLocalPos_(UtilityMath::VECTOR_ZERO)
 {
+	// 名前から現在のフレーム番号を検索して取得する
+	frameRootNum_ = MV1SearchFrame(modelId, "mixamorig:Hips");
 }
 
 AnimationController::~AnimationController(void)
@@ -177,7 +173,7 @@ void AnimationController::Play(int type, bool _isLoop, float playSpeed, float _b
 		else
 		{
 			// 遷移元が非固定の場合、現在のルートフレームの実際のローカル位置を取得
-			MATRIX curFrameMat = MV1GetFrameLocalMatrix(modelId_, FRAME_ROOT_NUM);
+			MATRIX curFrameMat = MV1GetFrameLocalMatrix(modelId_, frameRootNum_);
 			preAnimationLocalPos_ = MGetTranslateElem(curFrameMat);
 		}
 	}
@@ -221,7 +217,7 @@ void AnimationController::Play(int type, bool _isLoop, float playSpeed, float _b
 			// 複数保存されている場合は番号1
 			animIdx = 1;
 		}
-		playAnimation.attachNo = MV1AttachAnim(modelId_, animIdx, playAnimation.modelId);
+		playAnimation.attachNo = MV1AttachAnim(modelId_, animIdx, playAnimation.modelId, true);
 
 		if (playAnimation.attachNo == -1)
 		{
@@ -305,7 +301,7 @@ void AnimationController::Update(void)
 	}
 
 	// 対象フレームのローカル行列を初期値にリセットする
-	MV1ResetFrameUserLocalMatrix(modelId_, FRAME_ROOT_NUM);
+	MV1ResetFrameUserLocalMatrix(modelId_, frameRootNum_);
 
 	
 	if (preAnimation.isInPlace || curAnimation.isInPlace)
@@ -317,7 +313,7 @@ void AnimationController::Update(void)
 void AnimationController::AnimationInPlace(Animation& prePlayAnimation, Animation& curPlayAnimation, float _rate)
 {
 	// 対象フレームのローカル行列を初期値にリセットす
-	MV1ResetFrameUserLocalMatrix(modelId_, FRAME_ROOT_NUM);
+	MV1ResetFrameUserLocalMatrix(modelId_, frameRootNum_);
 	
 	// アニメーションブレンド率
 	float rate = std::clamp(_rate, 0.0f, 1.0f);
@@ -351,7 +347,7 @@ void AnimationController::AnimationInPlace(Animation& prePlayAnimation, Animatio
 	localPos.z = (preBase.z + (curBase.z - preBase.z) * rate);
 
 	// 対象フレームのローカル行列(大きさ、回転)はモデル本来の値を使用
-	MATRIX mat = MV1GetFrameLocalMatrix(modelId_, FRAME_ROOT_NUM);
+	MATRIX mat = MV1GetFrameLocalMatrix(modelId_, frameRootNum_);
 	VECTOR scl = MGetSize(mat);
 	MATRIX rot = MGetRotElem(mat);
 
@@ -361,7 +357,7 @@ void AnimationController::AnimationInPlace(Animation& prePlayAnimation, Animatio
 	mix = MMult(mix, MGetTranslate(localPos));
 
 	// 対象フレームにセットし直し、アニメーションの移動値を無効化
-	MV1SetFrameUserLocalMatrix(modelId_, FRAME_ROOT_NUM, mix);
+	MV1SetFrameUserLocalMatrix(modelId_, frameRootNum_, mix);
 }
 VECTOR AnimationController::GetRawAnimationRootPos(Animation& target, Animation& other)
 {
@@ -374,7 +370,7 @@ VECTOR AnimationController::GetRawAnimationRootPos(Animation& target, Animation&
 		MV1SetAttachAnimBlendRate(modelId_, other.attachNo, 0.0f);
 	}
 
-	MATRIX mat = MV1GetFrameLocalMatrix(modelId_, FRAME_ROOT_NUM);
+	MATRIX mat = MV1GetFrameLocalMatrix(modelId_, frameRootNum_);
 	return MGetTranslateElem(mat);
 }
 

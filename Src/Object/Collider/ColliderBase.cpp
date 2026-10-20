@@ -6,7 +6,6 @@ ColliderBase::ColliderBase(SHAPE shape, TAG tag, const Transform* follow)
 	: shape_(shape)
 	, tag_(tag)
 	, follow_(follow)
-	, isValid_(true)
 {
 }
 
@@ -15,6 +14,7 @@ void ColliderBase::Draw(void)
 {
 #ifdef _DEBUG
 	int color = COLOR_INVALID;
+
 	if (isValid_)
 	{
 		color = COLOR_VALID;

@@ -35,6 +35,7 @@ void ActorBase::Draw(void)
 	// Œã•`‰æ
 	DrawLate();
 
+#ifdef _DEBUG
 	if (SceneManager::GetInstance().GetIsDebugMode())
 	{
 		// Š—L‚µ‚Ä‚¢‚éƒRƒ‰ƒCƒ_‚Ì•`‰æ
@@ -43,6 +44,7 @@ void ActorBase::Draw(void)
 			collider->Draw();
 		}
 	}
+#endif
 }
 
 void ActorBase::Release(void)

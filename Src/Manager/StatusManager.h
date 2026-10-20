@@ -16,7 +16,7 @@ public:
 
 	// セーブデータのハンドル
 	const char* PATH_PLAYER = "PlayerData.csv";
-	const char* PATH_PLAYER_MOTION = "PlayerMotionData.csv";
+	const char* PATH_PLAYER_ACTION = "PlayerActionData.csv";
 	const char* PATH_ENEMY = "EnemyData.csv";
 
 

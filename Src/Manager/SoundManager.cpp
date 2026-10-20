@@ -11,8 +11,8 @@ const std::string SoundManager::PATH_BGM_TITLE = ResourceManager::PATH_BGM + "Ti
 const std::string SoundManager::PATH_BGM_GAME  = ResourceManager::PATH_BGM + "GameBGM.mp3";
 
 const std::string SoundManager::PATH_SE_CLICK  = ResourceManager::PATH_SE + "Click.mp3";
-const std::string SoundManager::PATH_SE_SWORD_JUB = ResourceManager::PATH_SE + "SwordJub.mp3";
-const std::string SoundManager::PATH_SE_SWORD_STRONG = ResourceManager::PATH_SE + "SwordStrong.mp3";
+const std::string SoundManager::PATH_SE_SWORD_LIGHT = ResourceManager::PATH_SE + "SwordLight.mp3";
+const std::string SoundManager::PATH_SE_SWORD_HEAVY = ResourceManager::PATH_SE + "SwordHeavy.mp3";
 const std::string SoundManager::PATH_SE_KNOCK  = ResourceManager::PATH_SE + "KnockDown.mp3";
 
 void SoundManager::CreateInstance(void)
@@ -46,8 +46,8 @@ void SoundManager::SetSounds(void)
 	// SE
 
 	SetSound(SRC::SE_CLICK, PATH_SE_CLICK, Sound::TYPE::SOUND_2D, VOLUME_CLICK);
-	SetSound(SRC::SE_SWORD_JUB, PATH_SE_SWORD_JUB, Sound::TYPE::SOUND_2D, VOLUME_JUB);
-	SetSound(SRC::SE_SWORD_STRONG, PATH_SE_SWORD_STRONG, Sound::TYPE::SOUND_2D, VOLUME_STRONG);
+	SetSound(SRC::SE_SWORD_LIGHT, PATH_SE_SWORD_LIGHT, Sound::TYPE::SOUND_2D, VOLUME_LIGHT);
+	SetSound(SRC::SE_SWORD_HEAVY, PATH_SE_SWORD_HEAVY, Sound::TYPE::SOUND_2D, VOLUME_HEAVY);
 
 	//SetSound(SRC::SE_KNOCK, PATH_SE_KNOCK, Sound::TYPE::SOUND_2D, VOLUME_KNOCK);
 

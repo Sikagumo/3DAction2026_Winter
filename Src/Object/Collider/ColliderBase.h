@@ -67,7 +67,7 @@ protected:
 	const Transform* follow_;
 
 	// 有効フラグ
-	bool isValid_;
+	bool isValid_ = true;
 
 
 	// ローカル座標をワールド座標に変換

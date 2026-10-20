@@ -153,8 +153,6 @@ void ResourceManager::Initialize(void)
 	// ステージモデル
 	_SetResource(LOAD_TYPE::MODEL, SRC::MODEL_STAGE, PATH_MODEL + "Stage/Stage.mv1");
 	_SetResource(LOAD_TYPE::MODEL, SRC::MODEL_STAGE_COLLISION, PATH_MODEL + "Stage/StageCollision.mv1");
-	_SetResource(LOAD_TYPE::MODEL, SRC::MODEL_TREE, PATH_MODEL + "Stage/Tree.mv1");
-	_SetResource(LOAD_TYPE::MODEL, SRC::MODEL_TREE_POSITION, PATH_MODEL + "Stage/TreePosition.mv1");
 
 	// ボスの武器本体系
 	_SetResource(LOAD_TYPE::MODEL, SRC::MODEL_ENEMY, PATH_MODEL + "Enemy/Boss/Boss.mv1");
@@ -166,6 +164,8 @@ void ResourceManager::Initialize(void)
 	_SetResource(LOAD_TYPE::ANIMATION, SRC::ANIMATION_PLAYER_RUN, PATH_ANIMATION + "Run.mv1");
 	_SetResource(LOAD_TYPE::ANIMATION, SRC::ANIMATION_PLAYER_DODGE, PATH_ANIMATION + "Rolling.mv1");
 	_SetResource(LOAD_TYPE::ANIMATION, SRC::ANIMATION_PLAYER_DEFEAT, PATH_ANIMATION + "Defeat.mv1");
+	_SetResource(LOAD_TYPE::ANIMATION, SRC::ANIMATION_PLAYER_SLASH_LIGHT, PATH_ANIMATION + "SlashLight.mv1");
+	_SetResource(LOAD_TYPE::ANIMATION, SRC::ANIMATION_PLAYER_SLASH_HEAVY, PATH_ANIMATION + "SlashHeavy.mv1");
 
 	/* BGM */
 	_SetResource(LOAD_TYPE::SOUND, SRC::BGM_TITLE_SEA, PATH_BGM + "Sea.mp3");

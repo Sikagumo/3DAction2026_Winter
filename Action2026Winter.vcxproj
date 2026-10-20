@@ -141,6 +141,7 @@
   <ItemGroup>
     <ClInclude Include="Src\Application.h" />
     <ClInclude Include="Src\Common\Fader.h" />
+    <ClInclude Include="Src\Common\FrameRate.h" />
     <ClInclude Include="Src\Common\Performance.h" />
     <ClInclude Include="Src\Common\Quaternion.h" />
     <ClInclude Include="Src\Common\Vector2.h" />
@@ -181,6 +182,7 @@
   <ItemGroup>
     <ClCompile Include="Src\Application.cpp" />
     <ClCompile Include="Src\Common\Fader.cpp" />
+    <ClCompile Include="Src\Common\FrameRate.cpp" />
     <ClCompile Include="Src\Common\Performance.cpp" />
     <ClCompile Include="Src\Common\Quaternion.cpp" />
     <ClCompile Include="Src\Common\Vector2.cpp" />

@@ -29,16 +29,6 @@ public:
 
 protected:
 
-	// Å‘å—‰º‘¬“x
-	static constexpr float MAX_FALL_SPEED = -30.0f;
-
-	// Õ“Ë‚Ì‰Ÿ‚µ–ß‚µs‰ñ”
-	static constexpr int CNT_TRY_COLLISION = 20;
-
-	// Õ“Ë‚Ì‰Ÿ‚µ–ß‚µ—Ê
-	static constexpr float COLLISION_BACK_DIS = 1.0f;
-
-
 	std::unique_ptr<AnimationController> animation_ = nullptr;
 
 	std::unique_ptr<ActionController> actionController_ = nullptr;

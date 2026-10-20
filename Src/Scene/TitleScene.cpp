@@ -27,7 +27,7 @@ void TitleScene::Initialize(void)
 void TitleScene::Update(void)
 {
 	// ÉVÅ[ÉìëJà⁄
-	if (InputManager::GetInstance().IsTrgDown(InputManager::TYPE::GAME_STATE_CHANGE))
+	if (InputManager::GetInstance().IsTrgDown(InputManager::TYPE::SELECT_DECISION))
 	{
 		SceneManager::GetInstance().ChangeScene(SceneManager::SCENE_ID::GAME);
 	}

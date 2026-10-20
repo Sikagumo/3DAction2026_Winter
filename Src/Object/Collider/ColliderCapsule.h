@@ -76,5 +76,5 @@ private:
 	VECTOR localPosDown_;
 
 	// ”¼Œa
-	float radius_;
+	float radius_ = 0.0f;
 };

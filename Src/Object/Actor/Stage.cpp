@@ -1,6 +1,5 @@
 #include "Stage.h"
 #include <DxLib.h>
-#include "../../Application.h"
 #include "../../Utility/UtilityMath.h"
 #include "../../Manager/SceneManager.h"
 #include "../../Manager/ResourceManager.h"
@@ -63,7 +62,7 @@ void Stage::Update(void)
 void Stage::DrawLate(void)
 {
 #ifdef _DEBUG
-    if (Application::GetInstance().IsDebugMode())
+    if (SceneManager::GetInstance().GetIsDebugMode())
     {
         MV1DrawModel(collisionTransform_.modelId);
     }

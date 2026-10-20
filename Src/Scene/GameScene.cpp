@@ -56,7 +56,7 @@ void GameScene::Initialize(void)
 	SceneManager::GetInstance().GetCamera().SetFollow(&player_->GetTransform());
 	SceneManager::GetInstance().GetCamera().ChangeMode(Camera::MODE::FOLLOW);
 
-	/*
+	/*	
 	// ポストエフェクト用スクリーン
 	postEffectScreen_ = MakeScreen(
 		Application::SCREEN_SIZE_X, Application::SCREEN_SIZE_Y, true);
@@ -112,7 +112,7 @@ void GameScene::Update(void)
 {
 
 	// シーン遷移
-	if (InputManager::GetInstance().IsTrgDown(InputManager::TYPE::GAME_STATE_CHANGE))
+	if (InputManager::GetInstance().IsTrgDown(InputManager::TYPE::PAUSE))
 	{
 		SceneManager::GetInstance().ChangeScene(SceneManager::SCENE_ID::TITLE);
 	}

@@ -115,19 +115,6 @@ protected:
 
 private:
 
-	// 衝突時の押し戻し試行回数
-	static constexpr int CNT_TRY_COLLISION_CAMERA = 30;
-
-	// 衝突時の押し戻し量
-	static constexpr float COLLISION_BACK_DIS = 2.0f;
-
-	// 衝突判定用球体半径
-	static constexpr float COL_CAPSULE_SPHERE = 50.0f;
-
-	// カメラの補間移動率
-	static constexpr float LERP_RATE_MOVE = 0.1f;
-
-
 	// カメラの更新前位置
 	VECTOR prePos_;
 

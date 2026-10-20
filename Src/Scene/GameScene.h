@@ -2,6 +2,7 @@
 #include <memory>
 #include <map>
 #include <DxLib.h>
+#include <functional>
 //#include "../Object/Shield.h"
 class Stage;
 class SkyDome;
@@ -15,6 +16,15 @@ class Player;
 class GameScene : public SceneBase
 {
 public:
+
+	enum class GAME_STATE
+	{
+		PREMOVIE,
+		ACTIVE,
+		CLEAR,
+		GAMEOVER,
+		MAX
+	};
 
 	/// @brief ƒ‚ƒfƒ‹‚Ìí—Ş(•`‰æ‡)
 	enum class OBJECT_TYPE

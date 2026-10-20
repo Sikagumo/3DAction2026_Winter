@@ -81,8 +81,7 @@ void ActionController::Update(void)
 {
 	if (curActionNum_ == -1 || actionState_ == ACTION_STATE::NONE) { return; }
 
-	const bool isStop = (animation_ != nullptr);
-	//const bool isStop = (animation_ != nullptr && animation_->IsStop());
+	const bool isStop = (animation_ != nullptr && animation_->IsStop());
 
 	if (!isStop)
 	{

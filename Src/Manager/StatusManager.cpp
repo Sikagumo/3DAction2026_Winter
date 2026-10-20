@@ -154,15 +154,15 @@ void StatusManager::LoadPlayerStatus(void)
 
 void StatusManager::LoadPlayerMotion(void)
 {
-	constexpr size_t COLS_MAX = static_cast<size_t>(StatusPlayer::MOTION_PARAM::MAX);
-	constexpr size_t TYPES = static_cast<size_t>(StatusPlayer::MOTION_TYPE::MAX);
+	constexpr size_t COLS_MAX = static_cast<size_t>(StatusPlayer::ACTION_PARAM::MAX);
+	constexpr size_t TYPES = static_cast<size_t>(StatusPlayer::ACTION_TYPE::MAX);
 
-	LoadCsv<COLS_MAX>(PATH_PLAYER_MOTION, [this](size_t i, const auto& row)
+	LoadCsv<COLS_MAX>(PATH_PLAYER_ACTION, [this](size_t i, const auto& row)
 		{
 			// s‚ª‘½‚·‚¬‚éê‡‚Ì”ÍˆÍŠO‘Îô
 			if (i >= TYPES) { return; }
 			
-			player_->LoadMotionParam(static_cast<StatusPlayer::MOTION_TYPE>(i), row);
+			player_->LoadMotionParam(static_cast<StatusPlayer::ACTION_TYPE>(i), row);
 		}
 	);
 }

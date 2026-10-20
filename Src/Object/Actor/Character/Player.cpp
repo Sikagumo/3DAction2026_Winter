@@ -1,5 +1,6 @@
 #include "Player.h"
 #include <array>
+#include <cassert>
 #include <functional>
 #include "../../../Manager/ResourceManager.h"
 #include "../../../Utility/UtilityMath.h"
@@ -25,47 +26,52 @@ namespace
 	// 衝突判定用線分終了
 	constexpr VECTOR COL_LINE_END_LOCAL_POS = { 0.0f, -10.0f, 0.0f };
 
-	// 衝突判定用線分開始(ジャンプ時)
-	constexpr VECTOR COL_LINE_JUMP_START_LOCAL_POS = { 0.0f, 130.0f, 0.0f };
-
-	// 衝突判定用線分終了(ジャンプ時)
-	constexpr VECTOR COL_LINE_JUMP_END_LOCAL_POS = { 0.0f, 50.0f, 0.0f };
-
 	// 衝突判定用カプセル上部球体
 	constexpr VECTOR COL_CAPSULE_TOP_LOCAL_POS = { 0.0f, 110.0f, 0.0f };
 
 	// 衝突判定用カプセル下部球体
 	constexpr VECTOR COL_CAPSULE_DOWN_LOCAL_POS = { 0.0f, 30.0f, 0.0f };
 
-	// 衝突判定用カプセル上部球体(ジャンプ時)
-	constexpr VECTOR COL_CAPSULE_TOP_JUMP_LOCAL_POS = { 0.0f, 160.0f, 0.0f };
-
-	// 衝突判定用カプセル下部球体(ジャンプ時)
-	constexpr VECTOR COL_CAPSULE_DOWN_JUMP_LOCAL_POS = { 0.0f, 80.0f, 0.0f };
 
 	// 衝突判定用カプセル球体半径
 	constexpr float COL_CAPSULE_RADIUS = 20.0f;
 
-	// 移動速度(通常)
-	constexpr float SPEED_MOVE = 5.0f;
-
-	// 移動速度(ダッシュ)
-	constexpr float SPEED_DASH = 10.0f;
-
 	constexpr float PARRY_TIME = 0.5f;
 
-	constexpr float DODGE_TOTAL_ACTIVE = 0.2f;
-	constexpr float DODGE_TIMING_ACTION = 0.05f;
-	constexpr float DODGE_TOTAL_END = 0.25f;
 
-	constexpr float DEFENCE_TOTAL_ACTIVE = 0.2f;
-	constexpr float DEFENCE_TIMING_ACTION = 0.05f;
+	/// @brief CSV由来のパラメータを行動コントローラに変換
+	ActionController::ActionParam ToControllerParam(
+		const std::unordered_map<StatusPlayer::ACTION_TYPE, StatusPlayer::ActionParam>& map,
+		StatusPlayer::ACTION_TYPE type)
+	{
+		const auto it = map.find(type);
+		if (it == map.end())
+		{
+#ifdef _DEBUG
+			assert((it == map.end()) + "\n行動が見つかりませんでした。；；\n");
+#endif
+			return ActionController::ActionParam{};	// 全て0のフォールバック
+		}
+
+		const StatusPlayer::ActionParam& status = it->second;
+	
+		return ActionController::ActionParam{
+			.timeActive = status
+			.timeActive,
+			.timeActionTiming = status.timeTimingActive,
+			.timeEnd = status.timeEnd,
+			.timeStop = status.timeHitStop,
+			.timeStopTiming = status.timeTimingHitStop,
+			.timeInput = status.timeInput,
+		};
+	}
 };
 
 Player::Player(void)
 	: CharaBase::CharaBase()
 	, isDash_(false)
 	, status_(StatusManager::GetInstance().GetPlayerStatus().GetPlayerParam())
+	, actionStatus_(StatusManager::GetInstance().GetPlayerStatus().GetPlayerMotion())
 {
 }
 
@@ -102,29 +108,53 @@ void Player::InitCollider(void)
 
 void Player::InitAnimationPost(void)
 {
+	// 待機アニメーション
 	animation_->AddExternal(static_cast<int>(ANIMATION_TYPE::IDLE)
-		, ResourceManager::GetInstance().LoadHandleId(ResourceManager::SRC::ANIMATION_PLAYER_IDLE), 30.0f);
+		, ResourceManager::GetInstance().LoadHandleId(ResourceManager::SRC::ANIMATION_PLAYER_IDLE)
+		, 30.0f);
 
+	// 歩行アニメーション
 	animation_->AddExternal(static_cast<int>(ANIMATION_TYPE::WALK)
-		, ResourceManager::GetInstance().LoadHandleId(ResourceManager::SRC::ANIMATION_PLAYER_WALK), 30.0f);
+		, ResourceManager::GetInstance().LoadHandleId(ResourceManager::SRC::ANIMATION_PLAYER_WALK)
+		, 30.0f);
 
+	// ダッシュアニメーション
 	animation_->AddExternal(static_cast<int>(ANIMATION_TYPE::RUN)
-		, ResourceManager::GetInstance().LoadHandleId(ResourceManager::SRC::ANIMATION_PLAYER_RUN), 30.0f);
+		, ResourceManager::GetInstance().LoadHandleId(ResourceManager::SRC::ANIMATION_PLAYER_RUN)
+		, 30.0f);
 
-	//animation_->AddExternal(static_cast<int>(ANIMATION_TYPE::FALL)
-//		, ResourceManager::GetInstance().LoadHandleId(ResourceManager::SRC::ANIMATION_PLAYER_FALL), 30.0f);
+	// 弱攻撃アニメーション
+	animation_->AddExternal(static_cast<int>(ANIMATION_TYPE::ATTACK_LIGHT)
+		, ResourceManager::GetInstance().LoadHandleId(ResourceManager::SRC::ANIMATION_PLAYER_SLASH_LIGHT)
+		, 30.0f);
+
+	// 強攻撃アニメーション
+	animation_->AddExternal(static_cast<int>(ANIMATION_TYPE::ATTACK_HEAVY)
+		, ResourceManager::GetInstance().LoadHandleId(ResourceManager::SRC::ANIMATION_PLAYER_SLASH_HEAVY)
+		, 30.0f);
 
 	PlayAnimation(ANIMATION_TYPE::IDLE);
 }
 
 void Player::InitActionPost(void)
 {
-	actionController_->SetAction(static_cast<int>(ACTION_TYPE::DEFENSE),
-		ActionController::ActionParam{
-			.timeActive = DEFENCE_TOTAL_ACTIVE,
-			.timeActionTiming = DEFENCE_TIMING_ACTION,
-		}
-		, MakeActionCommand([this]() { Defense(); })
+	const auto& actionMap = StatusManager::GetInstance().GetPlayerStatus().GetPlayerMotion();
+
+	// 防御
+	actionController_->SetAction(static_cast<int>(ACTION_TYPE::DEFENSE)
+		, ToControllerParam(actionMap, ACTION_TYPE::DEFENSE)
+		, MakeActionCommand([this]() { Defense(); }));
+
+	// 弱攻撃
+	actionController_->SetAction(static_cast<int>(ACTION_TYPE::ATTACK_LIGHT)
+		, ToControllerParam(actionMap, ACTION_TYPE::ATTACK_LIGHT)
+		, MakeActionCommand([this]() { AttackLight(); })
+		);
+
+	// 強攻撃
+	actionController_->SetAction(static_cast<int>(ACTION_TYPE::ATTACK_HEAVY)
+		, ToControllerParam(actionMap, ACTION_TYPE::ATTACK_HEAVY)
+		, MakeActionCommand([this]() { AttackHeavy(); })
 		);
 }
 
@@ -134,14 +164,25 @@ void Player::InitPost(void)
 
 void Player::UpdateProcess(void)
 {
-	ProcessJump();
-
 	// 移動操作
-	ProcessMove();
+	if (!actionController_->IsActiveAction())
+	{
+		ProcessMove();
+	}
 
 	ProcessDefense();
 
 	ProcessDodge();
+
+	ProcessAttackLight();
+	ProcessAttackHeavy();
+
+	// Y軸制限
+	const float LIMIT_POS_Y = -1500.0f;
+	if (transform_.pos.y < LIMIT_POS_Y)
+	{
+		transform_.pos.y = -(LIMIT_POS_Y);
+	}
 }
 
 void Player::UpdateProcessPost(void)
@@ -151,7 +192,10 @@ void Player::UpdateProcessPost(void)
 
 void Player::DrawDebug(void)
 {
-	DrawFormatString(0, 0, 0xff0000, "Player:speed(time:%.2f, speed:%.2f)", moveTime_, moveSpeed_);
+	DrawFormatString(0, 0, 0xff0000, "Player:speed(time:%.2f, speed:%.2f)"
+		, moveTime_, moveSpeed_);
+
+	actionController_->DrawDebug();
 }
 
 void Player::ChangeAction(ACTION_TYPE action)
@@ -163,46 +207,26 @@ void Player::CollisionReserve(void)
 {
 	/* アニメーションごとの衝突位置調整 */
 
-	//if (animation_->GetPlayType() == static_cast<int>(ANIMATION_TYPE::FALL))
-	if (false)
+	// 通常時の線分に戻す
+	if (ownColliders_.count(static_cast<int>(COLLIDER_TYPE::LINE)) != 0)
 	{
-		// ジャンプ中は線分を伸ばす
-		if (ownColliders_.count(static_cast<int>(COLLIDER_TYPE::LINE)) != 0)
-		{
-			ColliderLine* colLine = dynamic_cast<ColliderLine*>(
-				ownColliders_.at(static_cast<int>(COLLIDER_TYPE::LINE)));
-			colLine->SetLocalPosStart(COL_LINE_JUMP_START_LOCAL_POS);
-			colLine->SetLocalPosEnd(COL_LINE_JUMP_END_LOCAL_POS);
-		}
+		ColliderLine* colLine = dynamic_cast<ColliderLine*>(
+			ownColliders_.at(static_cast<int>(COLLIDER_TYPE::LINE)));
+		colLine->SetLocalPosStart(COL_LINE_START_LOCAL_POS);
+		colLine->SetLocalPosEnd(COL_LINE_END_LOCAL_POS);
 
-		// ジャンプ中はカプセルを伸ばす
-		if (ownColliders_.count(static_cast<int>(COLLIDER_TYPE::CAPSULE)) != 0)
-		{
-			ColliderCapsule* colCapsule = dynamic_cast<ColliderCapsule*>(
-				ownColliders_.at(static_cast<int>(COLLIDER_TYPE::CAPSULE)));
-			colCapsule->SetLocalPosTop(COL_CAPSULE_TOP_JUMP_LOCAL_POS);
-			colCapsule->SetLocalPosDown(COL_CAPSULE_DOWN_JUMP_LOCAL_POS);
-		}
+		jumpPow_.y = 0.0f;
 	}
-	else
-	{
-		// 通常時の線分に戻す
-		if (ownColliders_.count(static_cast<int>(COLLIDER_TYPE::LINE)) != 0)
-		{
-			ColliderLine* colLine = dynamic_cast<ColliderLine*>(
-				ownColliders_.at(static_cast<int>(COLLIDER_TYPE::LINE)));
-			colLine->SetLocalPosStart(COL_LINE_START_LOCAL_POS);
-			colLine->SetLocalPosEnd(COL_LINE_END_LOCAL_POS);
-		}
 
-		// 通常時のカプセルに戻す
-		if (ownColliders_.count(static_cast<int>(COLLIDER_TYPE::CAPSULE)) != 0)
-		{
-			ColliderCapsule* colCapsule = dynamic_cast<ColliderCapsule*>(
-				ownColliders_.at(static_cast<int>(COLLIDER_TYPE::CAPSULE)));
-			colCapsule->SetLocalPosTop(COL_CAPSULE_TOP_LOCAL_POS);
-			colCapsule->SetLocalPosDown(COL_CAPSULE_DOWN_LOCAL_POS);
-		}
+	// 通常時のカプセルに戻す
+	if (ownColliders_.count(static_cast<int>(COLLIDER_TYPE::CAPSULE)) != 0)
+	{
+		ColliderCapsule* colCapsule = dynamic_cast<ColliderCapsule*>(
+			ownColliders_.at(static_cast<int>(COLLIDER_TYPE::CAPSULE)));
+		colCapsule->SetLocalPosTop(COL_CAPSULE_TOP_LOCAL_POS);
+		colCapsule->SetLocalPosDown(COL_CAPSULE_DOWN_LOCAL_POS);
+
+		jumpPow_.y = 0.0f;
 	}
 }
 
@@ -241,10 +265,7 @@ void Player::ProcessMove(void)
 		const float SPEED_MAX = ((isDash_) ? status_.speedDash : status_.speedWalk);
 		if (moveSpeed_ < SPEED_MAX)
 		{
-			// 最高速度到達度
-			constexpr float MOVE_ACCEL_TIME = 1.5f;
-
-			const float rate = UtilityCommon::EaseInOutQuart(moveTime_ / MOVE_ACCEL_TIME);
+			const float rate = UtilityCommon::EaseInOutQuart(moveTime_ / status_.speedAccTime);
 			moveSpeed_ = status_.speedInit + (SPEED_MAX - status_.speedInit) * rate;
 		}
 
@@ -271,53 +292,26 @@ void Player::ProcessMove(void)
 	}
 	else
 	{
-		movePow_ = UtilityMath::VECTOR_ZERO;
+		ResetMove();
 
-		moveTime_ = 0.0f;
-		moveSpeed_ = 0.0f;
-
-		if (!actionController_->IsActiveAction())
-		{
-			PlayAnimation(ANIMATION_TYPE::IDLE);
-		}
+		PlayAnimation(ANIMATION_TYPE::IDLE);
 	}
 }
 
-void Player::ProcessJump(void)
+void Player::ResetMove(void)
 {
-	/*
-	if (isHitKeyNew)
-	{
-		if (stepJump_ <= TIME_JUMP_INPUT)
-		{
-			// ジャンプ量の計算
-			float jumpSpeed = POW_JUMP_KEEP * SceneManager::GetInstance().GetDeltaTime();
-			jumpPow_ = VAdd(jumpPow_, VScale(UtilityMath::DIR_UP, jumpSpeed));
-		}
-	}*/
+	movePow_ = UtilityMath::VECTOR_ZERO;
 
-	// ジャンプ
-	if (!isFall_)
-	{
-		// ジャンプ量の計算
-		constexpr float POW_JUMP_INIT = 10.0f;
-		float jumpSpeed = (POW_JUMP_INIT * SceneManager::GetInstance().GetDeltaTime());
-		jumpPow_ = VScale(UtilityMath::DIR_UP, jumpSpeed);
-
-		isFall_ = true;
-	}
-
-	// Y軸制限
-	const float LIMIT_POS_Y = -1500.0f;
-	if (transform_.pos.y < LIMIT_POS_Y)
-	{
-		transform_.pos.y = -(LIMIT_POS_Y);
-	}
+	moveTime_ = 0.0f;
+	moveSpeed_ = 0.0f;
 }
 
 void Player::ProcessDodge(void)
 {
 	
+}
+void Player::Dodge(void)
+{
 }
 
 void Player::ProcessDefense(void)
@@ -325,6 +319,7 @@ void Player::ProcessDefense(void)
 	if (InputManager::GetInstance().IsTrgDown(InputManager::TYPE::PLAYER_DEFENSE))
 	{
 		actionController_->Active(static_cast<int>(ACTION_TYPE::DEFENSE));
+		ResetMove();
 	}
 
 	if (actionController_->GetCurActionNum() == static_cast<int>(ACTION_TYPE::DEFENSE))
@@ -336,6 +331,36 @@ void Player::Defense(void)
 {
 	parryTime_ = PARRY_TIME;
 
+	SceneManager::GetInstance().GetPerformance().StartHitStrong();
+}
+
+void Player::ProcessAttackLight(void)
+{
+	if (InputManager::GetInstance().IsTrgDown(InputManager::TYPE::PLAYER_ATTACK_LIGHT))
+	{
+		actionController_->Active(static_cast<int>(ACTION_TYPE::ATTACK_LIGHT));
+		ResetMove();
+		PlayAnimation(ANIMATION_TYPE::ATTACK_LIGHT, false);
+	}
+}
+
+void Player::AttackLight(void)
+{
+	SceneManager::GetInstance().GetPerformance().StartHitStrong();
+}
+
+void Player::ProcessAttackHeavy(void)
+{
+	if (InputManager::GetInstance().IsTrgDown(InputManager::TYPE::PLAYER_ATTACK_HEAVY))
+	{
+		actionController_->Active(static_cast<int>(ACTION_TYPE::ATTACK_HEAVY));
+		ResetMove();
+		PlayAnimation(ANIMATION_TYPE::ATTACK_HEAVY, false);
+	}
+}
+
+void Player::AttackHeavy(void)
+{
 	SceneManager::GetInstance().GetPerformance().StartHitStrong();
 }
 

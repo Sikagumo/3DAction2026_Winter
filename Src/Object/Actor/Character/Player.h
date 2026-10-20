@@ -1,5 +1,6 @@
 #pragma once
 #include "./CharaBase.h"
+#include <unordered_map>
 #include "../../Status/StatusPlayer.h"
 
 class Player : public CharaBase
@@ -12,22 +13,11 @@ public:
 		WALK,          // •às
 		RUN,           // ƒ_ƒbƒVƒ…
 		ATTACK_LIGHT,  // ãUŒ‚
-		ATTACK_STRONG, // ‹­UŒ‚
+		ATTACK_HEAVY, // ‹­UŒ‚
 		DEFENSE,       // ç”õ
 		DODGE,         // ‰ñ”ğ
 
 		MAX,
-	};
-
-	enum class ACTION_TYPE
-	{
-		NONE = -1,
-		ATTACK_LIGHT,  // ãUŒ‚
-		ATTACK_STRONG, // ‹­UŒ‚
-		DEFENSE,       // ç”õ
-		DODGE,         // ‰ñ”ğ
-
-		MAX
 	};
 
 	Player(void);
@@ -35,7 +25,8 @@ public:
 
 	void DrawDebug(void)override;
 
-	void ChangeAction(ACTION_TYPE action);
+	void ChangeAction(StatusPlayer::ACTION_TYPE action);
+
 
 protected:
 
@@ -56,7 +47,11 @@ protected:
 
 private:
 
+	// s“®‚Ìí—Ş
+	using ACTION_TYPE = StatusPlayer::ACTION_TYPE;
+
 	const StatusPlayer::PlayerParam& status_;
+	const std::unordered_map<StatusPlayer::ACTION_TYPE, StatusPlayer::ActionParam>& actionStatus_;
 
 	int hp_ = 0;
 
@@ -71,19 +66,23 @@ private:
 
 	// ‘€ì
 	void ProcessMove(void);
-
-	// ƒWƒƒƒ“ƒv
-	void ProcessJump(void);
+	void ResetMove(void);
 
 	/// @brief ‰ñ”ğ
 	void ProcessDodge(void);
+	void Dodge(void);
 
 	/// @brief ç”õ
 	void ProcessDefense(void);
 	void Defense(void);
 
+	/// @brief ãUŒ‚
+	void ProcessAttackLight(void);
 	void AttackLight(void);
-	void AttackStrong(void);
+
+	/// @brief ‹­UŒ‚
+	void ProcessAttackHeavy(void);
+	void AttackHeavy(void);
 
 	void PlayAnimation(ANIMATION_TYPE type, bool _isLoop = true);
 };

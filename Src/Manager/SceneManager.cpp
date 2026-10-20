@@ -8,10 +8,11 @@
 #include "../Scene/GameScene.h"
 #include "./ResourceManager.h"
 #include "../Utility/UtilityMath.h"
+#include "./InputManager.h"
 
 namespace
 {
-	constexpr SceneManager::SCENE_ID START_SCENE = SceneManager::SCENE_ID::GAME;
+	constexpr SceneManager::SCENE_ID START_SCENE = SceneManager::SCENE_ID::TITLE;
 
 	constexpr COLOR_U8 COLOR_BACK = { 0, 139, 139 };
 
@@ -138,6 +139,12 @@ void SceneManager::Update(void)
 
 		// カメラ更新
 		camera_->Update();
+	}
+
+	if (InputManager::GetInstance().IsTrgDown(InputManager::TYPE::DEBUG_MODE))
+	{
+		// デバッグモード切替
+		isDebugMode_ = !isDebugMode_;
 	}
 }
 

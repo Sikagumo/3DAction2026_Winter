@@ -30,13 +30,14 @@ public:
 		PLAYER_ROTATION_RIGHT,
 
 		// プレイヤーアクション
-		PLAYER_ATTACK_JUB,	  // 弱攻撃
-		PLAYER_ATTACK_STRONG, // 強攻撃
+		PLAYER_ATTACK_LIGHT,	  // 弱攻撃
+		PLAYER_ATTACK_HEAVY, // 強攻撃
 		PLAYER_DASH,      // ダッシュ
 		PLAYER_DEFENSE,   // 守備
 		PLAYER_DODGE,   // 回避
+		PLAYER_DRAIN,   // 吸収
 
-		GAME_STATE_CHANGE, // ゲーム状態遷移
+		CAMERA_LOCKON,   // カメラ注視
 
 		// 選択
 		SELECT_RIGHT,
