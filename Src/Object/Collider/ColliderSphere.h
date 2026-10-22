@@ -8,6 +8,9 @@ class ColliderSphere : public ColliderBase
 {
 public:
 
+	// 初期ローカル座標
+	const VECTOR LOCAL_POS_INIT;
+
 	/// @brief コンストラクタ
 	/// @param tag タグ
 	/// @param follow 追従対象

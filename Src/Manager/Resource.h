@@ -26,16 +26,16 @@ public:
 
 	/// @brief コンストラクタ
 	/// @param _loadType 読み込むファイルの種類
-	/// @param _path ファイルパス
-	Resource(LOAD_TYPE _loadType, const std::string& _path);
+	/// @param path ファイルパス
+	Resource(LOAD_TYPE _loadType, const std::string& path);
 
 	/// @brief 複数画像時のコンストラクタ
 	/// @param _loadType 読み込むファイルの種類
-	/// @param _path ファイルパス
+	/// @param path ファイルパス
 	/// @param allNum 画像数
 	/// @param numX 横画像数
 	/// @param numY 縦画像数
-	Resource(LOAD_TYPE type, const std::string& _path
+	Resource(LOAD_TYPE type, const std::string& path
 			 , int allNum, int numX, int numY);
 
 	~Resource(void) = default;

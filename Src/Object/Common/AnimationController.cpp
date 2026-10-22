@@ -146,7 +146,7 @@ void AnimationController::AddExternal(int type, int _handle
 }
 
 
-void AnimationController::Play(int type, bool _isLoop, float playSpeed, float _blendTime)
+void AnimationController::Play(int type, bool isLoop, float playSpeed, float _blendTime)
 {
 	// 同じアニメーション時、処理を終了
 	if (playType_ == type || type == -1) { return; }
@@ -179,7 +179,7 @@ void AnimationController::Play(int type, bool _isLoop, float playSpeed, float _b
 	}
 
 	// アニメーションループ
-	isLoop_ = _isLoop;
+	isLoop_ = isLoop;
 
 	// 停止を解除
 	isStop_ = false;

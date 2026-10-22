@@ -63,24 +63,24 @@ public:
 			isBgm = false;
 		};
 
-		SoundInfo(TYPE _type, const std::string& _path, bool _isBGM)
+		SoundInfo(TYPE _type, const std::string& filePath, bool isBGM)
 		{
 			type = _type;
 			handle = -1;
-			path = _path;
+			path = filePath;
 			maxVolume = 255;
 			pos = VGet(0.0f, 0.0f, 0.0f);
 			radius = 0.0f;
 			isPlay = false;
 			isPlayOld = false;
-			isBgm = _isBGM;
+			isBgm = isBGM;
 		};
 	};
 
 
 	Sound(void);
 
-	Sound(TYPE type, const std::string& path, bool _isBGM);
+	Sound(TYPE type, const std::string& path, bool isBGM);
 
 	~Sound(void) = default;
 
@@ -98,11 +98,11 @@ public:
 
 	/// @brief 2Dサウンドの再生処
 	/// @param _times 再生種類を取得
-	/// @param _isPitch ピッチを上げるか否か
+	/// @param isPitch ピッチを上げるか否か
 	/// @param _pitchRange ピッチの増加範囲
 	/// @param isForce
 	/// @returns 音声未割当時、false
-	bool Play(TIMES times, bool _isPitch = false, int _pitchRange = 1, bool isForce = false);
+	bool Play(TIMES times, bool isPitch = false, int _pitchRange = 1, bool isForce = false);
 
 	/// @brief 3Dサウンドの再生処
 	/// @param times 再生種類を取得

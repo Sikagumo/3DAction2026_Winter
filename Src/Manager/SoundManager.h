@@ -71,27 +71,27 @@ public:
 
 	/// @brief 2Dサウンド再生処理
 	/// @param _src 再生するサウンドの種類
-	/// @param _isLoop ループするか否か
-	/// @param _isPitch ピッチを変えるか否か
+	/// @param isLoop ループするか否か
+	/// @param isPitch ピッチを変えるか否か
 	/// @param _pitchRange ピッチ増減の範囲
-	/// @param _isForce 
-	bool Play(SRC _src, bool _isLoop, bool _isPitch = false, float _pitchRange = PITCH_RANGE_DEF, bool _isForce = false);
+	/// @param isForce 
+	bool Play(SRC _src, bool isLoop, bool isPitch = false, float _pitchRange = PITCH_RANGE_DEF, bool isForce = false);
 	/// @brief 2Dサウンド再生処理
 	/// @param _src 再生するサウンドの種類
-	/// @param _isLoop ループするか否か
-	/// @param _isForce 
-	bool Play(int _src, bool _isLoop, bool _isPitch = false, float _pitchRange = PITCH_RANGE_DEF, bool _isForce = false)
-		{ Play(static_cast<SRC>(_src), _isLoop, _isPitch, _pitchRange, _isForce); };
+	/// @param isLoop ループするか否か
+	/// @param isForce 
+	bool Play(int _src, bool isLoop, bool isPitch = false, float _pitchRange = PITCH_RANGE_DEF, bool isForce = false)
+		{ Play(static_cast<SRC>(_src), isLoop, isPitch, _pitchRange, isForce); };
 
 	/// <summary>
 	/// 3Dサウンド再生処理
 	/// </summary>
 	/// <param name="_sec">再生するサウンドの種類</param>
-	/// <param name="_isLoop">ループするか否か</param>
+	/// <param name="isLoop">ループするか否か</param>
 	/// <param name="_pos">音量が出てくる座標</param>
 	/// <param name="_radius">音量の聞こえる半径</param>
 	/// <returns></returns>
-	bool Play(SRC _sec, bool _isLoop, VECTOR _pos, float _radius);
+	bool Play(SRC _sec, bool isLoop, VECTOR _pos, float _radius);
 
 
 	/// @brief サウンドが再生開始しているか判定
@@ -119,8 +119,8 @@ public:
 	void StopAll(void);
 
 	/// @brief 指定の種類の音声を停止
-	/// @param _isBGM (true:BGMを停止, false:SEを停止)
-	void StopAllChoice(bool _isBGM);
+	/// @param isBGM (true:BGMを停止, false:SEを停止)
+	void StopAllChoice(bool isBGM);
 
 	/// <summary>
 	/// 音量を割り当て
@@ -196,5 +196,5 @@ private:
 	/// <param name="path">パス</param>
 	/// <param name="type">再生タイプ</param>
 	/// <param name="maxVolume">最大音量</param>
-	void SetSound(SRC _src, const std::string& path, Sound::TYPE type, float maxVolume, bool _isBGM = false);
+	void SetSound(SRC _src, const std::string& path, Sound::TYPE type, float maxVolume, bool isBGM = false);
 };

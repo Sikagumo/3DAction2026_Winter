@@ -156,6 +156,7 @@
     <ClInclude Include="Src\Manager\SoundManager.h" />
     <ClInclude Include="Src\Manager\StatusManager.h" />
     <ClInclude Include="Src\Object\Actor\ActorBase.h" />
+    <ClInclude Include="Src\Object\Actor\Character\Boss.h" />
     <ClInclude Include="Src\Object\Actor\Character\CharaBase.h" />
     <ClInclude Include="Src\Object\Actor\Character\Player.h" />
     <ClInclude Include="Src\Object\Actor\Stage.h" />
@@ -170,12 +171,14 @@
     <ClInclude Include="Src\Object\Common\Transform.h" />
     <ClInclude Include="Src\Object\Actor\SkyDome.h" />
     <ClInclude Include="Src\Object\Status\StatusEnemy.h" />
+    <ClInclude Include="Src\Object\Status\StatusBoss.h" />
     <ClInclude Include="Src\Object\Status\StatusPlayer.h" />
     <ClInclude Include="Src\resource.h" />
     <ClInclude Include="Src\Scene\GameScene.h" />
     <ClInclude Include="Src\Scene\SceneBase.h" />
     <ClInclude Include="Src\Scene\TitleScene.h" />
     <ClInclude Include="Src\Utility\MatrixUtility.h" />
+    <ClInclude Include="Src\Utility\UtilityCollision.h" />
     <ClInclude Include="Src\Utility\UtilityCommon.h" />
     <ClInclude Include="Src\Utility\UtilityMath.h" />
   </ItemGroup>
@@ -197,6 +200,7 @@
     <ClCompile Include="Src\Manager\SoundManager.cpp" />
     <ClCompile Include="Src\Manager\StatusManager.cpp" />
     <ClCompile Include="Src\Object\Actor\ActorBase.cpp" />
+    <ClCompile Include="Src\Object\Actor\Character\Boss.cpp" />
     <ClCompile Include="Src\Object\Actor\Character\CharaBase.cpp" />
     <ClCompile Include="Src\Object\Actor\Character\Player.cpp" />
     <ClCompile Include="Src\Object\Actor\Stage.cpp" />
@@ -210,11 +214,13 @@
     <ClCompile Include="Src\Object\Common\Transform.cpp" />
     <ClCompile Include="Src\Object\Actor\SkyDome.cpp" />
     <ClCompile Include="Src\Object\Status\StatusEnemy.cpp" />
+    <ClCompile Include="Src\Object\Status\StatusBoss.cpp" />
     <ClCompile Include="Src\Object\Status\StatusPlayer.cpp" />
     <ClCompile Include="Src\Scene\GameScene.cpp" />
     <ClCompile Include="Src\Scene\SceneBase.cpp" />
     <ClCompile Include="Src\Scene\TitleScene.cpp" />
     <ClCompile Include="Src\Utility\MatrixUtility.cpp" />
+    <ClCompile Include="Src\Utility\UtilityCollision.cpp" />
     <ClCompile Include="Src\Utility\UtilityCommon.cpp" />
     <ClCompile Include="Src\Utility\UtilityMath.cpp" />
   </ItemGroup>

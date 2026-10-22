@@ -5,6 +5,7 @@
 ColliderSphere::ColliderSphere(TAG tag, const Transform* follow, const VECTOR& localPos, float radius)
 	: ColliderBase::ColliderBase(SHAPE::SPHERE, tag, follow)
 	, localPos_(localPos)
+	, LOCAL_POS_INIT(localPos)
 	, radius_(radius)
 {
 
@@ -18,7 +19,7 @@ VECTOR ColliderSphere::GetPos(void) const
 void ColliderSphere::DrawDebug(int color)
 {
 #ifdef _DEBUG
-	DrawSphere3D(GetPos(), radius_, 10, color, color, true);
+	DrawSphere3D(GetPos(), radius_, 10, color, color, false);
 #endif
 }
 

@@ -68,14 +68,16 @@ void Camera::SetBeforeDraw(void)
 
 	switch (mode_)
 	{
-	case Camera::MODE::FIXED_POINT:
-		SetBeforeDrawFixedPoint();
+		case Camera::MODE::FIXED_POINT:
+			SetBeforeDrawFixedPoint();
 		break;
-	case Camera::MODE::FREE:
-		SetBeforeDrawFree();
+
+		case Camera::MODE::FREE:
+			SetBeforeDrawFree();
 		break;
-	case Camera::MODE::FOLLOW:
-		SetBeforeDrawFollow();
+
+		case Camera::MODE::FOLLOW:
+			SetBeforeDrawFollow();
 		break;
 	}
 

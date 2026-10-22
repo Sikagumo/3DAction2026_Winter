@@ -1,16 +1,25 @@
 #include "SceneBase.h"
 #include "../Application.h"
 #include "../Utility/UtilityMath.h"
+#include "../Utility/UtilityCollision.h"
 #include "../Manager/SceneManager.h"
 #include "../Manager/Camera.h"
 #include "../Manager/InputManager.h"
 #include "../Object/Actor/SkyDome.h"
 #include "../Object/Collider/ColliderBase.h"
 #include "../Object/Actor/Character/Player.h"
+#include "../Object/Actor/Character/Boss.h"
 #include "../Object/Actor/Stage.h"
-//#include "../Object/Model.h"
+#include "../Object/Collider/ColliderCapsule.h"
+#include "../Object/Collider/ColliderSphere.h"
+#include "../Object/Common/AnimationController.h"
 #include <DxLib.h>
 #include "GameScene.h"
+
+namespace
+{
+	constexpr float TIME_PERFORM_PREMOVIE = 7.5f;
+};
 
 GameScene::GameScene(void)
 	: SceneBase()
@@ -40,13 +49,21 @@ void GameScene::Initialize(void)
 	player_ = std::make_unique<Player>();
 	player_->Initialize();
 
+	// プレイヤー
+	boss_ = std::make_unique<Boss>();
+	boss_->Initialize();
+
 	// ステージ
 	stage_ = std::make_unique<Stage>(player_);
 	stage_->Initialize();
-	const ColliderBase* stageCollider = stage_->GetOwnCollider(0);
 
-	// ステージモデルのコライダーをプレイヤーに登録
+	// ステージモデルのコライダーをキャラクターに登録
 	player_->AddHitCollider(stage_->GetOwnCollider(0));
+	boss_->AddHitCollider(stage_->GetOwnCollider(0));
+
+	// 相手の攻撃範囲を取得
+	player_->AddHitCollider(boss_->GetOwnCollider(static_cast<int>(CharaBase::COLLIDER_TYPE::ATTACK_AREA)));
+	boss_->AddHitCollider(player_->GetOwnCollider(static_cast<int>(CharaBase::COLLIDER_TYPE::ATTACK_AREA)));
 
 	// スカイドーム
 	skyDome_ = std::make_unique<SkyDome>(player_->GetTransform());
@@ -55,6 +72,9 @@ void GameScene::Initialize(void)
 	// カメラ登録
 	SceneManager::GetInstance().GetCamera().SetFollow(&player_->GetTransform());
 	SceneManager::GetInstance().GetCamera().ChangeMode(Camera::MODE::FOLLOW);
+
+	// 演出時間割り当て
+	SceneManager::GetInstance().SetPerformTime(TIME_PERFORM_PREMOVIE);
 
 	/*	
 	// ポストエフェクト用スクリーン
@@ -110,7 +130,6 @@ void GameScene::Initialize(void)
 
 void GameScene::Update(void)
 {
-
 	// シーン遷移
 	if (InputManager::GetInstance().IsTrgDown(InputManager::TYPE::PAUSE))
 	{
@@ -136,6 +155,27 @@ void GameScene::Update(void)
 	stage_->Update();
 
 	player_->Update();
+
+	boss_->Update();
+
+	if (!SceneManager::GetInstance().IsActivePerformance())
+	{
+		if (boss_->GetHp() <= 0)
+		{
+			SceneManager::GetInstance().SetPerformTime(3.0f);
+		}
+		else if (player_->GetHp() <= 0)
+		{
+			SceneManager::GetInstance().SetPerformTime(3.0f);
+		}
+	}
+	else if (boss_->GetHp() <= 0 && boss_->GetAnimation()->IsEnd()
+		|| player_->GetHp() <= 0 && player_->GetAnimation()->IsEnd())
+	{
+		SceneManager::GetInstance().ChangeScene(SceneManager::SCENE_ID::TITLE);
+	}
+
+	Collision();
 }
 
 void GameScene::Draw(void)
@@ -143,18 +183,15 @@ void GameScene::Draw(void)
 	// 背景
 	skyDome_->Draw();
 	stage_->Draw();
-	
 	player_->Draw();
-
-	// ヘルプ
-	DrawFormatString(840, 20, 0x000000, "移動　　：WASD");
-	DrawFormatString(840, 40, 0x000000, "カメラ　：矢印キー");
-	DrawFormatString(840, 60, 0x000000, "ダッシュ：右Shift");
-	DrawFormatString(840, 80, 0x000000, "ジャンプ：＼(バクスラ)");
+	boss_->Draw();
 
 #ifdef _DEBUG
 
 	player_->DrawDebug();
+
+	boss_->DrawDebug();
+
 #endif
 
 	int mainScreen = SceneManager::GetInstance().GetMainScreen();
@@ -170,6 +207,20 @@ void GameScene::Draw(void)
 
 	// 画面シェーダーを反映
 	SetShaderScreen();
+}
+
+void GameScene::Collision(void)
+{
+	constexpr int COLLIDER_TYPE_ATTACK_AREA = static_cast<int>(CharaBase::COLLIDER_TYPE::ATTACK_AREA);
+	constexpr int COLLIDER_TYPE_CAPSULE = static_cast<int>(CharaBase::COLLIDER_TYPE::CAPSULE);
+
+	const auto& playerAttack = dynamic_cast<const ColliderSphere*>(player_->GetOwnCollider(COLLIDER_TYPE_ATTACK_AREA));
+	const auto& bossCapsule = dynamic_cast<const ColliderCapsule*>(boss_->GetOwnCollider(COLLIDER_TYPE_CAPSULE));
+
+	if (UtilityCollision::IsHitSphereToCapsule(*playerAttack, *bossCapsule))
+	{
+		boss_->SetDamage(player_->GetAttackPower(), 0);
+	}
 }
 
 void GameScene::SetShaderScreen(void)

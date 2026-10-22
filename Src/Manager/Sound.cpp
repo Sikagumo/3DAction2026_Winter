@@ -7,8 +7,8 @@ Sound::Sound(void):
 {
 
 }
-Sound::Sound(TYPE type, const std::string& path, bool _isBGM):
-	sound_(SoundInfo(type, path, _isBGM))
+Sound::Sound(TYPE type, const std::string& path, bool isBGM):
+	sound_(SoundInfo(type, path, isBGM))
 
 {
 
@@ -63,7 +63,7 @@ void Sound::Release(void)
 }
 
 
-bool Sound::Play(TIMES times, bool _isPitch, int _pitchRange, bool isForce)
+bool Sound::Play(TIMES times, bool isPitch, int _pitchRange, bool isForce)
 {
 	sound_.isPlayOld = sound_.isPlay;
 
@@ -91,7 +91,7 @@ bool Sound::Play(TIMES times, bool _isPitch, int _pitchRange, bool isForce)
 
 
 	// 音声のピッチをランダムで変更しソースを再読み込み
-	if (_isPitch)
+	if (isPitch)
 	{
 		int range = _pitchRange;
 		int rand = GetRand(range + range) - (range / 2);

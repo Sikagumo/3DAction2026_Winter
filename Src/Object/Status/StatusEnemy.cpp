@@ -1,12 +1,12 @@
 #include "StatusEnemy.h"
 
 StatusEnemy::StatusEnemy(void)
-	: type_(TYPE::NONE)
+	: enemyParam_{}
 {
 	const int max = static_cast<int>(ANIM_TYPE::MAX);
 	for (int i = 0; i < max; i++)
 	{
- 		animationSpeed_[i] = -1;
+ 		enemyParam_.animationSpeed[i] = -1;
 	}
 }
 
@@ -17,7 +17,7 @@ void StatusEnemy::SetType(const std::string& text)
 		if (type.second == text)
 		{
 			// テキストと状態が一致時に割り当て
-			type_ = type.first;
+			enemyParam_.type = type.first;
 		}
 	}
 }

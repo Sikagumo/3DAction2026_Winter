@@ -121,6 +121,9 @@ void SceneManager::Update(void)
 		// ƒQ[ƒ€ŽÀsŽžŠÔ
 		totalTime_ += deltaTime_;
 
+		// ‰‰oŽžŠÔ
+		performTime_ = ((performTime_ > 0.0f) ? (performTime_ - deltaTime_) : 0.0f);
+
 		if (CheckHitKey(KEY_INPUT_RETURN))
 		{
 			performance_->StartHitSlow(3.0f);

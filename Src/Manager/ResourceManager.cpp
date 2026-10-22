@@ -60,10 +60,11 @@ void ResourceManager::Initialize(void)
 	// 丸影
 	_SetResource(LOAD_TYPE::IMAGE, SRC::IMAGE_SHADOW, PATH_IMAGE + "Shadow.png");
 
-	_SetResource(LOAD_TYPE::IMAGE, SRC::IMAGE_INFO, PATH_IMAGE + "sousa.png");
+	//_SetResource(LOAD_TYPE::IMAGE, SRC::IMAGE_INFO, PATH_IMAGE + "sousa.png");
 
 	/* 複数画像 */
 
+	/*
 	// 画像枚数
 	int imagesAllNum = 0;
 
@@ -82,7 +83,6 @@ void ResourceManager::Initialize(void)
 	imagesNumY = 2;
 	_SetResource(LOAD_TYPE::IMAGES, SRC::IMGS_HP_PLAYER, PATH_IMAGE + "PlayerHpBer.png"
 				, imagesAllNum, imagesNumX, imagesNumY);
-
 
 	// タイトル文字
 	imagesAllNum = 8;
@@ -131,18 +131,10 @@ void ResourceManager::Initialize(void)
 	imagesNumY = 4;
 	_SetResource(LOAD_TYPE::IMAGES, SRC::IMGS_SELECT_PUSE_TEX, PATH_IMAGE + "pouzuRain.png"
 		, imagesAllNum, imagesNumX, imagesNumY);
+	*/
 
 	/* エフェクト */
-	_SetResource(LOAD_TYPE::EFFECT, SRC::EFFECT_WAVE, PATH_EFFECT + "BossAttack/AttackWave.efkefc");
-	_SetResource(LOAD_TYPE::EFFECT, SRC::EFFECT_LANDING, PATH_EFFECT + "BossAttack/Landing.efkefc");
-	_SetResource(LOAD_TYPE::EFFECT, SRC::EFFECT_MG, PATH_EFFECT + "BossAttack/MGRotation.efkefc");
-	_SetResource(LOAD_TYPE::EFFECT, SRC::EFFECT_BOSS_HIT, PATH_EFFECT + "BossAttack/Hit.efkefc");
-	_SetResource(LOAD_TYPE::EFFECT, SRC::EFFECT_LASER, PATH_EFFECT + "BossAttack/Laser.efkefc");
-	_SetResource(LOAD_TYPE::EFFECT, SRC::EFFECT_MISSILE, PATH_EFFECT + "BossAttack/MissileExplosion.efkefc");
-	_SetResource(LOAD_TYPE::EFFECT, SRC::EFFECT_PLAYER_BLAST, PATH_EFFECT + "BlastHit/BlastHit.efkefc");
-	_SetResource(LOAD_TYPE::EFFECT, SRC::EFFECT_PLAYER_RECOVERY, PATH_EFFECT + "Recovery/Recovery.efkefc");
-	_SetResource(LOAD_TYPE::EFFECT, SRC::EFFECT_PLAYER_POISON, PATH_EFFECT + "PoisonHit/PoisonHit.efkefc");
-
+	
 
 	/* モデル */
 	_SetResource(LOAD_TYPE::MODEL, SRC::MODEL_SKYDOME, PATH_MODEL + "SkyDome/SkyDome.mv1");
@@ -154,18 +146,20 @@ void ResourceManager::Initialize(void)
 	_SetResource(LOAD_TYPE::MODEL, SRC::MODEL_STAGE, PATH_MODEL + "Stage/Stage.mv1");
 	_SetResource(LOAD_TYPE::MODEL, SRC::MODEL_STAGE_COLLISION, PATH_MODEL + "Stage/StageCollision.mv1");
 
-	// ボスの武器本体系
-	_SetResource(LOAD_TYPE::MODEL, SRC::MODEL_ENEMY, PATH_MODEL + "Enemy/Boss/Boss.mv1");
-	_SetResource(LOAD_TYPE::MODEL, SRC::MODEL_BOSS, PATH_MODEL + "Enemy/Boss/Boss.mv1");
+	// ボスモデル
+	_SetResource(LOAD_TYPE::MODEL, SRC::MODEL_BOSS, PATH_MODEL + "Boss/Boss.mv1");
 
 	/* アニメーション */
+	_SetResource(LOAD_TYPE::ANIMATION, SRC::ANIMATION_DEFEAT, PATH_ANIMATION + "Defeat.mv1");
 	_SetResource(LOAD_TYPE::ANIMATION, SRC::ANIMATION_PLAYER_IDLE, PATH_ANIMATION + "Idle.mv1");
 	_SetResource(LOAD_TYPE::ANIMATION, SRC::ANIMATION_PLAYER_WALK, PATH_ANIMATION + "Walk.mv1");
 	_SetResource(LOAD_TYPE::ANIMATION, SRC::ANIMATION_PLAYER_RUN, PATH_ANIMATION + "Run.mv1");
 	_SetResource(LOAD_TYPE::ANIMATION, SRC::ANIMATION_PLAYER_DODGE, PATH_ANIMATION + "Rolling.mv1");
+	_SetResource(LOAD_TYPE::ANIMATION, SRC::ANIMATION_PLAYER_DEFENSE, PATH_ANIMATION + "DefenseActive.mv1");
 	_SetResource(LOAD_TYPE::ANIMATION, SRC::ANIMATION_PLAYER_DEFEAT, PATH_ANIMATION + "Defeat.mv1");
 	_SetResource(LOAD_TYPE::ANIMATION, SRC::ANIMATION_PLAYER_SLASH_LIGHT, PATH_ANIMATION + "SlashLight.mv1");
 	_SetResource(LOAD_TYPE::ANIMATION, SRC::ANIMATION_PLAYER_SLASH_HEAVY, PATH_ANIMATION + "SlashHeavy.mv1");
+	_SetResource(LOAD_TYPE::ANIMATION, SRC::ANIMATION_BOSS_STAND_UP, PATH_ANIMATION + "StandUp.mv1");
 
 	/* BGM */
 	_SetResource(LOAD_TYPE::SOUND, SRC::BGM_TITLE_SEA, PATH_BGM + "Sea.mp3");
@@ -195,19 +189,28 @@ void ResourceManager::Initialize(void)
 	_SetResource(LOAD_TYPE::VERTEX_SHADER, SRC::VS_TEX_SCALE, PATH_SHADER + "TexScaleVS.cso");
 
 }
-void ResourceManager::_SetResource(Resource::LOAD_TYPE _loadType, SRC _src, std::string _path
+void ResourceManager::InitializeTitleScene(void)
+{
+
+}
+void ResourceManager::InitializeGameScene(void)
+{
+
+}
+
+void ResourceManager::_SetResource(Resource::LOAD_TYPE _loadType, SRC _src, std::string path
 								   , int allNum, int numX, int numY)
 {
 	if (allNum == -1)
 	{
 		// その他読み込み
-		resourcesMap_.emplace(_src, Resource(_loadType, _path));
+		resourcesMap_.emplace(_src, Resource(_loadType, path));
 	}
 	else
 	{
 		// 複数画像読み込み
 		resourcesMap_.emplace(_src,
-			Resource(_loadType, _path, allNum, numX, numY));
+			Resource(_loadType, path, allNum, numX, numY));
 	}
 	
 }
@@ -245,7 +248,6 @@ void ResourceManager::DestroyInstance(void)
 
 Resource ResourceManager::Load(SRC _src)
 {
-
 	/* 読み込み処理 */
 	Resource* res = _Load(_src);
 

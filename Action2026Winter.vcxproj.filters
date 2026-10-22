@@ -117,6 +117,9 @@
     <ClInclude Include="Src\Object\Status\StatusEnemy.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
+    <ClInclude Include="Src\Object\Status\StatusBoss.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
     <ClInclude Include="Src\Object\Status\StatusPlayer.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
@@ -130,6 +133,12 @@
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
     <ClInclude Include="Src\Common\FrameRate.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Object\Actor\Character\Boss.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Utility\UtilityCollision.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
   </ItemGroup>
@@ -230,6 +239,9 @@
     <ClCompile Include="Src\Object\Status\StatusEnemy.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
+    <ClCompile Include="Src\Object\Status\StatusBoss.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
     <ClCompile Include="Src\Object\Status\StatusPlayer.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
@@ -243,6 +255,12 @@
       <Filter>ソース ファイル</Filter>
     </ClCompile>
     <ClCompile Include="Src\Common\FrameRate.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Utility\UtilityCollision.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Object\Actor\Character\Boss.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
   </ItemGroup>

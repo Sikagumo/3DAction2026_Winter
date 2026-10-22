@@ -1,11 +1,13 @@
 #include "CharaBase.h"
 #include "../../Common/AnimationController.h"
 #include "../../../Utility/Utilitymath.h"
+#include "../../../Utility/UtilityCommon.h"
 #include "../../../Manager/SceneManager.h"
 #include "../../../Manager/ResourceManager.h"
 #include "../../Common/ActionController.h"
 #include "../../Collider/ColliderBase.h"
 #include "../../Collider/ColliderLine.h"
+#include "../../Collider/ColliderSphere.h"
 #include "../../Collider/ColliderModel.h"
 #include "../../Collider/ColliderCapsule.h"
 #include "../../../Application.h"
@@ -13,18 +15,20 @@
 namespace
 {
 	// 最大落下速度
-	static constexpr float MAX_FALL_SPEED = -30.0f;
+	constexpr float MAX_FALL_SPEED = -30.0f;
 
 	// 衝突時の押し戻し試行回数
-	static constexpr int CNT_TRY_COLLISION = 20;
+	constexpr int CNT_TRY_COLLISION = 20;
 
 	// 衝突時の押し戻し量
-	static constexpr float COLLISION_BACK_DIS = 0.5f;
+	constexpr float COLLISION_BACK_DIS = 0.5f;
+
+	// 制限位置
+	constexpr float LIMIT_POS_Y = -100.0f;
 };
 
 CharaBase::CharaBase(void)
 	: ActorBase::ActorBase()
-	, jumpPow_(UtilityMath::VECTOR_ZERO)
 	, prevPos_(UtilityMath::VECTOR_ZERO)
 	, moveDir_(UtilityMath::VECTOR_ZERO)
 	, movePow_(UtilityMath::VECTOR_ZERO)
@@ -63,14 +67,25 @@ void CharaBase::Update(void)
 
 	actionController_->Update();
 
+	
+	//functionAction_();
+
 	// 各キャラクターごとの更新処理
 	UpdateProcess();
+
+	// Y軸制限
+	if (transform_.pos.y < LIMIT_POS_Y)
+	{
+		transform_.pos.y = -(LIMIT_POS_Y);
+	}
+
+	timeInv_ = ((timeInv_ > 0.0f) ? (timeInv_ - SceneManager::GetInstance().GetDeltaTime()) : 0.0f);
 
 	// 移動方向に応じた遅延回転
 	DelayRotate();
 
 	// 重力による移動量
-	CalcGravityPow();
+	//CalcGravityPow();
 
 	// 衝突判定前準備
 	CollisionReserve();
@@ -83,9 +98,6 @@ void CharaBase::Update(void)
 
 	// アニメーション再生
 	animation_->Update();
-
-	// 各キャラクターごとの更新後処理
-	UpdateProcessPost();
 }
 
 void CharaBase::Release(void)
@@ -171,7 +183,9 @@ void CharaBase::CollisionGravity(void)
 			if (transform_.pos.y < hit.HitPosition.y)
 			{
 				// 衝突物より、下側にいる場合のみ、位置を修正する
-				transform_.pos = VAdd(hit.HitPosition, VScale(UtilityMath::DIR_UP, 2.0f));
+				transform_.pos = VAdd(hit.HitPosition, VScale(UtilityMath::DIR_UP, 1.0f));
+
+				jumpPow_.y = 0.0f;
 			}
 
 			// ジャンプ判定
@@ -270,8 +284,8 @@ void CharaBase::DrawLate(void)
 void CharaBase::DrawShadowRound(void)
 {
 	/* 丸影 */
-	const float PLAYER_SHADOW_HEIGHT = 700.0f;
-	const float PLAYER_SHADOW_SIZE = 50.0f;
+	const float SHADOW_HEIGHT = 700.0f;
+	const float SHADOW_SIZE = 50.0f;
 	MV1_COLL_RESULT_POLY_DIM HitResDim;
 	MV1_COLL_RESULT_POLY* HitRes;
 	VERTEX3D Vertex[3];
@@ -301,8 +315,8 @@ void CharaBase::DrawShadowRound(void)
 
 		// プレイヤーの直下に存在する地面のポリゴンを取得
 		HitResDim = MV1CollCheck_Capsule(col->GetFollow()->modelId, -1, transform_.pos,
-										 VAdd(transform_.pos, VGet(0.0f, -PLAYER_SHADOW_HEIGHT, 0.0f)),
-										 PLAYER_SHADOW_SIZE);
+										 VAdd(transform_.pos, VGet(0.0f, -SHADOW_HEIGHT, 0.0f)),
+										 SHADOW_SIZE);
 
 		// 頂点データで変化が無い部分をセット
 		Vertex[0].dif = GetColorU8(255, 255, 255, 255);
@@ -331,22 +345,22 @@ void CharaBase::DrawShadowRound(void)
 			Vertex[0].dif.a = 0;
 			Vertex[1].dif.a = 0;
 			Vertex[2].dif.a = 0;
-			if (HitRes->Position[0].y > transform_.pos.y - PLAYER_SHADOW_HEIGHT)
-				Vertex[0].dif.a = static_cast<BYTE>(128 * (1.0f - fabs(HitRes->Position[0].y - transform_.pos.y) / PLAYER_SHADOW_HEIGHT));
+			if (HitRes->Position[0].y > transform_.pos.y - SHADOW_HEIGHT)
+				Vertex[0].dif.a = static_cast<BYTE>(128 * (1.0f - fabs(HitRes->Position[0].y - transform_.pos.y) / SHADOW_HEIGHT));
 
-			if (HitRes->Position[1].y > transform_.pos.y - PLAYER_SHADOW_HEIGHT)
-				Vertex[1].dif.a = static_cast<BYTE>(128 * (1.0f - fabs(HitRes->Position[1].y - transform_.pos.y) / PLAYER_SHADOW_HEIGHT));
+			if (HitRes->Position[1].y > transform_.pos.y - SHADOW_HEIGHT)
+				Vertex[1].dif.a = static_cast<BYTE>(128 * (1.0f - fabs(HitRes->Position[1].y - transform_.pos.y) / SHADOW_HEIGHT));
 
-			if (HitRes->Position[2].y > transform_.pos.y - PLAYER_SHADOW_HEIGHT)
-				Vertex[2].dif.a = static_cast<BYTE>(128 * (1.0f - fabs(HitRes->Position[2].y - transform_.pos.y) / PLAYER_SHADOW_HEIGHT));
+			if (HitRes->Position[2].y > transform_.pos.y - SHADOW_HEIGHT)
+				Vertex[2].dif.a = static_cast<BYTE>(128 * (1.0f - fabs(HitRes->Position[2].y - transform_.pos.y) / SHADOW_HEIGHT));
 
-			// ＵＶ値は地面ポリゴンとプレイヤーの相対座標から割り出す
-			Vertex[0].u = (HitRes->Position[0].x - transform_.pos.x) / (PLAYER_SHADOW_SIZE * 2.0f) + 0.5f;
-			Vertex[0].v = (HitRes->Position[0].z - transform_.pos.z) / (PLAYER_SHADOW_SIZE * 2.0f) + 0.5f;
-			Vertex[1].u = (HitRes->Position[1].x - transform_.pos.x) / (PLAYER_SHADOW_SIZE * 2.0f) + 0.5f;
-			Vertex[1].v = (HitRes->Position[1].z - transform_.pos.z) / (PLAYER_SHADOW_SIZE * 2.0f) + 0.5f;
-			Vertex[2].u = (HitRes->Position[2].x - transform_.pos.x) / (PLAYER_SHADOW_SIZE * 2.0f) + 0.5f;
-			Vertex[2].v = (HitRes->Position[2].z - transform_.pos.z) / (PLAYER_SHADOW_SIZE * 2.0f) + 0.5f;
+			// ＵＶ値は地面ポリゴンとキャラクターの相対座標から割り出す
+			Vertex[0].u = (HitRes->Position[0].x - transform_.pos.x) / (SHADOW_SIZE * 2.0f) + 0.5f;
+			Vertex[0].v = (HitRes->Position[0].z - transform_.pos.z) / (SHADOW_SIZE * 2.0f) + 0.5f;
+			Vertex[1].u = (HitRes->Position[1].x - transform_.pos.x) / (SHADOW_SIZE * 2.0f) + 0.5f;
+			Vertex[1].v = (HitRes->Position[1].z - transform_.pos.z) / (SHADOW_SIZE * 2.0f) + 0.5f;
+			Vertex[2].u = (HitRes->Position[2].x - transform_.pos.x) / (SHADOW_SIZE * 2.0f) + 0.5f;
+			Vertex[2].v = (HitRes->Position[2].z - transform_.pos.z) / (SHADOW_SIZE * 2.0f) + 0.5f;
 
 			// 影ポリゴンを描画
 			DrawPolygon3D(Vertex, 1, shadowHandle_, TRUE);
@@ -361,6 +375,68 @@ void CharaBase::DrawShadowRound(void)
 
 	// Ｚバッファを無効にする
 	SetUseZBuffer3D(FALSE);
+}
+
+void CharaBase::SetColliderAttackArea(float _radius)
+{
+	const int TYPE_ATTACK_AREA = static_cast<int>(COLLIDER_TYPE::ATTACK_AREA);
+	const auto it = ownColliders_.find(TYPE_ATTACK_AREA);
+	if (it == ownColliders_.end())
+	{
+#ifdef _DEBUG
+		OutputDebugString("\n攻撃範囲の当たり判定が登録されていません\n");
+#endif
+		return;
+	}
+
+	// 攻撃位置調整
+	ColliderSphere& sphere = dynamic_cast<ColliderSphere&>(*ownColliders_.at(TYPE_ATTACK_AREA));
+
+	// 半径割り当て
+	sphere.SetRadius(_radius);
+
+	// ローカル座標調整
+	VECTOR localPos = sphere.GetLocalPos();
+	localPos.z = (sphere.LOCAL_POS_INIT.z + _radius);
+	sphere.SetLocalPos(localPos);
+}
+
+void CharaBase::ResetColliderAttackArea(void)
+{
+	constexpr int TYPE_ATTACK_AREA = static_cast<int>(COLLIDER_TYPE::ATTACK_AREA);
+	const auto it = ownColliders_.find(TYPE_ATTACK_AREA);
+	if (it == ownColliders_.end())
+	{
+#ifdef _DEBUG
+		OutputDebugString("\n攻撃範囲の当たり判定が登録されていません\n");
+#endif
+		return;
+	}
+
+	// 攻撃位置調整
+	ColliderSphere& sphere = dynamic_cast<ColliderSphere&>(*ownColliders_.at(TYPE_ATTACK_AREA));
+
+	if (sphere.GetRadius() <= 0.0f) { return; }
+
+	curAttackPower_ = 0;
+
+	sphere.SetRadius(0.0f);
+	sphere.SetLocalPos(sphere.LOCAL_POS_INIT);
+}
+
+void CharaBase::ChangeUpdateAction(int actionType)
+{
+	const auto it = functionActionMap_.find(actionType);
+	if (it == functionActionMap_.end())
+	{
+#ifdef _DEBUG
+		OutputDebugString("\n行動が登録されていません\n");
+#endif
+		return;
+	}
+
+	// 行動登録
+	functionAction_ = it->second;
 }
 
 void CharaBase::DrawPre(void)
@@ -383,4 +459,12 @@ void CharaBase::DelayRotate(void)
 	// 回転の補間
 	transform_.quaRot =
 		Quaternion::Slerp(transform_.quaRot, goalRot, 0.2f);
+}
+
+void CharaBase::ResetMove(void)
+{
+	movePow_ = UtilityMath::VECTOR_ZERO;
+
+	TimeMove_ = 0.0f;
+	moveSpeed_ = 0.0f;
 }

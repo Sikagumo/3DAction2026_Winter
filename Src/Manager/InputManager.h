@@ -66,43 +66,32 @@ public:
 	void Release(void);
 
 
-	/// <summary>
-	/// 指定した状況での各入力機器の押下判定
-	/// </summary>
-	/// <param name="type">状況の種類</param>
-	/// <param name="padNo">パッド番号(デフォルトはPAD1)</param>
-	/// <returns>trueの場合入力中,falseの場合未入力</returns>
+	/// @brief 指定した状況での各入力機器の押下判定
+	/// @param type 状況の種類
+	/// @param padNo パッド番号(デフォルトはPAD1)
+	/// @return trueの場合入力中,falseの場合未入力
 	bool IsNew(const TYPE type, const Input::JOYPAD_NO padNo = Input::JOYPAD_NO::PAD1);
 
-	/// <summary>
-	/// 指定した状況での各入力機器の押下判定(最初のみ)
-	/// </summary>
-	/// <param name="type">状況の種類</param>
-	/// <param name="padNo">パッド番号(デフォルトはPAD1)</param>
-	/// <returns>trueの場合入力中,falseの場合未入力</returns>
+	/// @brief 指定した状況での各入力機器の押下判定(最初のみ)
+	/// @param type 状況の種類
+	/// @param padNo パッド番号(デフォルトはPAD1)
+	/// @return trueの場合入力中,falseの場合未入力
 	bool IsTrgDown(const TYPE type, const Input::JOYPAD_NO padNo = Input::JOYPAD_NO::PAD1);
 
-	/// <summary>
-	/// 指定した状況での各入力機器の離した判定
-	/// </summary>
-	/// <param name="type">状況の種類</param>
-	/// <param name="padNo">パッド番号(デフォルトはPAD1)</param>
-	/// <returns>trueの場合離したタイミング,falseの場合まだ押下中</returns>
+	/// @brief 指定した状況での各入力機器の離した判定
+	/// @param type 状況の種類
+	/// @param padNo パッド番号(デフォルトはPAD1)
+	/// @return trueの場合離したタイミング,falseの場合まだ押下中
 	bool IsTrgUp(const TYPE type, const Input::JOYPAD_NO padNo = Input::JOYPAD_NO::PAD1);
 
-	/// <summary>
-	/// マウス位置を設定
-	/// </summary>
-	/// <param name="pos"></param>
+	/// @brief マウス位置を設定
+	/// @param pos 指定座標
 	void SetMousePos(const Vector2& pos);
 
 	/// @brief カーソル状態遷移
 	void SetCursorMode(Input::CURSOR_MODE _mode);
 
-	/// <summary>
-	/// マウス座標の取得
-	/// </summary>
-	/// <returns>マウス座標の取得</returns>
+	/// @brief マウス座標の取得
 	Vector2 GetMousePos(void) const;
 
 	/// @brief マウスの移動量 取得

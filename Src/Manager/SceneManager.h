@@ -39,15 +39,15 @@ public:
 	void ChangeScene(SCENE_ID nextId);
 
 	/// @brief 現在シーンID取得
-	SCENE_ID GetSceneID(void) { return sceneId_; }
+	SCENE_ID GetSceneID(void) { return sceneId_; };
 
 	/// @brief デルタタイムの取得
 	float GetDeltaTime(void) const;
 
 	/// @brief カメラの取得
-	Camera& GetCamera(void) { return *camera_; }
+	Camera& GetCamera(void) { return *camera_; };
 
-	Performance& GetPerformance(void) { return *performance_; }
+	Performance& GetPerformance(void) { return *performance_; };
 
 	int GetMainScreen(void) const { return mainScreen_; };
 
@@ -56,6 +56,9 @@ public:
 	bool GetIsDebugMode(void)const { return isDebugMode_; };
 	void ChangeIsDebugMode(void) { isDebugMode_ = !isDebugMode_; };
 
+	/// @brief 演出中か否か
+	bool IsActivePerformance(void) { return (performTime_ > 0.0f); };
+	void SetPerformTime(float time) { performTime_ = time; };
 
 private:
 
@@ -91,6 +94,8 @@ private:
 	
 	// メインスクリーン
 	int mainScreen_ = -1;
+
+	float performTime_ = 0.0f;
 
 
 	// デフォルトコンストラクタをprivateにして、

@@ -3,5 +3,5 @@
 StatusPlayer::StatusPlayer(void)
 	: playerParam_{}
 {
-	motion_.clear();
+	action_.clear();
 }

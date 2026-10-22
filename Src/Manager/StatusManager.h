@@ -6,6 +6,7 @@
 
 class StatusPlayer;
 class StatusEnemy;
+class StatusBoss;
 
 class StatusManager
 {
@@ -18,6 +19,7 @@ public:
 	const char* PATH_PLAYER = "PlayerData.csv";
 	const char* PATH_PLAYER_ACTION = "PlayerActionData.csv";
 	const char* PATH_ENEMY = "EnemyData.csv";
+	const char* PATH_BOSS_ACTION = "BossActionData.csv";
 
 
 	/// @brief インスタンス処理
@@ -28,7 +30,7 @@ public:
 	/// @brief 初回読み込み処理
 	void Load(void);
 
-	
+
 	/// @brief プレイヤーステータス参照
 	StatusPlayer& GetPlayerStatus(void)const { return *player_; };
 
@@ -37,9 +39,12 @@ public:
 
 	/// @brief 敵ステータスマップ参照
 	const EnemyMap& GetEnemyStatusMap(void)const { return enemy_; };
- 
-	std::string& GetHandlePathPlayer(void);
-	std::string& GetHandlePathEnemy(int type);
+
+	StatusBoss& GetBossStatus(void)const { return *boss_; };
+
+	/// @brief モデルのハンドルパス取得処理
+	const std::string& GetHandlePathPlayer(void)const;
+	const std::string& GetHandlePathEnemy(int type)const;
 
 
 private:
@@ -51,12 +56,15 @@ private:
 	static StatusManager* instance_;
 
 	// プレイヤーパラメータ
-	std::unique_ptr<StatusPlayer> player_;
-	
+	std::unique_ptr<StatusPlayer> player_ = nullptr;
+
 	// 敵パラメータ	
 	EnemyMap enemy_;
 
-	
+	// ボスパラメータ
+	std::unique_ptr<StatusBoss> boss_ = nullptr;
+
+
 	/// @brief デフォルトコンストラクタ
 	StatusManager(void);
 
@@ -71,12 +79,13 @@ private:
 
 	/// @brief 各外部ファイル読み込み
 	void LoadPlayerStatus(void);
-	void LoadPlayerMotion(void);
+	void LoadPlayerAction(void);
 	void LoadEnemy(void);
+	void LoadBossAction(void);
 
 	/// @brief CSVファイル読み込み処理
-	/// @param _path ファイルパス
-	std::string ReadCsvFile(const std::string& _path);
+	/// @param path ファイルパス
+	std::string ReadCsvFile(const std::string& path);
 
 	/// @brief CSVを読み込み行列に変換
 	/// @param fileName 読み込むCSVファイル名
@@ -85,13 +94,13 @@ private:
 
 
 	/// @brief 行を配列へ変換(不足分は空文字)
-	/// @tparam Size 要素数
+	/// @tparam t_Size 要素数
 	/// @param row 各列の文字列
-	template<size_t Size>
-	static std::array<std::string, Size> ToArray(const CsvRow& row)
+	template<size_t t_Size>
+	static std::array<std::string, t_Size> ToArray(const CsvRow& row)
 	{
-		std::array<std::string, Size> result{};
-		for (size_t i = 0; (i < Size && i < row.size()); i++)
+		std::array<std::string, t_Size> result{};
+		for (size_t i = 0; (i < t_Size && i < row.size()); i++)
 		{
 			result[i] = row[i];
 		}
@@ -99,17 +108,17 @@ private:
 	}
 
 	/// @brief CSVを読み、1行ごとにonRow(行番号, 列配列)を呼ぶ
-	/// @tparam Func 任意の関数
-	/// @tparam SizeRow 列数
+	/// @tparam t_Func 任意の関数
+	/// @tparam t_SizeRow 列数
 	/// @param fileName 読み込むファイル
 	/// @param getStatusFunc ステータス取得関数
-	template<size_t Size, typename Func>
-	void LoadCsv(const std::string& fileName, Func&& getStatusFunc)
+	template<size_t t_SizeRow, typename t_Func>
+	void LoadCsv(const std::string& fileName, t_Func&& getStatusFunc)
 	{
-		const CsvTable TABLE = ReadCsvTable(fileName, Size);
+		const CsvTable TABLE = ReadCsvTable(fileName, t_SizeRow);
 		for (size_t i = 0; i < TABLE.size(); i++)
 		{
-			getStatusFunc(i, ToArray<Size>(TABLE[i]));
+			getStatusFunc(i, ToArray<t_SizeRow>(TABLE[i]));
 		}
 	}
 };

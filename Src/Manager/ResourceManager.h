@@ -34,33 +34,32 @@ public:
 		IMGS_SELECT_PUSE_TEX,
 
 		/* モデル */
-		MODEL_SKYDOME,
-		MODEL_PLAYER,
-		MODEL_BOSS,
-		MODEL_ENEMY,
+		MODEL_SKYDOME, // スカイドーム
+		MODEL_PLAYER,  // プレイヤー
+		MODEL_BOSS,    // ボス
+		MODEL_ENEMY,   // 雑魚敵
 
 		MODEL_STAGE,           // ステージ
 		MODEL_STAGE_COLLISION, // ステージの当たり判定
 
 		/* 外部アニメーション */
-		ANIMATION_PLAYER_IDLE,   // 待機アニメーション
-		ANIMATION_PLAYER_WALK,   // 歩行アニメーション
-		ANIMATION_PLAYER_RUN,    // ダッシュアニメーション
-		ANIMATION_PLAYER_DODGE,  // 回避アニメーション
-		ANIMATION_PLAYER_DEFEAT, // 撃破アニメーション
+
+		// プレイヤーアニメーション
+		ANIMATION_DEFEAT,        // 撃破アニメーション
+
+		ANIMATION_PLAYER_IDLE,        // 待機アニメーション
+		ANIMATION_PLAYER_WALK,        // 歩行アニメーション
+		ANIMATION_PLAYER_RUN,         // ダッシュアニメーション
+		ANIMATION_PLAYER_DODGE,       // 回避アニメーション
+		ANIMATION_PLAYER_DEFENSE,     // 防御アニメーション
+		ANIMATION_PLAYER_DEFEAT,      // 撃破アニメーション
 		ANIMATION_PLAYER_SLASH_LIGHT, // 弱攻撃アニメーション
 		ANIMATION_PLAYER_SLASH_HEAVY, // 強攻撃アニメーション
 
+		ANIMATION_BOSS_STAND_UP, // 立ち上がりアニメーション
+
 		/* エフェクト */
-		EFFECT_WAVE,
-		EFFECT_LANDING,
 		EFFECT_BOSS_HIT,
-		EFFECT_MG,
-		EFFECT_LASER,
-		EFFECT_MISSILE,
-		EFFECT_PLAYER_BLAST,
-		EFFECT_PLAYER_RECOVERY,
-		EFFECT_PLAYER_POISON,
 
 		/* シェーダ */
 		VS_NORMAL_MAP,
@@ -129,11 +128,9 @@ public:
 	void DestroyInstance(void);
 
 	void Initialize(void);
+	void InitializeTitleScene(void);
+	void InitializeGameScene(void);
 
-
-	/// @brief リソースのロード
-	/// @param _src 読み込み対象
-	Resource Load(SRC _src);
 
 	/// @brief リソースのハンドルを取得
 	/// @param _src 読み込み対象
@@ -186,14 +183,18 @@ private:
 	ResourceManager& operator=(ResourceManager&&) = delete;
 	
 
+	/// @brief リソースのロード
+	/// @param _src 読み込み対象
+	Resource Load(SRC _src);
+
 	/// @brief リソース取得処理(複数画像)
 	/// @param _loadType 読み込み方法
 	/// @param _src リソース対象
-	/// @param _path パス
+	/// @param path パス
 	/// @param allNum 画像の数
 	/// @param numX 最大横画像数
 	/// @param numY 最大縦画像数
-	void _SetResource(Resource::LOAD_TYPE _loadType, SRC _src, std::string _path
+	void _SetResource(Resource::LOAD_TYPE _loadType, SRC _src, std::string path
 					  , int allNum = -1, int numX = -1, int numY = -1);
 
 	/// @brief 内部ロード処理

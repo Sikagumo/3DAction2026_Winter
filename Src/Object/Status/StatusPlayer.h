@@ -47,12 +47,12 @@ public:
 	};
 	enum class ACTION_PARAM
 	{
-		NAME = 0,       // モーション名
+		NAME = 0,       // 行動名
 
 		TIME_ACTIVE,    // 有効時間
 		TIME_INPUT,     // 入力時間
-		TIME_HIT_STOP,  // ヒットストップ時間
 		TIME_END,       // 後隙時間
+		TIME_HIT_STOP,  // ヒットストップ時間
 		TIME_TIMING_ACTIVE,  // 有効のタイミング
 		TIME_TIMING_HIT_STOP,// ヒットストップのタイミング
 
@@ -99,15 +99,15 @@ public:
 
 	struct ActionParam
 	{
-		std::string motionName = "";
+		std::string actionName = "";
 
 		float timeActive = 0.0f;
 
 		float timeInput = 0.0f;
 
-		float timeHitStop = 0.0f;
-
 		float timeEnd = 0.0f;
+
+		float timeHitStop = 0.0f;
 
 		float timeTimingActive = 0.0f;
 
@@ -144,25 +144,25 @@ public:
 		UtilityCommon::ChangeString(_loadString[static_cast<int>(PARAM::ANIM_SPEED_DASH)], animationSpeedRun_, 0.0f);
 	}
 
-	void LoadMotionParam(ACTION_TYPE type, const std::array<std::string, static_cast<int>(ACTION_PARAM::MAX)>& _loadString)
+	void LoadActionParam(ACTION_TYPE type, const std::array<std::string, static_cast<int>(ACTION_PARAM::MAX)>& _loadString)
 	{
-		ActionParam motion = ActionParam();
+		ActionParam action = ActionParam();
 
-		motion.motionName = _loadString[static_cast<int>(ACTION_PARAM::NAME)];
-		UtilityCommon::ChangeString(_loadString[static_cast<int>(ACTION_PARAM::TIME_ACTIVE)], motion.timeActive, 0.0f);
-		UtilityCommon::ChangeString(_loadString[static_cast<int>(ACTION_PARAM::TIME_INPUT)], motion.timeInput, 0.0f);
-		UtilityCommon::ChangeString(_loadString[static_cast<int>(ACTION_PARAM::TIME_HIT_STOP)], motion.timeHitStop, 0.0f);
-		UtilityCommon::ChangeString(_loadString[static_cast<int>(ACTION_PARAM::TIME_END)], motion.timeEnd, 0.0f);
-		UtilityCommon::ChangeString(_loadString[static_cast<int>(ACTION_PARAM::TIME_TIMING_ACTIVE)], motion.timeTimingActive, 0.0f);
-		UtilityCommon::ChangeString(_loadString[static_cast<int>(ACTION_PARAM::TIME_TIMING_HIT_STOP)], motion.timeTimingHitStop, 0.0f);
-		UtilityCommon::ChangeString(_loadString[static_cast<int>(ACTION_PARAM::ANIMATION_SPEED)], motion.animationSpeed, 0.0f);
-		motion_.emplace(type, motion);
+		action.actionName = _loadString[static_cast<int>(ACTION_PARAM::NAME)];
+		UtilityCommon::ChangeString(_loadString[static_cast<int>(ACTION_PARAM::TIME_ACTIVE)], action.timeActive, 0.0f);
+		UtilityCommon::ChangeString(_loadString[static_cast<int>(ACTION_PARAM::TIME_INPUT)], action.timeInput, 0.0f);
+		UtilityCommon::ChangeString(_loadString[static_cast<int>(ACTION_PARAM::TIME_END)], action.timeEnd, 0.0f);
+		UtilityCommon::ChangeString(_loadString[static_cast<int>(ACTION_PARAM::TIME_HIT_STOP)], action.timeHitStop, 0.0f);
+		UtilityCommon::ChangeString(_loadString[static_cast<int>(ACTION_PARAM::TIME_TIMING_ACTIVE)], action.timeTimingActive, 0.0f);
+		UtilityCommon::ChangeString(_loadString[static_cast<int>(ACTION_PARAM::TIME_TIMING_HIT_STOP)], action.timeTimingHitStop, 0.0f);
+		UtilityCommon::ChangeString(_loadString[static_cast<int>(ACTION_PARAM::ANIMATION_SPEED)], action.animationSpeed, 0.0f);
+		action_.emplace(type, action);
 	}
 
 	/// @brief プレイヤーパラメータ取得
 	const PlayerParam& GetPlayerParam(void) { return playerParam_; }
 
-	const std::unordered_map<ACTION_TYPE, ActionParam>& GetPlayerMotion(void) { return motion_; }
+	const std::unordered_map<ACTION_TYPE, ActionParam>& GetBossAction(void) { return action_; }
 
 	/// @brief アニメーション速度
 	float GetAnimationSpeedIdle(void)const { return animationSpeedIdle_; }
@@ -180,5 +180,5 @@ private:
 	float animationSpeedRun_ = 0.0f;
 
 	// モーションパラメータ
-	std::unordered_map<ACTION_TYPE, ActionParam> motion_;
+	std::unordered_map<ACTION_TYPE, ActionParam> action_;
 };

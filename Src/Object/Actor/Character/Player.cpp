@@ -13,12 +13,14 @@
 #include "../../../Manager/Camera.h"
 #include "../../../Manager/StatusManager.h"
 #include "../../Collider/ColliderLine.h"
+#include "../../Collider/ColliderSphere.h"
 #include "../../Collider/ColliderCapsule.h"
 
 namespace
 {
 	constexpr float LOCAL_ROT_Y = 180.0f;
 	constexpr VECTOR START_POS = { 0.0f, 2.5f, 0.0f };
+	const float ATTACK_RADIUS = 300.0f;
 
 	// 衝突判定用線分開始
 	constexpr VECTOR COL_LINE_START_LOCAL_POS = { 0.0f, 80.0f, 0.0f };
@@ -27,10 +29,13 @@ namespace
 	constexpr VECTOR COL_LINE_END_LOCAL_POS = { 0.0f, -10.0f, 0.0f };
 
 	// 衝突判定用カプセル上部球体
-	constexpr VECTOR COL_CAPSULE_TOP_LOCAL_POS = { 0.0f, 110.0f, 0.0f };
+	constexpr VECTOR COL_CAPSULE_TOP_LOCAL_POS = { 0.0f, 75.0f, 0.0f };
 
 	// 衝突判定用カプセル下部球体
-	constexpr VECTOR COL_CAPSULE_DOWN_LOCAL_POS = { 0.0f, 30.0f, 0.0f };
+	constexpr VECTOR COL_CAPSULE_DOWN_LOCAL_POS = { 0.0f, 50.0f, 0.0f };
+
+	// 攻撃位置ローカル座標
+	constexpr VECTOR COL_ATTACK_AREA_LOCAL_POS = { 0.0f, 50.0f, 0.0f };
 
 
 	// 衝突判定用カプセル球体半径
@@ -71,7 +76,7 @@ Player::Player(void)
 	: CharaBase::CharaBase()
 	, isDash_(false)
 	, status_(StatusManager::GetInstance().GetPlayerStatus().GetPlayerParam())
-	, actionStatus_(StatusManager::GetInstance().GetPlayerStatus().GetPlayerMotion())
+	, actionStatus_(StatusManager::GetInstance().GetPlayerStatus().GetBossAction())
 {
 }
 
@@ -91,46 +96,62 @@ void Player::InitTransform(void)
 void Player::InitCollider(void)
 {
 	// 主に地面との衝突で仕様する線分コライダ
-	ColliderLine* colLine = new ColliderLine(ColliderBase::TAG::PLAYER, &transform_,
-											 COL_LINE_START_LOCAL_POS, COL_LINE_END_LOCAL_POS);
+	ColliderLine* colLine
+		= new ColliderLine(ColliderBase::TAG::PLAYER, &transform_
+			, COL_LINE_START_LOCAL_POS, COL_LINE_END_LOCAL_POS);
 
 	// 主に壁や木などの衝突で仕様するカプセルコライダ
-	ColliderCapsule* colCapsule = new ColliderCapsule(ColliderBase::TAG::PLAYER, &transform_,
-													  COL_CAPSULE_TOP_LOCAL_POS, COL_CAPSULE_DOWN_LOCAL_POS,
-													  COL_CAPSULE_RADIUS);
+	ColliderCapsule* colCapsule
+		= new ColliderCapsule(ColliderBase::TAG::PLAYER, &transform_
+			, COL_CAPSULE_TOP_LOCAL_POS, COL_CAPSULE_DOWN_LOCAL_POS
+			, status_.radius);
 
-	ownColliders_.emplace(static_cast<int>(COLLIDER_TYPE::CAPSULE), colCapsule);
-
+	// 攻撃範囲コライダ
+	ColliderSphere* colArea
+		= new ColliderSphere(ColliderBase::TAG::PLAYER, &transform_
+			, COL_ATTACK_AREA_LOCAL_POS, 0.0f);
 
 	// 当たり判定リストに格納
+	ownColliders_.emplace(static_cast<int>(COLLIDER_TYPE::CAPSULE), colCapsule);
 	ownColliders_.emplace(static_cast<int>(COLLIDER_TYPE::LINE), colLine);
+	ownColliders_.emplace(static_cast<int>(COLLIDER_TYPE::ATTACK_AREA), colArea);
 }
 
 void Player::InitAnimationPost(void)
 {
 	// 待機アニメーション
 	animation_->AddExternal(static_cast<int>(ANIMATION_TYPE::IDLE)
-		, ResourceManager::GetInstance().LoadHandleId(ResourceManager::SRC::ANIMATION_PLAYER_IDLE)
+		, ResourceManager::GetInstance().LoadModelDuplicate(ResourceManager::SRC::ANIMATION_PLAYER_IDLE)
 		, 30.0f);
 
 	// 歩行アニメーション
 	animation_->AddExternal(static_cast<int>(ANIMATION_TYPE::WALK)
-		, ResourceManager::GetInstance().LoadHandleId(ResourceManager::SRC::ANIMATION_PLAYER_WALK)
+		, ResourceManager::GetInstance().LoadModelDuplicate(ResourceManager::SRC::ANIMATION_PLAYER_WALK)
 		, 30.0f);
 
 	// ダッシュアニメーション
 	animation_->AddExternal(static_cast<int>(ANIMATION_TYPE::RUN)
-		, ResourceManager::GetInstance().LoadHandleId(ResourceManager::SRC::ANIMATION_PLAYER_RUN)
+		, ResourceManager::GetInstance().LoadModelDuplicate(ResourceManager::SRC::ANIMATION_PLAYER_RUN)
 		, 30.0f);
 
 	// 弱攻撃アニメーション
 	animation_->AddExternal(static_cast<int>(ANIMATION_TYPE::ATTACK_LIGHT)
-		, ResourceManager::GetInstance().LoadHandleId(ResourceManager::SRC::ANIMATION_PLAYER_SLASH_LIGHT)
+		, ResourceManager::GetInstance().LoadModelDuplicate(ResourceManager::SRC::ANIMATION_PLAYER_SLASH_LIGHT)
 		, 30.0f);
 
 	// 強攻撃アニメーション
 	animation_->AddExternal(static_cast<int>(ANIMATION_TYPE::ATTACK_HEAVY)
-		, ResourceManager::GetInstance().LoadHandleId(ResourceManager::SRC::ANIMATION_PLAYER_SLASH_HEAVY)
+		, ResourceManager::GetInstance().LoadModelDuplicate(ResourceManager::SRC::ANIMATION_PLAYER_SLASH_HEAVY)
+		, 30.0f);
+
+	// 防御アニメーション
+	animation_->AddExternal(static_cast<int>(ANIMATION_TYPE::DEFENSE)
+		, ResourceManager::GetInstance().LoadModelDuplicate(ResourceManager::SRC::ANIMATION_PLAYER_DEFENSE)
+		, 30.0f);
+
+	// 撃破アニメーション
+	animation_->AddExternal(static_cast<int>(ANIMATION_TYPE::DEFEAT)
+		, ResourceManager::GetInstance().LoadModelDuplicate(ResourceManager::SRC::ANIMATION_DEFEAT)
 		, 30.0f);
 
 	PlayAnimation(ANIMATION_TYPE::IDLE);
@@ -138,7 +159,7 @@ void Player::InitAnimationPost(void)
 
 void Player::InitActionPost(void)
 {
-	const auto& actionMap = StatusManager::GetInstance().GetPlayerStatus().GetPlayerMotion();
+	const auto& actionMap = StatusManager::GetInstance().GetPlayerStatus().GetBossAction();
 
 	// 防御
 	actionController_->SetAction(static_cast<int>(ACTION_TYPE::DEFENSE)
@@ -160,40 +181,46 @@ void Player::InitActionPost(void)
 
 void Player::InitPost(void)
 {
+	hp_ = status_.hp;
+	stamina_ = status_.stamina;
 }
 
 void Player::UpdateProcess(void)
 {
+	// 演出中は動作を無効化する
+	if (SceneManager::GetInstance().IsActivePerformance()) { return; }
+
+	if (hp_ <= 0)
+	{
+		PlayAnimation(ANIMATION_TYPE::DEFEAT, false);
+	}
+
 	// 移動操作
 	if (!actionController_->IsActiveAction())
 	{
+		if (actionController_->IsEndActionActive())
+		{
+			// 攻撃無効化
+			ResetColliderAttackArea();
+		}
+
+		// 移動処理
 		ProcessMove();
 	}
 
+	// 防御処理
 	ProcessDefense();
 
 	ProcessDodge();
 
 	ProcessAttackLight();
 	ProcessAttackHeavy();
-
-	// Y軸制限
-	const float LIMIT_POS_Y = -1500.0f;
-	if (transform_.pos.y < LIMIT_POS_Y)
-	{
-		transform_.pos.y = -(LIMIT_POS_Y);
-	}
-}
-
-void Player::UpdateProcessPost(void)
-{
-	
 }
 
 void Player::DrawDebug(void)
 {
 	DrawFormatString(0, 0, 0xff0000, "Player:speed(time:%.2f, speed:%.2f)"
-		, moveTime_, moveSpeed_);
+		, TimeMove_, moveSpeed_);
 
 	actionController_->DrawDebug();
 }
@@ -214,8 +241,6 @@ void Player::CollisionReserve(void)
 			ownColliders_.at(static_cast<int>(COLLIDER_TYPE::LINE)));
 		colLine->SetLocalPosStart(COL_LINE_START_LOCAL_POS);
 		colLine->SetLocalPosEnd(COL_LINE_END_LOCAL_POS);
-
-		jumpPow_.y = 0.0f;
 	}
 
 	// 通常時のカプセルに戻す
@@ -225,9 +250,34 @@ void Player::CollisionReserve(void)
 			ownColliders_.at(static_cast<int>(COLLIDER_TYPE::CAPSULE)));
 		colCapsule->SetLocalPosTop(COL_CAPSULE_TOP_LOCAL_POS);
 		colCapsule->SetLocalPosDown(COL_CAPSULE_DOWN_LOCAL_POS);
-
-		jumpPow_.y = 0.0f;
 	}
+}
+
+void Player::SetDamage(int damageHp, int damageStamina)
+{
+	if (timeInv_ >= 0.0f) { return; }
+
+	timeInv_ = DAMAGE_INV_TIME;
+
+	float damagePowerHp = static_cast<float>(damageHp);
+	float damagePowerStamina = static_cast<float>(damageStamina);
+
+	if (actionController_->GetCurActionNum() == static_cast<int>(ACTION_TYPE::DEFENSE))
+	{
+		// 守備状態中はダメージを軽減し、受け流し成功時はダメージを無効化
+		damagePowerHp = ((parryTime_ > 0.0f) ? 0.0f : (damagePowerHp * DEFENSE_CUT_DAMAGE));
+		damagePowerStamina = ((parryTime_ > 0.0f) ? 0.0f : (damagePowerStamina * DEFENSE_CUT_DAMAGE));
+	}
+	else if (actionController_->GetCurActionNum() == static_cast<int>(ACTION_TYPE::DODGE)
+			  && !actionController_->IsEndActionActive())
+	{
+		// 回避成功時、ダメージを無効化j
+		damagePowerHp = 0.0f;
+		damagePowerStamina = 0.0f;
+	}
+
+	hp_ -= static_cast<int>(damagePowerHp);
+	stamina_ -= static_cast<int>(damagePowerStamina);
 }
 
 void Player::ProcessMove(void)
@@ -259,25 +309,23 @@ void Player::ProcessMove(void)
 		dir.x /= len;
 		dir.z /= len;
 
-		moveTime_ += SceneManager::GetInstance().GetDeltaTime();
+		TimeMove_ += SceneManager::GetInstance().GetDeltaTime();
 
 		// 徐々に最高速度に到達させる
 		const float SPEED_MAX = ((isDash_) ? status_.speedDash : status_.speedWalk);
 		if (moveSpeed_ < SPEED_MAX)
 		{
-			const float rate = UtilityCommon::EaseInOutQuart(moveTime_ / status_.speedAccTime);
+			const float rate = UtilityCommon::EaseInOutQuart(TimeMove_ / status_.speedAccTime);
 			moveSpeed_ = status_.speedInit + (SPEED_MAX - status_.speedInit) * rate;
 		}
 
+		// アニメーション再生
 		if (isDash_)
 		{
 			PlayAnimation(ANIMATION_TYPE::RUN);
 		}
 		else
 		{
-			// 移動速度の上限制限
-			moveSpeed_ = ((moveSpeed_ > status_.speedWalk) ? status_.speedWalk : moveSpeed_);
-
 			PlayAnimation(ANIMATION_TYPE::WALK);
 		}
 
@@ -298,14 +346,6 @@ void Player::ProcessMove(void)
 	}
 }
 
-void Player::ResetMove(void)
-{
-	movePow_ = UtilityMath::VECTOR_ZERO;
-
-	moveTime_ = 0.0f;
-	moveSpeed_ = 0.0f;
-}
-
 void Player::ProcessDodge(void)
 {
 	
@@ -320,6 +360,7 @@ void Player::ProcessDefense(void)
 	{
 		actionController_->Active(static_cast<int>(ACTION_TYPE::DEFENSE));
 		ResetMove();
+		PlayAnimation(ANIMATION_TYPE::DEFENSE, false);
 	}
 
 	if (actionController_->GetCurActionNum() == static_cast<int>(ACTION_TYPE::DEFENSE))
@@ -330,7 +371,6 @@ void Player::ProcessDefense(void)
 void Player::Defense(void)
 {
 	parryTime_ = PARRY_TIME;
-
 	SceneManager::GetInstance().GetPerformance().StartHitStrong();
 }
 
@@ -346,7 +386,8 @@ void Player::ProcessAttackLight(void)
 
 void Player::AttackLight(void)
 {
-	SceneManager::GetInstance().GetPerformance().StartHitStrong();
+	curAttackPower_ = status_.powerLight;
+	SetColliderAttackArea(ATTACK_RADIUS);
 }
 
 void Player::ProcessAttackHeavy(void)
@@ -361,15 +402,16 @@ void Player::ProcessAttackHeavy(void)
 
 void Player::AttackHeavy(void)
 {
-	SceneManager::GetInstance().GetPerformance().StartHitStrong();
+	curAttackPower_ = status_.powerHeavy;
+	SetColliderAttackArea(ATTACK_RADIUS);
 }
 
-void Player::PlayAnimation(Player::ANIMATION_TYPE _type, bool _isLoop)
+void Player::PlayAnimation(Player::ANIMATION_TYPE _type, bool isLoop)
 {
 	int type = static_cast<int>(_type);
 
 	// 指定したアニメーションが割り当てられているとき、処理終了
-	if (type == animation_->GetPlayType()) { return; }
+	if (type == animation_->GetPlayType() && !animation_->IsEnd()) { return; }
 
-	animation_->Play(type, _isLoop);
+	animation_->Play(type, isLoop);
 }

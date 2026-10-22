@@ -10,7 +10,7 @@
 
 namespace
 {
-	constexpr float MODEL_SCALE = 1.5f;
+	constexpr float MODEL_SCALE = 0.85f;
 	constexpr float LOCAL_ROT_Y = 0.0f;
 	constexpr VECTOR MODEL_POSITION = { 0.0f, 2.5f, 0.0f };
 };

@@ -59,11 +59,11 @@ void SoundManager::SetSounds(void)
 
 }
 void SoundManager::SetSound(SoundManager::SRC _src, const std::string& path,
-							Sound::TYPE type, float maxVolume, bool _isBGM)
+							Sound::TYPE type, float maxVolume, bool isBGM)
 {
 	Sound res;
 
-	res = Sound(type, path, _isBGM);
+	res = Sound(type, path, isBGM);
 	res.SetMaxVolume(maxVolume);
 	sounds_.emplace(_src, res);
 }
@@ -95,7 +95,7 @@ void SoundManager::Destroy(void)
 	delete instance_;
 }
 
-bool SoundManager::Play(SRC _src, bool _isLoop, bool _isPitch, float _pitchRange, bool _isForce)
+bool SoundManager::Play(SRC _src, bool isLoop, bool isPitch, float _pitchRange, bool isForce)
 {
 	/* 2D音声を再生 */
 	const auto& findSound = sounds_.find(_src);
@@ -116,10 +116,10 @@ bool SoundManager::Play(SRC _src, bool _isLoop, bool _isPitch, float _pitchRange
 	}
 
 	// 2Dサウンド再生処理
-	Sound::TIMES times = ((_isLoop) ? Sound::TIMES::LOOP : Sound::TIMES::ONCE);
-	return findSound->second.Play(times, _isPitch, _pitchRange,_isForce);
+	Sound::TIMES times = ((isLoop) ? Sound::TIMES::LOOP : Sound::TIMES::ONCE);
+	return findSound->second.Play(times, isPitch, _pitchRange,isForce);
 }
-bool SoundManager::Play(SRC _src, bool _isLoop, VECTOR _pos, float _radius)
+bool SoundManager::Play(SRC _src, bool isLoop, VECTOR _pos, float _radius)
 {
 	/* 3D音声を再生 */
 	const auto& lPair = sounds_.find(_src);
@@ -140,7 +140,7 @@ bool SoundManager::Play(SRC _src, bool _isLoop, VECTOR _pos, float _radius)
 	}
 
 	// 3Dサウンド再生処理
-	Sound::TIMES times = ((_isLoop) ? Sound::TIMES::LOOP : Sound::TIMES::ONCE);
+	Sound::TIMES times = ((isLoop) ? Sound::TIMES::LOOP : Sound::TIMES::ONCE);
 	return lPair->second.Play(times, _pos, _radius);
 }
 
@@ -179,7 +179,7 @@ void SoundManager::StopAll(void)
 	}
 }
 
-void SoundManager::StopAllChoice(bool _isBGM)
+void SoundManager::StopAllChoice(bool isBGM)
 {
 	/* 指定した種類の音声を停止 */
 
@@ -188,7 +188,7 @@ void SoundManager::StopAllChoice(bool _isBGM)
 	for (auto& sound : sounds_)
 	{
 		if (!sound.second.IsLoad() ||
-			!sound.second.IsBGM() == _isBGM)
+			!sound.second.IsBGM() == isBGM)
 		{
 			// 未読み込み時、指定の種類以外スキップ
 			continue;

@@ -9,6 +9,7 @@
 #include <map>
 #include "../Object/Status/StatusPlayer.h"
 #include "../Object/Status/StatusEnemy.h"
+#include "../Object/Status/StatusBoss.h"
 #include "./ResourceManager.h"
 
 StatusManager* StatusManager::instance_ = nullptr;
@@ -49,9 +50,11 @@ void StatusManager::Load(void)
 	/* 初回読み込み処理 */
 	LoadPlayerStatus();
 
-	LoadPlayerMotion();
+	LoadPlayerAction();
 
 	LoadEnemy();
+
+	LoadBossAction();
 }
 
 std::string StatusManager::ReadCsvFile(const std::string& path)
@@ -152,7 +155,7 @@ void StatusManager::LoadPlayerStatus(void)
 	);
 }
 
-void StatusManager::LoadPlayerMotion(void)
+void StatusManager::LoadPlayerAction(void)
 {
 	constexpr size_t COLS_MAX = static_cast<size_t>(StatusPlayer::ACTION_PARAM::MAX);
 	constexpr size_t TYPES = static_cast<size_t>(StatusPlayer::ACTION_TYPE::MAX);
@@ -162,15 +165,15 @@ void StatusManager::LoadPlayerMotion(void)
 			// 行が多すぎる場合の範囲外対策
 			if (i >= TYPES) { return; }
 			
-			player_->LoadMotionParam(static_cast<StatusPlayer::ACTION_TYPE>(i), row);
+			player_->LoadActionParam(static_cast<StatusPlayer::ACTION_TYPE>(i), row);
 		}
 	);
 }
 
 void StatusManager::LoadEnemy(void)
 {
-	constexpr size_t COLS_MAX = static_cast<size_t>(StatusEnemy::PARAM::MAX);
-	constexpr size_t TYPES = static_cast<size_t>(StatusEnemy::TYPE::MAX);
+	constexpr size_t COLS_MAX = static_cast<size_t>(StatusBoss::PARAM::MAX);
+	constexpr size_t TYPES = static_cast<size_t>(StatusBoss::ENEMY_TYPE::MAX);
 
 	LoadCsv<COLS_MAX>(PATH_ENEMY, [this](size_t i, const auto& row)
 		{
@@ -178,13 +181,34 @@ void StatusManager::LoadEnemy(void)
 			if (i >= TYPES) { return; }
 
 			const int ENEMY_TYPE = static_cast<int>(i);
-			enemy_[ENEMY_TYPE] = std::make_unique<StatusEnemy>();
-			enemy_[ENEMY_TYPE]->LoadParam(row);
+			enemy_[ENEMY_TYPE] = std::make_unique<StatusBoss>();
+			enemy_[ENEMY_TYPE]->LoadStatusParam(row);
 		}
 	);
 }
 
-std::string& StatusManager::GetHandlePathEnemy(int type)
+void StatusManager::LoadBossAction(void)
 {
-	return enemy_[type]->GetHandlePath();
+	constexpr size_t COLS_MAX = static_cast<size_t>(StatusBoss::ACTION_PARAM::MAX);
+	constexpr size_t TYPES = static_cast<size_t>(StatusBoss::ACTION_TYPE::MAX);
+
+	boss_ = std::make_unique<StatusBoss>();
+	LoadCsv<COLS_MAX>(PATH_BOSS_ACTION, [this](size_t i, const auto& row)
+		{
+			// 行が多すぎる場合の範囲外対策
+			if (i >= TYPES) { return; }
+
+			boss_->LoadActionParam(static_cast<StatusBoss::ACTION_TYPE>(i), row);
+		}
+	);
+}
+
+const std::string& StatusManager::GetHandlePathPlayer(void)const
+{
+	return player_->GetPlayerParam().handlePath;
+}
+
+const std::string& StatusManager::GetHandlePathEnemy(int type)const
+{
+	return enemy_.at(type)->GetEnemyParam().handlePath;
 }

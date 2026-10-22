@@ -16,6 +16,7 @@ public:
 		ATTACK_HEAVY, // 強攻撃
 		DEFENSE,       // 守備
 		DODGE,         // 回避
+		DEFEAT,        // 撃破
 
 		MAX,
 	};
@@ -26,6 +27,9 @@ public:
 	void DrawDebug(void)override;
 
 	void ChangeAction(StatusPlayer::ACTION_TYPE action);
+
+	/// @brief 被ダメージ処理
+	void SetDamage(int damageHp, int damageStamina)override;
 
 
 protected:
@@ -40,10 +44,8 @@ protected:
 
 	/// @brief 更新処理
 	void UpdateProcess(void)override;
-	void UpdateProcessPost(void)override;
 
 	void CollisionReserve(void)override;
-
 
 private:
 
@@ -53,12 +55,6 @@ private:
 	const StatusPlayer::PlayerParam& status_;
 	const std::unordered_map<StatusPlayer::ACTION_TYPE, StatusPlayer::ActionParam>& actionStatus_;
 
-	int hp_ = 0;
-
-	float moveTime_ = 0.0f;
-
-	float curSpeed_ = 0.0f;
-
 	bool isDash_ = false;
 
 	float parryTime_ = 0.0f;
@@ -66,7 +62,6 @@ private:
 
 	// 操作
 	void ProcessMove(void);
-	void ResetMove(void);
 
 	/// @brief 回避
 	void ProcessDodge(void);
@@ -84,5 +79,5 @@ private:
 	void ProcessAttackHeavy(void);
 	void AttackHeavy(void);
 
-	void PlayAnimation(ANIMATION_TYPE type, bool _isLoop = true);
+	void PlayAnimation(ANIMATION_TYPE type, bool isLoop = true);
 };

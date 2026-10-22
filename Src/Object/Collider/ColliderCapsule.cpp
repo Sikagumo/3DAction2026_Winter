@@ -70,7 +70,7 @@ void ColliderCapsule::DrawDebug(int color)
 	DrawLine3D(s, e, color);
 
 	// カプセルの中心
-	DrawSphere3D(GetCenter(), radius_, 10, color, color, true);
+	//DrawSphere3D(GetCenter(), radius_, 10, color, color, true);
 #endif
 }
 

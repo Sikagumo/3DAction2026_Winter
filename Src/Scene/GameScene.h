@@ -7,6 +7,7 @@
 class Stage;
 class SkyDome;
 class Player;
+class Boss;
 //class PixelMaterial;
 //class PixelRenderer;
 //class Shield;
@@ -19,10 +20,11 @@ public:
 
 	enum class GAME_STATE
 	{
-		PREMOVIE,
-		ACTIVE,
-		CLEAR,
-		GAMEOVER,
+		PERFORMANCE, // 演出
+		GAME_ACTIVE, // ゲーム有効
+		GAME_CLEAR,  // クリア
+		GAMEOVER,    // ゲームオーバー
+
 		MAX
 	};
 
@@ -54,7 +56,6 @@ public:
 	void Update(void) override;
 	void Draw(void) override;
 
-
 private:
 
 	// ステージ
@@ -62,6 +63,9 @@ private:
 
 	// プレイヤー
 	std::unique_ptr<Player> player_ = nullptr;
+
+	// ボス
+	std::unique_ptr<Boss> boss_ = nullptr;
 
 	// スカイドーム
 	std::unique_ptr<SkyDome> skyDome_ = nullptr;
@@ -78,4 +82,6 @@ private:
 
 	/// @brief シェーダーを画面に割り当て
 	void SetShaderScreen(void);
+
+	void Collision(void);
 };
