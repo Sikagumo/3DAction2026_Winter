@@ -1,20 +1,24 @@
-#include "SceneManager.h"
 #include <chrono>
 #include <DxLib.h>
 #include <EffekseerForDXLib.h>
 #include "../Application.h"
 #include "../Common/Fader.h"
+#include "../Scene/SceneBase.h"
 #include "../Scene/TitleScene.h"
 #include "../Scene/GameScene.h"
 #include "./ResourceManager.h"
 #include "../Utility/UtilityMath.h"
 #include "./InputManager.h"
+#include "../Object/Actor/ActorBase.h"
+#include "../Camera/Camera.h"
+#include "../Common/Performance.h"
+#include "SceneManager.h"
 
 namespace
 {
 	constexpr SceneManager::SCENE_ID START_SCENE = SceneManager::SCENE_ID::TITLE;
 
-	constexpr COLOR_U8 COLOR_BACK = { 0, 139, 139 };
+	constexpr COLOR_U8 COLOR_BACK = { 0, 0, 0 };
 
 	constexpr VECTOR LIGHT_DIR = { 0.3f, -0.7f, 0.8f };
 

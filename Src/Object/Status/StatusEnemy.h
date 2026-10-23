@@ -23,7 +23,7 @@ public:
 		NAME,            // 敵名
 		HANDLE_PATH,	 // ハンドルパス
 		ENEMY_TYPE,		 // 敵の種類
-		MODEL_SCALE,     // モデルのスケール
+		SCALE_MODEL,     // モデルのスケール
 		RADIUS,          // 半径
 		HP_MAX,          // HP
 		STAMINA,         // 体幹
@@ -123,7 +123,7 @@ public:
 		enemyParam_.handlePath = _loadString[static_cast<int>(PARAM::HANDLE_PATH)];
 		SetType(_loadString[static_cast<int>(PARAM::ENEMY_TYPE)]);
 
-		UtilityCommon::ChangeString(_loadString[static_cast<int>(PARAM::MODEL_SCALE)], enemyParam_.scale, 0.0f);
+		UtilityCommon::ChangeString(_loadString[static_cast<int>(PARAM::SCALE_MODEL)], enemyParam_.scale, 0.0f);
 		UtilityCommon::ChangeString(_loadString[static_cast<int>(PARAM::RADIUS)], enemyParam_.radius, 0.0f);
 		UtilityCommon::ChangeString(_loadString[static_cast<int>(PARAM::HP_MAX)], enemyParam_.hp, 1);
 		UtilityCommon::ChangeString(_loadString[static_cast<int>(PARAM::STAMINA)], enemyParam_.stamina, 0);

@@ -1,10 +1,6 @@
 #pragma once
 #include <memory>
 #include <chrono>
-#include "../Scene/SceneBase.h"
-#include "../Common/Fader.h"
-#include "./Camera.h"
-#include "../Common/Performance.h"
 
 class SceneBase;
 class Fader;
@@ -39,7 +35,7 @@ public:
 	void ChangeScene(SCENE_ID nextId);
 
 	/// @brief 現在シーンID取得
-	SCENE_ID GetSceneID(void) { return sceneId_; };
+	SCENE_ID GetSceneID(void)const { return sceneId_; };
 
 	/// @brief デルタタイムの取得
 	float GetDeltaTime(void) const;
@@ -57,7 +53,7 @@ public:
 	void ChangeIsDebugMode(void) { isDebugMode_ = !isDebugMode_; };
 
 	/// @brief 演出中か否か
-	bool IsActivePerformance(void) { return (performTime_ > 0.0f); };
+	bool IsActivePerformance(void)const { return (performTime_ > 0.0f); };
 	void SetPerformTime(float time) { performTime_ = time; };
 
 private:

@@ -12,13 +12,14 @@ public:
 
 	enum class ANIMATION_TYPE
 	{
-		STAND_UP,      // 立ち上がり
-		IDLE,          // 待機
-		WALK,          // 歩行
-		ATTACK_LIGHT,  // 弱攻撃
+		STAND_UP,     // 立ち上がり
+		IDLE,         // 待機
+		WALK,         // 歩行
+		ATTACK_LIGHT, // 弱攻撃
 		ATTACK_HEAVY, // 強攻撃
-		DEFENSE,       // 守備
-		DEFEAT,        // 撃破
+		DEFENSE,      // 守備
+		DAMAGE,       // 被ダメージ
+		DEFEAT,       // 撃破
 
 		MAX,
 	};

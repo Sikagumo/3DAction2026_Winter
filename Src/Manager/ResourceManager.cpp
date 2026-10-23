@@ -59,29 +59,31 @@ void ResourceManager::Initialize(void)
 
 	// 丸影
 	_SetResource(LOAD_TYPE::IMAGE, SRC::IMAGE_SHADOW, PATH_IMAGE + "Shadow.png");
+	_SetResource(LOAD_TYPE::IMAGE, SRC::IMAGE_UI_PUSH_SPACE, PATH_IMAGE + "PushSpace.png");
 
 	//_SetResource(LOAD_TYPE::IMAGE, SRC::IMAGE_INFO, PATH_IMAGE + "sousa.png");
 
 	/* 複数画像 */
 
-	/*
+	
 	// 画像枚数
 	int imagesAllNum = 0;
 
 	// １画像の横枚数
 	int imagesNumX = 0, imagesNumY = 0;
 
-	imagesAllNum = 11;
-	imagesNumX = 1;
-	imagesNumY = 11;
-	_SetResource(LOAD_TYPE::IMAGES, SRC::IMGS_TEXTS, PATH_IMAGE + "Text.png"
-				, imagesAllNum, imagesNumX, imagesNumY);
-
 	// プレイヤー対象HPバー
 	imagesAllNum = 2;
 	imagesNumX = 1;
 	imagesNumY = 2;
 	_SetResource(LOAD_TYPE::IMAGES, SRC::IMGS_HP_PLAYER, PATH_IMAGE + "PlayerHpBer.png"
+		, imagesAllNum, imagesNumX, imagesNumY);
+
+	/*
+	imagesAllNum = 11;
+	imagesNumX = 1;
+	imagesNumY = 11;
+	_SetResource(LOAD_TYPE::IMAGES, SRC::IMGS_TEXTS, PATH_IMAGE + "Text.png"
 				, imagesAllNum, imagesNumX, imagesNumY);
 
 	// タイトル文字
@@ -141,6 +143,7 @@ void ResourceManager::Initialize(void)
 
 	// プレイヤーモデル
 	_SetResource(LOAD_TYPE::MODEL, SRC::MODEL_PLAYER, PATH_MODEL + "Player/Player.mv1");
+	_SetResource(LOAD_TYPE::MODEL, SRC::MODEL_PLAYER_SWARD, PATH_MODEL + "Sward/Sward.mv1");
 
 	// ステージモデル
 	_SetResource(LOAD_TYPE::MODEL, SRC::MODEL_STAGE, PATH_MODEL + "Stage/Stage.mv1");
@@ -150,6 +153,7 @@ void ResourceManager::Initialize(void)
 	_SetResource(LOAD_TYPE::MODEL, SRC::MODEL_BOSS, PATH_MODEL + "Boss/Boss.mv1");
 
 	/* アニメーション */
+	_SetResource(LOAD_TYPE::ANIMATION, SRC::ANIMATION_DAMAGE, PATH_ANIMATION + "Damage.mv1");
 	_SetResource(LOAD_TYPE::ANIMATION, SRC::ANIMATION_DEFEAT, PATH_ANIMATION + "Defeat.mv1");
 	_SetResource(LOAD_TYPE::ANIMATION, SRC::ANIMATION_PLAYER_IDLE, PATH_ANIMATION + "Idle.mv1");
 	_SetResource(LOAD_TYPE::ANIMATION, SRC::ANIMATION_PLAYER_WALK, PATH_ANIMATION + "Walk.mv1");

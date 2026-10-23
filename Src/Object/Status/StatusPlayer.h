@@ -14,13 +14,14 @@ public:
 	enum class PARAM
 	{
 		HANDLE_PATH,  // モデルのハンドルパス
-		MODEL_SCALE,  // モデルのスケール
-		RADIUS,       // 半径
-		HP_MAX,       // 最大HP
-		STAMINA_MAX,  // 最大スタミナ
+		SCALE_MODEL,  // モデルのスケール
+		SCALE_SWARD,  // 剣モデルのスケール
+		RADIUS,          // 半径
+		HP_MAX,          // 最大HP
+		STAMINA_MAX,     // 最大スタミナ
 		POWER_LIGHT,     // 弱攻撃力
 		POWER_HEAVY,     // 強攻撃力
-		ANIMATION_SPEED,      // 初期移動速度
+		ANIMATION_SPEED, // 初期移動速度
 		SPEED_ACC_TIME,  // 最高速度到達度
 		SPEED_WALK,      // 歩行速度
 		SPEED_DASH,      // ダッシュ速度
@@ -66,6 +67,7 @@ public:
 		std::string handlePath = "";
 
 		float scale = 0.0f;
+		float scaleSward = 0.0f;
 
 		float radius = 0.0f;
 
@@ -125,7 +127,8 @@ public:
 	{
 		playerParam_.handlePath = _loadString[static_cast<int>(PARAM::HANDLE_PATH)];
 
-		UtilityCommon::ChangeString(_loadString[static_cast<int>(PARAM::MODEL_SCALE)], playerParam_.scale, 0.0f);
+		UtilityCommon::ChangeString(_loadString[static_cast<int>(PARAM::SCALE_MODEL)], playerParam_.scale, 0.0f);
+		UtilityCommon::ChangeString(_loadString[static_cast<int>(PARAM::SCALE_SWARD)], playerParam_.scaleSward, 0.0f);
 		UtilityCommon::ChangeString(_loadString[static_cast<int>(PARAM::RADIUS)], playerParam_.radius, 0.0f);
 		UtilityCommon::ChangeString(_loadString[static_cast<int>(PARAM::HP_MAX)], playerParam_.hp, 0);
 		UtilityCommon::ChangeString(_loadString[static_cast<int>(PARAM::STAMINA_MAX)], playerParam_.stamina, 0);

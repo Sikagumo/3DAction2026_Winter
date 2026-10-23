@@ -25,6 +25,10 @@ namespace
 
 	// 制限位置
 	constexpr float LIMIT_POS_Y = -100.0f;
+
+	// 影のマテリアルパラメータ
+	constexpr COLOR_U8 SHADOW_COLOR_DIFFUSE = { 255, 255, 255, 255 };
+	constexpr COLOR_U8 SHADOW_COLOR_SPACULER = { 0, 0, 0, 0 };
 };
 
 CharaBase::CharaBase(void)
@@ -32,6 +36,7 @@ CharaBase::CharaBase(void)
 	, prevPos_(UtilityMath::VECTOR_ZERO)
 	, moveDir_(UtilityMath::VECTOR_ZERO)
 	, movePow_(UtilityMath::VECTOR_ZERO)
+	, sward_(Transform())
 {
 }
 
@@ -98,6 +103,9 @@ void CharaBase::Update(void)
 
 	// アニメーション再生
 	animation_->Update();
+
+	// 剣更新処理
+	UpdateSwardParam();
 }
 
 void CharaBase::Release(void)
@@ -319,8 +327,8 @@ void CharaBase::DrawShadowRound(void)
 										 SHADOW_SIZE);
 
 		// 頂点データで変化が無い部分をセット
-		Vertex[0].dif = GetColorU8(255, 255, 255, 255);
-		Vertex[0].spc = GetColorU8(0, 0, 0, 0);
+		Vertex[0].dif = SHADOW_COLOR_DIFFUSE;
+		Vertex[0].spc = SHADOW_COLOR_SPACULER;
 		Vertex[0].su = 0.0f;
 		Vertex[0].sv = 0.0f;
 		Vertex[1] = Vertex[0];

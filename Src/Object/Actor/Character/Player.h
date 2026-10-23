@@ -16,6 +16,7 @@ public:
 		ATTACK_HEAVY, // 強攻撃
 		DEFENSE,       // 守備
 		DODGE,         // 回避
+		DAMAGE,        // 被ダメージ
 		DEFEAT,        // 撃破
 
 		MAX,
@@ -31,6 +32,9 @@ public:
 	/// @brief 被ダメージ処理
 	void SetDamage(int damageHp, int damageStamina)override;
 
+	void SetIsControl(bool isControl) { isControl_ = isControl; };
+	bool GetIsControl(void)const { return isControl_; }
+
 
 protected:
 
@@ -45,7 +49,12 @@ protected:
 	/// @brief 更新処理
 	void UpdateProcess(void)override;
 
+	void DrawPre(void)override;
+
 	void CollisionReserve(void)override;
+
+	void UpdateSwardParam(void)override;
+
 
 private:
 
@@ -56,6 +65,8 @@ private:
 	const std::unordered_map<StatusPlayer::ACTION_TYPE, StatusPlayer::ActionParam>& actionStatus_;
 
 	bool isDash_ = false;
+
+	bool isControl_ = false;
 
 	float parryTime_ = 0.0f;
 

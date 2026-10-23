@@ -21,6 +21,8 @@ public:
 		IMAGE_GAME_ICON,
 		IMAGE_OPERATION,
 
+		IMAGE_UI_PUSH_SPACE,
+
 		/* 複数画像 */
 		IMGS_TEXTS,
 		IMGS_TITLE_TEXT,
@@ -36,6 +38,7 @@ public:
 		/* モデル */
 		MODEL_SKYDOME, // スカイドーム
 		MODEL_PLAYER,  // プレイヤー
+		MODEL_PLAYER_SWARD,  // プレイヤー剣
 		MODEL_BOSS,    // ボス
 		MODEL_ENEMY,   // 雑魚敵
 
@@ -45,6 +48,7 @@ public:
 		/* 外部アニメーション */
 
 		// プレイヤーアニメーション
+		ANIMATION_DAMAGE,        // 被ダメージアニメーション
 		ANIMATION_DEFEAT,        // 撃破アニメーション
 
 		ANIMATION_PLAYER_IDLE,        // 待機アニメーション

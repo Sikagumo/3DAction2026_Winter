@@ -89,6 +89,7 @@ public:
 	static double Deg2Rad(double deg);
 	static float Deg2Rad(float deg);
 	static int Deg2Rad(int deg);
+	static VECTOR Deg2Rad(const VECTOR& degVector);
 
 	/// <summary>
 	/// Šp“x‚ğ0`360‚É³‹K‰»

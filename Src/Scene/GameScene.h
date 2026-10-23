@@ -1,9 +1,10 @@
 #pragma once
+#include "./SceneBase.h"
 #include <memory>
 #include <map>
 #include <DxLib.h>
 #include <functional>
-//#include "../Object/Shield.h"
+
 class Stage;
 class SkyDome;
 class Player;
@@ -23,7 +24,7 @@ public:
 		PERFORMANCE, // 演出
 		GAME_ACTIVE, // ゲーム有効
 		GAME_CLEAR,  // クリア
-		GAMEOVER,    // ゲームオーバー
+		GAME_OVER,    // ゲームオーバー
 
 		MAX
 	};
@@ -56,6 +57,7 @@ public:
 	void Update(void) override;
 	void Draw(void) override;
 
+
 private:
 
 	// ステージ
@@ -70,6 +72,7 @@ private:
 	// スカイドーム
 	std::unique_ptr<SkyDome> skyDome_ = nullptr;
 
+	GAME_STATE gameState_;
 	// ポストエフェクトモード
 	MODE mode_;
 

@@ -3,7 +3,7 @@
 #include "../Utility/UtilityMath.h"
 #include "../Utility/UtilityCollision.h"
 #include "../Manager/SceneManager.h"
-#include "../Manager/Camera.h"
+#include "../Camera/Camera.h"
 #include "../Manager/InputManager.h"
 #include "../Object/Actor/SkyDome.h"
 #include "../Object/Collider/ColliderBase.h"
@@ -13,12 +13,17 @@
 #include "../Object/Collider/ColliderCapsule.h"
 #include "../Object/Collider/ColliderSphere.h"
 #include "../Object/Common/AnimationController.h"
+#include "../Common/Performance.h"
 #include <DxLib.h>
 #include "GameScene.h"
 
 namespace
 {
 	constexpr float TIME_PERFORM_PREMOVIE = 7.5f;
+
+	constexpr float PERFORM_CLEAR_TIME = 3.15f;
+	constexpr float PERFORM_CLEAR_SLOW = 1.5f;
+	constexpr float PERFORM_CLEAR_SLOW_POWER = 2;
 };
 
 GameScene::GameScene(void)
@@ -70,8 +75,10 @@ void GameScene::Initialize(void)
 	skyDome_->Initialize();
 
 	// ƒJƒƒ‰“o˜^
-	SceneManager::GetInstance().GetCamera().SetFollow(&player_->GetTransform());
-	SceneManager::GetInstance().GetCamera().ChangeMode(Camera::MODE::FOLLOW);
+	Camera& camera = SceneManager::GetInstance().GetCamera();
+	camera.SetFollow(&player_->GetTransform());
+	camera.ChangeMode(Camera::MODE::FOLLOW);
+	camera.AddHitCollider(stage_->GetOwnCollider(0));
 
 	// ‰‰oŽžŠÔŠ„‚è“–‚Ä
 	SceneManager::GetInstance().SetPerformTime(TIME_PERFORM_PREMOVIE);
@@ -125,7 +132,7 @@ void GameScene::Initialize(void)
 
 	// ‰Šúƒ‚[ƒh
 	mode_ = MODE::MAIN;
-
+	gameState_ = GAME_STATE::PERFORMANCE;
 }
 
 void GameScene::Update(void)
@@ -134,6 +141,10 @@ void GameScene::Update(void)
 	if (InputManager::GetInstance().IsTrgDown(InputManager::TYPE::PAUSE))
 	{
 		SceneManager::GetInstance().ChangeScene(SceneManager::SCENE_ID::TITLE);
+	}
+	if (!SceneManager::GetInstance().IsActivePerformance() && gameState_ == GAME_STATE::PERFORMANCE)
+	{
+		gameState_ = GAME_STATE::GAME_ACTIVE;
 	}
 
 	// ƒ‚[ƒhØ‘Ö
@@ -158,22 +169,32 @@ void GameScene::Update(void)
 
 	boss_->Update();
 
-	if (!SceneManager::GetInstance().IsActivePerformance())
+	if (gameState_ == GAME_STATE::GAME_ACTIVE)
 	{
-		if (boss_->GetHp() <= 0)
+		if (!SceneManager::GetInstance().IsActivePerformance())
 		{
-			SceneManager::GetInstance().SetPerformTime(3.0f);
-		}
-		else if (player_->GetHp() <= 0)
-		{
-			SceneManager::GetInstance().SetPerformTime(3.0f);
+			if (boss_->GetHp() <= 0)
+			{
+				SceneManager::GetInstance().GetPerformance().StartHitSlow(PERFORM_CLEAR_SLOW, PERFORM_CLEAR_SLOW_POWER);
+				SceneManager::GetInstance().SetPerformTime(PERFORM_CLEAR_TIME);
+				gameState_ = GAME_STATE::GAME_CLEAR;
+			}
+			else if (player_->GetHp() <= 0)
+			{
+				SceneManager::GetInstance().SetPerformTime(PERFORM_CLEAR_TIME);
+				gameState_ = GAME_STATE::GAME_OVER;
+			}
 		}
 	}
-	else if (boss_->GetHp() <= 0 && boss_->GetAnimation()->IsEnd()
-		|| player_->GetHp() <= 0 && player_->GetAnimation()->IsEnd())
+	else if (gameState_ == GAME_STATE::GAME_OVER
+		|| gameState_ == GAME_STATE::GAME_CLEAR)
 	{
-		SceneManager::GetInstance().ChangeScene(SceneManager::SCENE_ID::TITLE);
+		if (!SceneManager::GetInstance().IsActivePerformance())
+		{
+			SceneManager::GetInstance().ChangeScene(SceneManager::SCENE_ID::TITLE);
+		}
 	}
+
 
 	Collision();
 }
@@ -186,6 +207,25 @@ void GameScene::Draw(void)
 	player_->Draw();
 	boss_->Draw();
 
+	// ƒV[ƒ“‘JˆÚ
+	if (gameState_ != GAME_STATE::GAME_ACTIVE)
+	{
+		constexpr int MOVIE_SIZE = 85;
+		DrawBox(0, 0, Application::SCREEN_SIZE_X
+			, MOVIE_SIZE, 0x0, true);
+
+		DrawBox(0, (Application::SCREEN_SIZE_Y - MOVIE_SIZE)
+			, Application::SCREEN_SIZE_X, Application::SCREEN_SIZE_Y, 0x0, true);
+
+		if (gameState_ == GAME_STATE::GAME_CLEAR)
+		{
+			DrawString(Application::SCREEN_HALF_X, Application::SCREEN_HALF_Y, "¡ŸˆƒjA‰äƒK“¹ê¶ƒŒƒ^ƒŠ", 0x55ff55);
+		}
+		else if (gameState_ == GAME_STATE::GAME_OVER)
+		{
+			DrawString(Application::SCREEN_HALF_X, Application::SCREEN_HALF_Y, "–³”OA‰ä”sƒŒƒ^ƒŠ", 0xcc2525);
+		}
+	}
 #ifdef _DEBUG
 
 	player_->DrawDebug();

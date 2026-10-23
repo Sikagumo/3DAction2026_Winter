@@ -1,6 +1,5 @@
 #pragma once
-#include <memory>
-#include "SceneBase.h"
+#include "./SceneBase.h"
 
 class TitleScene : public SceneBase
 {
@@ -20,5 +19,5 @@ private:
 
 	// ‰æ‘œ
 	int imageTitle_ = -1;
-	int imgPush_ = -1;
+	int imagePush_ = -1;
 };

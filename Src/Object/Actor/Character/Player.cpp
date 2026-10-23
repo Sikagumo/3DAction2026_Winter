@@ -10,7 +10,8 @@
 #include "../../Common/ActionController.h"
 #include "../../../Manager/InputManager.h"
 #include "../../../Manager/SceneManager.h"
-#include "../../../Manager/Camera.h"
+#include "../../../Common/Performance.h"
+#include "../../../Camera/Camera.h"
 #include "../../../Manager/StatusManager.h"
 #include "../../Collider/ColliderLine.h"
 #include "../../Collider/ColliderSphere.h"
@@ -18,15 +19,20 @@
 
 namespace
 {
+	constexpr int FRAME_NUM_SWARD_TOP = 38;
+	constexpr int FRAME_NUM_SWARD_BOTTOM = 52;
 	constexpr float LOCAL_ROT_Y = 180.0f;
 	constexpr VECTOR START_POS = { 0.0f, 2.5f, 0.0f };
-	const float ATTACK_RADIUS = 300.0f;
+	//constexpr VECTOR LOCAL_POS_SWARD = { -8.15f, -5.0f, -5.0f };
+	constexpr VECTOR LOCAL_POS_SWARD = { 0.0f, 0.0f, 0.0f };
+	constexpr VECTOR LOCAL_ROT_SWARD = { 10.0f, 0.0f, 0.0f };
+	const float ATTACK_RADIUS = 85.0f;
 
 	// 衝突判定用線分開始
 	constexpr VECTOR COL_LINE_START_LOCAL_POS = { 0.0f, 80.0f, 0.0f };
 
 	// 衝突判定用線分終了
-	constexpr VECTOR COL_LINE_END_LOCAL_POS = { 0.0f, -10.0f, 0.0f };
+	constexpr VECTOR COL_LINE_END_LOCAL_POS = { -10.0f, -10.0f, 0.0f };
 
 	// 衝突判定用カプセル上部球体
 	constexpr VECTOR COL_CAPSULE_TOP_LOCAL_POS = { 0.0f, 75.0f, 0.0f };
@@ -83,14 +89,25 @@ Player::Player(void)
 void Player::InitLoadPost(void)
 {
 	transform_.SetModel(ResourceManager::GetInstance().LoadModelDuplicate(ResourceManager::SRC::MODEL_PLAYER));
+	sward_.SetModel(ResourceManager::GetInstance().LoadModelDuplicate(ResourceManager::SRC::MODEL_PLAYER_SWARD));
 }
 
 void Player::InitTransform(void)
 {
 	transform_.InitTransform(status_.scale
-							, Quaternion::Identity()
-							, Quaternion::AngleAxis(UtilityMath::Deg2Rad(LOCAL_ROT_Y), UtilityMath::AXIS_Y)
-							, START_POS);
+		, Quaternion::Identity()
+		, Quaternion::AngleAxis(UtilityMath::Deg2Rad(LOCAL_ROT_Y), UtilityMath::AXIS_Y)
+		, START_POS);
+
+	VECTOR posSwardTop = MV1GetFramePosition(transform_.modelId, FRAME_NUM_SWARD_TOP);
+	VECTOR posSwardBottom = MV1GetFramePosition(transform_.modelId, FRAME_NUM_SWARD_BOTTOM);
+
+	sward_.InitTransform(status_.scale
+		, Quaternion::Identity()
+		, Quaternion::Euler(UtilityMath::Deg2Rad(LOCAL_ROT_SWARD))
+		, posSwardBottom, LOCAL_POS_SWARD);
+
+	UpdateSwardParam();
 }
 
 void Player::InitCollider(void)
@@ -127,12 +144,12 @@ void Player::InitAnimationPost(void)
 	// 歩行アニメーション
 	animation_->AddExternal(static_cast<int>(ANIMATION_TYPE::WALK)
 		, ResourceManager::GetInstance().LoadModelDuplicate(ResourceManager::SRC::ANIMATION_PLAYER_WALK)
-		, 30.0f);
+		, VGet(0.0f, 50.0f, 0.0f), 30.0f);
 
 	// ダッシュアニメーション
 	animation_->AddExternal(static_cast<int>(ANIMATION_TYPE::RUN)
 		, ResourceManager::GetInstance().LoadModelDuplicate(ResourceManager::SRC::ANIMATION_PLAYER_RUN)
-		, 30.0f);
+		, VGet(0.0f, 50.0f, 0.0f), 30.0f);
 
 	// 弱攻撃アニメーション
 	animation_->AddExternal(static_cast<int>(ANIMATION_TYPE::ATTACK_LIGHT)
@@ -204,6 +221,9 @@ void Player::UpdateProcess(void)
 			ResetColliderAttackArea();
 		}
 
+		// 被ダメージ中は処理終了
+		if (animation_->GetPlayType() == static_cast<int>(ANIMATION_TYPE::DAMAGE)) { return; }
+
 		// 移動処理
 		ProcessMove();
 	}
@@ -215,6 +235,18 @@ void Player::UpdateProcess(void)
 
 	ProcessAttackLight();
 	ProcessAttackHeavy();
+
+	UpdateSwardParam();
+}
+
+void Player::UpdateSwardParam(void)
+{
+	VECTOR posSwardTop = MV1GetFramePosition(transform_.modelId, FRAME_NUM_SWARD_TOP);
+	VECTOR posSwardBottom = MV1GetFramePosition(transform_.modelId, FRAME_NUM_SWARD_BOTTOM);
+
+	sward_.pos = posSwardBottom;
+	sward_.quaRot = Quaternion::Mult(transform_.quaRot, Quaternion::Euler(UtilityMath::Deg2Rad(LOCAL_ROT_SWARD)));
+	sward_.Update();
 }
 
 void Player::DrawDebug(void)
@@ -223,6 +255,10 @@ void Player::DrawDebug(void)
 		, TimeMove_, moveSpeed_);
 
 	actionController_->DrawDebug();
+}
+void Player::DrawPre(void)
+{
+	MV1DrawModel(sward_.modelId);
 }
 
 void Player::ChangeAction(ACTION_TYPE action)
@@ -255,7 +291,7 @@ void Player::CollisionReserve(void)
 
 void Player::SetDamage(int damageHp, int damageStamina)
 {
-	if (timeInv_ >= 0.0f) { return; }
+	if (timeInv_ > 0.0f) { return; }
 
 	timeInv_ = DAMAGE_INV_TIME;
 
@@ -278,6 +314,12 @@ void Player::SetDamage(int damageHp, int damageStamina)
 
 	hp_ -= static_cast<int>(damagePowerHp);
 	stamina_ -= static_cast<int>(damagePowerStamina);
+
+	if (actionController_->IsEndActionActive())
+	{
+		// 行動終了時、ダメージアニメーション
+		PlayAnimation(ANIMATION_TYPE::DAMAGE, false);
+	}
 }
 
 void Player::ProcessMove(void)
@@ -289,18 +331,11 @@ void Player::ProcessMove(void)
 	// ダッシュ処理
 	isDash_ = (input.IsNew(InputManager::TYPE::PLAYER_DASH));
 
-
-	if (GetJoypadNum() > 0)
-	{
-		dir = input.GetDirXZ_LStick();
-	}
-	else
-	{
-		if (input.IsNew(InputManager::TYPE::PLAYER_MOVE_BACK)) { dir.z += 1.0f; }
-		if (input.IsNew(InputManager::TYPE::PLAYER_MOVE_FRONT)) { dir.z += -1.0f; }
-		if (input.IsNew(InputManager::TYPE::PLAYER_MOVE_LEFT)) { dir.x += -1.0f; }
-		if (input.IsNew(InputManager::TYPE::PLAYER_MOVE_RIGHT)) { dir.x += 1.0f; }
-	}
+	// 移動処理
+	if (input.IsNew(InputManager::TYPE::PLAYER_MOVE_BACK)) { dir.z += 1.0f; }
+	if (input.IsNew(InputManager::TYPE::PLAYER_MOVE_FRONT)) { dir.z += -1.0f; }
+	if (input.IsNew(InputManager::TYPE::PLAYER_MOVE_LEFT)) { dir.x += -1.0f; }
+	if (input.IsNew(InputManager::TYPE::PLAYER_MOVE_RIGHT)) { dir.x += 1.0f; }
 
 	if (!UtilityMath::EqualsVZero(dir))
 	{

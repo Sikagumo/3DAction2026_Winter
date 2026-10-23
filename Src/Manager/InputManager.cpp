@@ -52,7 +52,9 @@ void InputManager::Init(void)
 	RegisterTrigger(TYPE::PLAYER_DODGE, { KEY_INPUT_SPACE }, { BTN::RB_BOTTOM }, { });
 	RegisterTrigger(TYPE::PLAYER_DRAIN, { KEY_INPUT_C }, { BTN::RB_BOTTOM }, { });
 
-	RegisterTrigger(TYPE::CAMERA_LOCKON, { }, { BTN::RB_BOTTOM }, { }, MOUSE::CLICK_MIDDLE);
+	RegisterTrigger(TYPE::CAMERA_LOCKON, { }, { BTN::R_STICK }, { }, MOUSE::CLICK_MIDDLE);
+	RegisterTrigger(TYPE::CAMERA_TARGET_LEFT, { }, { BTN::L_BUTTON }, { }, MOUSE::WHEEL_BACK);
+	RegisterTrigger(TYPE::CAMERA_TARGET_RIGHT, { }, { BTN::R_BUTTON }, { }, MOUSE::WHEEL_FRONT);
 
 	// ÉÅÉjÉÖÅ[ëÄçÏ
 	RegisterTrigger(TYPE::SELECT_LEFT,  { KEY_INPUT_A, KEY_INPUT_LEFT },  { BTN::L_BUTTON }, { STICK::L_STICK_LEFT });

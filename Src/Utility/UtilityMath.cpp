@@ -57,6 +57,11 @@ int UtilityMath::Deg2Rad(int deg)
 	return (deg * Round(DX_PI_F / 180.0f));
 }
 
+VECTOR UtilityMath::Deg2Rad(const VECTOR& degVector)
+{
+	return VGet(Deg2Rad(degVector.x), Deg2Rad(degVector.y), Deg2Rad(degVector.z));
+}
+
 // Šp“x‚ğ0`360“x‚Ì”ÍˆÍ‚É³‹K‰»‚·‚é
 double UtilityMath::DegIn360(double deg)
 {

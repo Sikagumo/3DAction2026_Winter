@@ -53,6 +53,8 @@ protected:
 
 	std::unique_ptr<ActionController> actionController_ = nullptr;
 
+	Transform sward_;
+
 	// s“®ˆ—
 	std::map<int, std::function<void(void)>> functionActionMap_;
 	std::function<void(void)> functionAction_ = nullptr;
@@ -113,6 +115,8 @@ protected:
 
 	// ‰e•`‰æ
 	void DrawShadowRound(void);
+
+	virtual void UpdateSwardParam(void) {};
 
 	/// @brief UŒ‚”ÍˆÍŠ„‚è“–‚Ä
 	/// @param _radius ”ÍˆÍ

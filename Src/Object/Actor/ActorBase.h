@@ -28,8 +28,8 @@ public:
 	// 自身の衝突情報取得
 	const ColliderMap& GetOwnColliders(void) const { return ownColliders_; }
 
-	// 特定の自身の衝突情報取得
-	const ColliderBase* GetOwnCollider(int key) const;
+	/// @brief 特定の自身の衝突情報取得
+	const ColliderBase* GetOwnCollider(int key = 0) const;
 
 	// 衝突対象となるコライダを登録
 	void AddHitCollider(const ColliderBase* hitCollider);

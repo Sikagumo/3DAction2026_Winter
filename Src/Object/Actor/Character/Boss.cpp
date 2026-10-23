@@ -10,7 +10,7 @@
 #include "../../Common/ActionController.h"
 #include "../../../Manager/InputManager.h"
 #include "../../../Manager/SceneManager.h"
-#include "../../../Manager/Camera.h"
+#include "../../../Camera/Camera.h"
 #include "../../../Manager/StatusManager.h"
 #include "../../Collider/ColliderLine.h"
 #include "../../Collider/ColliderSphere.h"
@@ -140,6 +140,11 @@ void Boss::InitAnimationPost(void)
 		, ResourceManager::GetInstance().LoadHandleId(ResourceManager::SRC::ANIMATION_PLAYER_SLASH_HEAVY)
 		, 30.0f);
 
+	// 被ダメージアニメーション
+	animation_->AddExternal(static_cast<int>(ANIMATION_TYPE::DAMAGE)
+		, ResourceManager::GetInstance().LoadHandleId(ResourceManager::SRC::ANIMATION_DAMAGE)
+		, 30.0f);
+
 	// 撃破アニメーション
 	animation_->AddExternal(static_cast<int>(ANIMATION_TYPE::DEFEAT)
 		, ResourceManager::GetInstance().LoadHandleId(ResourceManager::SRC::ANIMATION_DEFEAT)
@@ -169,6 +174,9 @@ void Boss::InitPost(void)
 {
 	hp_ = status_.hp;
 	stamina_ = status_.stamina;
+
+	constexpr float INIT_ANIMATION_STOP = 0.5f;
+	animation_->Stop(INIT_ANIMATION_STOP);
 }
 
 void Boss::UpdateProcess(void)
@@ -176,6 +184,15 @@ void Boss::UpdateProcess(void)
 	if (hp_ <= 0)
 	{
 		PlayAnimation(ANIMATION_TYPE::DEFEAT, false);
+	}
+	else
+	{
+		if (animation_->GetPlayType() == static_cast<int>(ANIMATION_TYPE::DAMAGE)
+			&& animation_->IsEnd())
+		{
+			// 被ダメージアニメーション終了時、待機に遷移
+			PlayAnimation(ANIMATION_TYPE::IDLE);
+		}
 	}
 }
 
@@ -193,8 +210,15 @@ void Boss::SetDamage(int damageHp, int damageStamina)
 	if (timeInv_ > 0.0f) { return; }
 
 	timeInv_ = DAMAGE_INV_TIME;
+
 	hp_ = (((hp_ - damageHp) <= 0) ? 0 : (hp_ - damageHp));
 	stamina_ = (((stamina_ - damageStamina) <= 0) ? 0 : (stamina_ - damageHp));
+
+	if (actionController_->IsEndActionActive())
+	{
+		// 行動終了時、ダメージアニメーション
+		PlayAnimation(ANIMATION_TYPE::DAMAGE, false);
+	}
 }
 
 void Boss::ProcessMove(void)

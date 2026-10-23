@@ -10,9 +10,7 @@ class InputManager
 {
 public:
 
-	/// <summary>
-	/// 入力状況の種類
-	/// </summary>
+	/// @brief 入力状況の種類
 	enum class TYPE
 	{
 		NONE,
@@ -38,6 +36,8 @@ public:
 		PLAYER_DRAIN,   // 吸収
 
 		CAMERA_LOCKON,   // カメラ注視
+		CAMERA_TARGET_LEFT,  // カメラ左切替
+		CAMERA_TARGET_RIGHT, // カメラ右切替
 
 		// 選択
 		SELECT_RIGHT,
