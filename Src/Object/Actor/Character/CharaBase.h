@@ -39,6 +39,8 @@ public:
 
 	const std::unique_ptr<AnimationController>& GetAnimation(void)const { return animation_; };
 
+	// UŒ‚”»’è–³Œø‰»
+	void ResetColliderAttackArea(void);
 
 protected:
 
@@ -121,7 +123,6 @@ protected:
 	/// @brief UŒ‚”ÍˆÍŠ„‚è“–‚Ä
 	/// @param _radius ”ÍˆÍ
 	void SetColliderAttackArea(float _radius);
-	void ResetColliderAttackArea(void);
 
 	void ChangeUpdateAction(int actionType);
 };

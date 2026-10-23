@@ -1,7 +1,9 @@
 #include "Boss.h"
 #include <unordered_map>
 #include <cassert>
+#include <memory>
 #include <functional>
+#include "../../../Application.h"
 #include "../../../Manager/ResourceManager.h"
 #include "../../../Utility/UtilityMath.h"
 #include "../../../Utility/UtilityCommon.h"
@@ -11,6 +13,7 @@
 #include "../../../Manager/InputManager.h"
 #include "../../../Manager/SceneManager.h"
 #include "../../../Camera/Camera.h"
+#include "./Player.h"
 #include "../../../Manager/StatusManager.h"
 #include "../../Collider/ColliderLine.h"
 #include "../../Collider/ColliderSphere.h"
@@ -69,8 +72,9 @@ namespace
 	}
 };
 
-Boss::Boss(void)
+Boss::Boss(const std::unique_ptr<Player>& player)
 	: CharaBase::CharaBase()
+	, player_(player)
 	, status_(StatusManager::GetInstance().GetEnemyStatus(static_cast<int>(StatusEnemy::ENEMY_TYPE::BOSS)).GetEnemyParam())
 	, actionStatus_(StatusManager::GetInstance().GetBossStatus().GetBossAction())
 {
@@ -181,17 +185,25 @@ void Boss::InitPost(void)
 
 void Boss::UpdateProcess(void)
 {
+	if (animation_->GetPlayType() == static_cast<int>(ANIMATION_TYPE::STAND_UP)
+		&& !animation_->IsEnd()) { return; }
+
 	if (hp_ <= 0)
 	{
 		PlayAnimation(ANIMATION_TYPE::DEFEAT, false);
 	}
 	else
 	{
-		if (animation_->GetPlayType() == static_cast<int>(ANIMATION_TYPE::DAMAGE)
-			&& animation_->IsEnd())
+		LookPlayerPos();
+
+		if (animation_->IsEnd())
 		{
-			// 被ダメージアニメーション終了時、待機に遷移
-			PlayAnimation(ANIMATION_TYPE::IDLE);
+			if (animation_->GetPlayType() == static_cast<int>(ANIMATION_TYPE::DAMAGE)
+				|| animation_->GetPlayType() == static_cast<int>(ANIMATION_TYPE::STAND_UP))
+			{
+				// 被ダメージアニメーション終了時、待機に遷移
+				PlayAnimation(ANIMATION_TYPE::IDLE);
+			}
 		}
 	}
 }
@@ -202,12 +214,13 @@ void Boss::CollisionReserve(void)
 
 void Boss::DrawDebug(void)
 {
-	DrawFormatString(0, (8 * 4), 0xffffff, "BossHp:%d", hp_);
+	DrawFormatString(Application::SCREEN_HALF_X - 50, (8 * 2), 0xffffff, "BossHp:%d", hp_);
 }
 
 void Boss::SetDamage(int damageHp, int damageStamina)
 {
-	if (timeInv_ > 0.0f) { return; }
+	if (timeInv_ > 0.0f
+		|| animation_->GetPlayType() == static_cast<int>(ANIMATION_TYPE::DEFEAT)) { return; }
 
 	timeInv_ = DAMAGE_INV_TIME;
 
@@ -294,4 +307,21 @@ void Boss::PlayAnimation(Boss::ANIMATION_TYPE _type, bool isLoop)
 	if (type == animation_->GetPlayType() && !animation_->IsEnd()) { return; }
 
 	animation_->Play(type, isLoop);
+}
+
+void Boss::LookPlayerPos(void)
+{
+	VECTOR pPos = player_->GetTransform().pos;
+
+	// ワールド座標
+	VECTOR ePos = VAdd(transform_.pos, transform_.localPos);
+
+	// プレイヤーと敵の距離
+	VECTOR diff = VSub(pPos, ePos);
+
+	// 正規化したプレイヤーの方向を追尾
+	moveDir_ = VNorm({ diff.x, 0.0f, diff.z });
+
+	// 向きに反映
+	transform_.quaRot = Quaternion::LookRotation(moveDir_, UtilityMath::AXIS_Y);
 }

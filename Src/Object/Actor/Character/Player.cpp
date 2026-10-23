@@ -215,7 +215,8 @@ void Player::UpdateProcess(void)
 	// ˆÚ“®‘€ì
 	if (!actionController_->IsActiveAction())
 	{
-		if (actionController_->IsEndActionActive())
+		if (curAttackPower_ > 0
+			&& actionController_->IsEndActionActive())
 		{
 			// UŒ‚–³Œø‰»
 			ResetColliderAttackArea();
@@ -291,7 +292,8 @@ void Player::CollisionReserve(void)
 
 void Player::SetDamage(int damageHp, int damageStamina)
 {
-	if (timeInv_ > 0.0f) { return; }
+	if (timeInv_ > 0.0f
+		|| animation_->GetPlayType() == static_cast<int>(ANIMATION_TYPE::DEFEAT)) { return; }
 
 	timeInv_ = DAMAGE_INV_TIME;
 
@@ -406,7 +408,6 @@ void Player::ProcessDefense(void)
 void Player::Defense(void)
 {
 	parryTime_ = PARRY_TIME;
-	SceneManager::GetInstance().GetPerformance().StartHitStrong();
 }
 
 void Player::ProcessAttackLight(void)

@@ -21,7 +21,7 @@ namespace
 {
 	constexpr float TIME_PERFORM_PREMOVIE = 7.5f;
 
-	constexpr float PERFORM_CLEAR_TIME = 3.15f;
+	constexpr float PERFORM_CLEAR_TIME = 2.5f;
 	constexpr float PERFORM_CLEAR_SLOW = 1.5f;
 	constexpr float PERFORM_CLEAR_SLOW_POWER = 2;
 };
@@ -55,7 +55,7 @@ void GameScene::Initialize(void)
 	player_->Initialize();
 
 	// プレイヤー
-	boss_ = std::make_unique<Boss>();
+	boss_ = std::make_unique<Boss>(player_);
 	boss_->Initialize();
 
 	// ステージ
@@ -189,7 +189,8 @@ void GameScene::Update(void)
 	else if (gameState_ == GAME_STATE::GAME_OVER
 		|| gameState_ == GAME_STATE::GAME_CLEAR)
 	{
-		if (!SceneManager::GetInstance().IsActivePerformance())
+		if (InputManager::GetInstance().IsTrgDown(InputManager::TYPE::SELECT_DECISION)
+			&& !SceneManager::GetInstance().IsActivePerformance())
 		{
 			SceneManager::GetInstance().ChangeScene(SceneManager::SCENE_ID::TITLE);
 		}
@@ -219,18 +220,21 @@ void GameScene::Draw(void)
 
 		if (gameState_ == GAME_STATE::GAME_CLEAR)
 		{
-			DrawString(Application::SCREEN_HALF_X, Application::SCREEN_HALF_Y, "今此処ニ、我ガ道場生レタリ", 0x55ff55);
+			DrawString(Application::SCREEN_HALF_X - 100, Application::SCREEN_SIZE_Y - 50, "今、此処に、我が道場生マレタリ", 0x55ff55);
 		}
 		else if (gameState_ == GAME_STATE::GAME_OVER)
 		{
-			DrawString(Application::SCREEN_HALF_X, Application::SCREEN_HALF_Y, "無念、我敗レタリ", 0xcc2525);
+			DrawString(Application::SCREEN_HALF_X - 100, Application::SCREEN_SIZE_Y - 50, "無念、我敗レタリ", 0xcc2525);
 		}
 	}
+	else
+	{
+		boss_->DrawDebug();
+	}
+
 #ifdef _DEBUG
 
 	player_->DrawDebug();
-
-	boss_->DrawDebug();
 
 #endif
 
@@ -260,6 +264,7 @@ void GameScene::Collision(void)
 	if (UtilityCollision::IsHitSphereToCapsule(*playerAttack, *bossCapsule))
 	{
 		boss_->SetDamage(player_->GetAttackPower(), 0);
+		player_->ResetColliderAttackArea();
 	}
 }
 

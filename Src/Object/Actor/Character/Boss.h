@@ -1,9 +1,12 @@
 #pragma once
 #include "./CharaBase.h"
 #include <unordered_map>
+#include <memory>
 #include "../../Status/StatusEnemy.h"
 #include "../../Status/StatusBoss.h"
+#include "./Player.h"
 class CharaBase;
+class Player;
 class StatusEnemy;
 
 class Boss : public CharaBase
@@ -24,7 +27,7 @@ public:
 		MAX,
 	};
 
-	Boss(void);
+	Boss(const std::unique_ptr<Player>& player);
 	~Boss(void)override = default;
 
 	void DrawDebug(void)override;
@@ -54,17 +57,20 @@ private:
 	// 行動の種類
 	using ACTION_TYPE = StatusBoss::ACTION_TYPE;
 
+	const std::unique_ptr<Player>& player_;
 	const StatusEnemy::EnemyParam& status_;
 	const std::unordered_map<StatusBoss::ACTION_TYPE, StatusBoss::ActionParam>& actionStatus_;
 
 	int curActionNum_ = -1;
-
 
 	// 操作
 	void ProcessMove(void);
 
 	void AttackLight(void);
 	void AttackHeavy(void);
+
+	/// @brief プレイヤーの方向を追尾
+	void LookPlayerPos(void);
 
 	void PlayAnimation(ANIMATION_TYPE type, bool isLoop = true);
 };
