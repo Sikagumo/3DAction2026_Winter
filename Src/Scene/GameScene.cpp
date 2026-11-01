@@ -19,11 +19,12 @@
 
 namespace
 {
+	constexpr GameScene::GAME_STATE INIT_GAME_STATE = GameScene::GAME_STATE::PERFORMANCE;
 	constexpr float TIME_PERFORM_PREMOVIE = 7.5f;
 
 	constexpr float PERFORM_CLEAR_TIME = 2.5f;
 	constexpr float PERFORM_CLEAR_SLOW = 1.5f;
-	constexpr float PERFORM_CLEAR_SLOW_POWER = 2;
+	constexpr int PERFORM_CLEAR_SLOW_POWER = 2;
 };
 
 GameScene::GameScene(void)
@@ -40,13 +41,11 @@ GameScene::~GameScene(void)
 void GameScene::Initialize(void)
 {
 	// フォグ割り当て
-	constexpr int FOG_COLOR_R = 0;
-	constexpr int FOG_COLOR_G = 0;
-	constexpr int FOG_COLOR_B = 0;
+	constexpr COLOR_U8 FOG_COLOR = { 0, 0, 0 };
 	constexpr float FOG_POS_START = 1000.0f;
 	constexpr float FOG_POS_END = 1500.0f;
 	SetFogEnable(TRUE);
-	SetFogColor(FOG_COLOR_R, FOG_COLOR_G, FOG_COLOR_B);
+	SetFogColor(FOG_COLOR.r, FOG_COLOR.g, FOG_COLOR.b);
 	SetFogStartEnd(FOG_POS_START, FOG_POS_END);
 
 
@@ -132,7 +131,7 @@ void GameScene::Initialize(void)
 
 	// 初期モード
 	mode_ = MODE::MAIN;
-	gameState_ = GAME_STATE::PERFORMANCE;
+	gameState_ = INIT_GAME_STATE;
 }
 
 void GameScene::Update(void)
@@ -147,20 +146,6 @@ void GameScene::Update(void)
 		gameState_ = GAME_STATE::GAME_ACTIVE;
 	}
 
-	// モード切替
-	/*
-	if (InputManager::GetInstance().IsTrgDown(KEY_INPUT_BACKSLASH))
-	{
-		int tmp = (int)mode_;
-		tmp++;
-		if (tmp >= (int)MODE::MAX)
-		{
-			tmp = 0;
-		}
-		mode_ = (MODE)tmp;
-	}
-	*/
-
 	skyDome_->Update();
 
 	stage_->Update();
@@ -169,22 +154,36 @@ void GameScene::Update(void)
 
 	boss_->Update();
 
+	Camera& camera = SceneManager::GetInstance().GetCamera();
+	camera.SetLockOnTarget(boss_->GetTransform().pos, boss_->GetHp());
+
 	if (gameState_ == GAME_STATE::GAME_ACTIVE)
 	{
-		if (!SceneManager::GetInstance().IsActivePerformance())
+		if (SceneManager::GetInstance().IsActivePerformance()) { return; }
+
+		if (InputManager::GetInstance().IsTrgDown(InputManager::TYPE::CAMERA_LOCKON))
 		{
-			if (boss_->GetHp() <= 0)
-			{
-				SceneManager::GetInstance().GetPerformance().StartHitSlow(PERFORM_CLEAR_SLOW, PERFORM_CLEAR_SLOW_POWER);
-				SceneManager::GetInstance().SetPerformTime(PERFORM_CLEAR_TIME);
-				gameState_ = GAME_STATE::GAME_CLEAR;
-			}
-			else if (player_->GetHp() <= 0)
-			{
-				SceneManager::GetInstance().SetPerformTime(PERFORM_CLEAR_TIME);
-				gameState_ = GAME_STATE::GAME_OVER;
-			}
+			SceneManager::GetInstance().GetCamera().SetIsLockOn(!SceneManager::GetInstance().GetCamera().GetIsLockOn());
 		}
+
+		if (boss_->GetHp() <= 0)
+		{
+			SceneManager::GetInstance().GetPerformance().StartHitSlow(PERFORM_CLEAR_SLOW, PERFORM_CLEAR_SLOW_POWER);
+			SceneManager::GetInstance().SetPerformTime(PERFORM_CLEAR_TIME);
+			gameState_ = GAME_STATE::GAME_CLEAR;
+		}
+		else if (player_->GetHp() <= 0)
+		{
+			SceneManager::GetInstance().SetPerformTime(PERFORM_CLEAR_TIME);
+			gameState_ = GAME_STATE::GAME_OVER;
+		}
+
+		if (CheckHitKey(KEY_INPUT_T))
+		{
+			auto& camera = SceneManager::GetInstance().GetCamera();
+			camera.SetTrackingTarget({ 0.0f, 100.0f, 850.0f }, { 0.0f, 180.0f, 0.0f }, { 0.0f, 100.0f, 850.0f }, 2.5f);
+		}
+
 	}
 	else if (gameState_ == GAME_STATE::GAME_OVER
 		|| gameState_ == GAME_STATE::GAME_CLEAR)
@@ -235,6 +234,7 @@ void GameScene::Draw(void)
 #ifdef _DEBUG
 
 	player_->DrawDebug();
+	SceneManager::GetInstance().GetCamera().DrawDebug();
 
 #endif
 

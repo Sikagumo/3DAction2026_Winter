@@ -10,6 +10,7 @@ ActorBase::ActorBase(void)
 
 ActorBase::~ActorBase(void)
 {
+	Release();
 }
 
 void ActorBase::Initialize(void)

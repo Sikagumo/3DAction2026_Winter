@@ -2,6 +2,7 @@
 #include <DxLib.h>
 #include <fstream>
 #include <sstream>
+#include <iostream>
 #include <array>
 #include <string>
 #include <memory>
@@ -10,7 +11,21 @@
 #include "../Object/Status/StatusPlayer.h"
 #include "../Object/Status/StatusEnemy.h"
 #include "../Object/Status/StatusBoss.h"
+#include "../Object/Status/BinaryRender.h"
 #include "./ResourceManager.h"
+
+namespace
+{
+	constexpr size_t BINARY_FILE_SIZE = 4;
+	struct StatusDatHeader
+	{
+		char signature[4]; // "stdt"
+		const float version = 1.0f; // ファイルのバージョン
+		uint32_t dataNum;  // セクション数
+	};
+	static_assert(sizeof(StatusDatHeader) == 12);
+}
+
 
 StatusManager* StatusManager::instance_ = nullptr;
 
@@ -48,13 +63,27 @@ StatusManager::StatusManager(void)
 void StatusManager::Load(void)
 {
 	/* 初回読み込み処理 */
-	LoadPlayerStatus();
+	reader_ = std::make_unique<BinaryReader>();
 
-	LoadPlayerAction();
+	if (!ReadBinaryPlayerStatus(*reader_, *player_))
+	{
+		LoadPlayerStatus();
+	}
 
-	LoadEnemy();
+	if (!ReadBinaryPlayerAction(*reader_, *player_))
+	{
+		LoadPlayerAction();
+	}
 
-	LoadBossAction();
+	if (!ReadBinaryEnemyData(*reader_, enemy_))
+	{
+		LoadEnemy();
+	}
+
+	if (!ReadBinaryBossAction(*reader_, *boss_))
+	{
+		LoadBossAction();
+	}
 }
 
 std::string StatusManager::ReadCsvFile(const std::string& path)
@@ -143,6 +172,37 @@ StatusManager::CsvTable StatusManager::ReadCsvTable(const std::string& fileName,
 	return table;
 }
 
+bool StatusManager::OpenDat(const std::string& path, uint32_t expectedSections, BinaryReader& reader)
+{
+	const int HANDLE = FileRead_open(path.c_str());
+	if (HANDLE <= 0) { return false; }
+
+	auto SIZE = FileRead_size(path.c_str());
+	if (SIZE <= 0)
+	{
+		FileRead_close(HANDLE);
+		return false;
+	}
+
+	std::vector<char> buffer(SIZE);
+	FileRead_read(buffer.data(), static_cast<int>(SIZE), HANDLE);
+	FileRead_close(HANDLE);
+
+	reader = BinaryReader(std::move(buffer));
+
+	// ヘッダ(書き出し側はstruct丸ごとだが、パディングなしの12byteなので個別に読めば一致する)
+	char signature[4]{};
+	float version = 0.0f;
+	uint32_t dataNum = 0;
+	if (!reader.Read(signature)
+		|| !reader.Read(version)
+		|| !reader.Read(dataNum)) { return false; }
+
+	return std::memcmp(signature, "stdt", 4) == 0
+		&& version == 1.0f
+		&& dataNum == expectedSections;
+}
+
 void StatusManager::LoadPlayerStatus(void)
 {
 	constexpr size_t COLS_MAX = static_cast<size_t>(StatusPlayer::PARAM::MAX);
@@ -203,6 +263,303 @@ void StatusManager::LoadBossAction(void)
 	);
 }
 
+bool StatusManager::ReadBinaryPlayerStatus(BinaryReader& reader, StatusPlayer& player)
+{
+	StatusPlayer::PlayerParam param{};
+	float idle = 0.0f, walk = 0.0f, run = 0.0f;
+
+	// 書き出し(WritePlayerStatus)と同じ順番
+	const bool IS_OK = (
+		reader.ReadString(param.handlePath) &&
+		reader.Read(param.scale) &&
+		reader.Read(param.scaleSword) &&
+		reader.Read(param.radius) &&
+		reader.Read(param.hp) &&
+		reader.Read(param.stamina) &&
+		reader.Read(param.powerLight) &&
+		reader.Read(param.powerHeavy) &&
+		reader.Read(param.speedInit) &&
+		reader.Read(param.speedAccTime) &&
+		reader.Read(param.speedWalk) &&
+		reader.Read(param.speedDash) &&
+		reader.Read(param.dashSpeedMultiple) &&
+		reader.Read(param.timeEvasion) &&
+		reader.Read(param.timeInv) &&
+		reader.Read(idle) &&
+		reader.Read(walk) &&
+		reader.Read(run)
+		);
+	if (!IS_OK) { return false; }
+
+	
+	player.SetPlayerParam(param);
+	player.SetAnimationSpeed(idle, walk, run);
+	return true;
+}
+
+bool StatusManager::ReadBinaryPlayerAction(BinaryReader& reader, StatusPlayer& player)
+{
+	uint32_t count = 0;
+	if (!reader.Read(count)) { return false; }
+
+	for (uint32_t i = 0; i < count; i++)
+	{
+		int32_t type = 0;
+		StatusPlayer::ActionParam a{};
+		const bool IS_OK =
+			reader.Read(type) &&
+			reader.ReadString(a.actionName) &&
+			reader.Read(a.timeActive) &&
+			reader.Read(a.timeInput) &&
+			reader.Read(a.timeEnd) &&
+			reader.Read(a.timeHitStop) &&
+			reader.Read(a.timeTimingActive) &&
+			reader.Read(a.timeTimingHitStop) &&
+			reader.Read(a.animationSpeed);
+		if (!IS_OK) { return false; }
+
+		player_->SetActionParam(static_cast<StatusPlayer::ACTION_TYPE>(type), a);
+	}
+	return true;
+}
+
+bool StatusManager::ReadBinaryEnemyData(BinaryReader& reader, StatusManager::EnemyMap& out)
+{
+	uint32_t count = 0;
+	if (!reader.Read(count)) { return false; }
+
+	for (uint32_t i = 0; i < count; i++)
+	{
+		int32_t id = 0;
+		int32_t type = 0;
+		uint8_t animCount = 0;
+		StatusEnemy::EnemyParam param{};
+		param.animationSpeed.fill(-1.0f);   // コンストラクタと同じ初期値(SPAWNはCSVに無いので-1のまま)
+
+		const bool IS_OK =
+			reader.Read(id) &&
+			reader.ReadString(param.name) &&
+			reader.ReadString(param.handlePath) &&
+			reader.Read(type) &&
+			reader.Read(param.scale) &&
+			reader.Read(param.radius) &&
+			reader.Read(param.hp) &&
+			reader.Read(param.stamina) &&
+			reader.Read(param.power) &&
+			reader.Read(param.speedInit) &&
+			reader.Read(param.speedMax) &&
+			reader.Read(param.speedAcc) &&
+			reader.Read(param.atkInterval) &&
+			reader.Read(param.atkRange) &&
+			reader.Read(param.searchRange) &&
+			reader.Read(animCount);
+		if (!IS_OK) { return false; }
+		param.type = static_cast<StatusEnemy::ENEMY_TYPE>(type);
+
+		for (uint8_t a = 0; a < animCount; a++)
+		{
+			// 個数が今のenumと違っても安全に読む(はみ出た分は捨てる)
+			float speed = 0.0f;
+			if (!reader.Read(speed)) { return false; }
+			if (a < param.animationSpeed.size()) { param.animationSpeed[a] = speed; }
+		}
+
+		auto enemy = std::make_unique<StatusBoss>();   // LoadEnemyと同じ生成方法
+		enemy->SetEnemyParam(param);
+		out[id] = std::move(enemy);
+	}
+	return true;
+}
+
+bool StatusManager::ReadBinaryBossAction(BinaryReader& reader, StatusBoss& boss)
+{
+	uint32_t count = 0;
+	if (!reader.Read(count)) { return false; }
+
+	for (uint32_t i = 0; i < count; i++)
+	{
+		int32_t type = 0;
+		StatusBoss::ActionParam a{};
+		const bool IS_OK =
+			reader.Read(type) && reader.ReadString(a.actionName) &&
+			reader.Read(a.timeActive) && reader.Read(a.timeEnd) && reader.Read(a.timeTimingActive) &&
+			reader.Read(a.animationSpeed) && reader.Read(a.attackRadius);
+		if (!IS_OK) { return false; }
+
+		boss.SetActionParam(static_cast<StatusBoss::ACTION_TYPE>(type), a);
+	}
+	return true;
+}
+
+bool StatusManager::SaveStatusDat(void) const
+{
+	bool ret = true;
+
+	// プレイヤーパラメータの保存
+	ret = SavePlayer();
+
+	ret = SaveEnemy();
+
+	return ret;
+}
+
+bool StatusManager::SavePlayer(void) const
+{
+	std::string filePath = PATH_PLAYER;
+	filePath += FILE_EXTENSION_DAT;
+	std::ofstream ofs(filePath.c_str(), std::ios::binary | std::ios::trunc);
+
+	if (!ofs.is_open())
+	{
+		// ファイルオープン失敗
+		std::string error = "\nバイナリファイルが読み込まれませんでした。\nファイルパス:";
+		error += filePath;
+		OutputDebugString(error.c_str());
+		assert(false);
+		return false;
+	}
+
+	// ヘッダ(未初期化メンバーが出ないよう全て設定する)
+	StatusDatHeader header{};
+	std::memcpy(header.signature, "stdt", BINARY_FILE_SIZE);
+	header.dataNum = 2; // プレイヤーパラメータ + プレイヤーアクション
+	WriteValue(ofs, header);
+
+	WritePlayerStatus(ofs);
+	WritePlayerAction(ofs);
+
+	return ofs.good();
+}
+
+bool StatusManager::SaveEnemy(void) const
+{
+	std::string filePath = PATH_ENEMY;
+	filePath += FILE_EXTENSION_DAT;
+	std::ofstream ofs(filePath.c_str(), std::ios::binary | std::ios::trunc);
+
+	if (!ofs.is_open())
+	{
+		// ファイルオープン失敗
+		std::string error = "\nバイナリファイルが読み込まれませんでした。\nファイルパス:";
+		error += filePath;
+		OutputDebugString(error.c_str());
+		assert(false);
+		return false;
+	}
+
+	StatusDatHeader header{};
+	std::memcpy(header.signature, "stdt", BINARY_FILE_SIZE);
+	header.dataNum = 2; // 敵パラメータ + ボスアクション
+	WriteValue(ofs, header);
+
+	WriteEnemyData(ofs);
+	WriteBossAction(ofs);   // WriteEnemyAction から変更
+
+	return ofs.good();
+}
+
+void StatusManager::WritePlayerStatus(std::ofstream& ofs) const
+{
+	const auto& playerParam = player_->GetPlayerParam();
+
+	WriteString(ofs, playerParam.handlePath);
+	WriteValue(ofs, playerParam.scale);
+	WriteValue(ofs, playerParam.scaleSword);
+	WriteValue(ofs, playerParam.radius);
+	WriteValue(ofs, playerParam.hp);
+	WriteValue(ofs, playerParam.stamina);
+	WriteValue(ofs, playerParam.powerLight);
+	WriteValue(ofs, playerParam.powerHeavy);
+	WriteValue(ofs, playerParam.speedInit);
+	WriteValue(ofs, playerParam.speedAccTime);
+	WriteValue(ofs, playerParam.speedWalk);
+	WriteValue(ofs, playerParam.speedDash);
+	WriteValue(ofs, playerParam.dashSpeedMultiple);
+	WriteValue(ofs, playerParam.timeEvasion);
+	WriteValue(ofs, playerParam.timeInv);
+
+	// PlayerParam外のアニメーション速度
+	WriteValue(ofs, player_->GetAnimationSpeedIdle());
+	WriteValue(ofs, player_->GetAnimationSpeedWalk());
+	WriteValue(ofs, player_->GetAnimationSpeedRun());
+}
+
+void StatusManager::WritePlayerAction(std::ofstream& ofs) const
+{
+	// ACTION_TYPE順に並べ替えて出力を安定させる
+	const auto& SRC = player_->GetPlayerAction();
+	const std::map<StatusPlayer::ACTION_TYPE, StatusPlayer::ActionParam> SORTED(SRC.begin(), SRC.end());
+
+	WriteValue(ofs, static_cast<uint32_t>(SORTED.size()));
+
+	for (const auto& [type, param] : SORTED)
+	{
+		WriteValue(ofs, static_cast<int32_t>(type));
+		WriteString(ofs, param.actionName);
+		WriteValue(ofs, param.timeActive);
+		WriteValue(ofs, param.timeInput);
+		WriteValue(ofs, param.timeEnd);
+		WriteValue(ofs, param.timeHitStop);
+		WriteValue(ofs, param.timeTimingActive);
+		WriteValue(ofs, param.timeTimingHitStop);
+		WriteValue(ofs, param.animationSpeed);
+	}
+}
+
+void StatusManager::WriteEnemyData(std::ofstream& ofs) const
+{
+	// std::mapはキー(敵ID)の昇順なので、そのまま出力順が安定する
+	WriteValue(ofs, static_cast<uint32_t>(enemy_.size()));
+
+	for (const auto& [id, enemy] : enemy_)
+	{
+		const auto& param = enemy->GetEnemyParam();
+
+		WriteValue(ofs, static_cast<int32_t>(id));
+		WriteString(ofs, param.name);
+		WriteString(ofs, param.handlePath);
+		WriteValue(ofs, static_cast<int32_t>(param.type));
+		WriteValue(ofs, param.scale);
+		WriteValue(ofs, param.radius);
+		WriteValue(ofs, param.hp);
+		WriteValue(ofs, param.stamina);
+		WriteValue(ofs, param.power);
+		WriteValue(ofs, param.speedInit);
+		WriteValue(ofs, param.speedMax);
+		WriteValue(ofs, param.speedAcc);
+		WriteValue(ofs, param.atkInterval);
+		WriteValue(ofs, param.atkRange);
+		WriteValue(ofs, param.searchRange);
+
+		// アニメーション速度(将来ANIM_TYPEが増えても読めるよう、個数を先に書く)
+		WriteValue(ofs, static_cast<uint8_t>(param.animationSpeed.size()));
+		for (const auto& animationSpeed : param.animationSpeed)
+		{
+			WriteValue(ofs, animationSpeed);
+		}
+	}
+}
+
+void StatusManager::WriteBossAction(std::ofstream& ofs) const
+{
+	// unordered_mapは順序が不定なので、ACTION_TYPE順に並べ替えて出力を安定させる
+	const auto& SRC = boss_->GetBossAction();
+	const std::map<StatusBoss::ACTION_TYPE, StatusBoss::ActionParam> SORTED(SRC.begin(), SRC.end());
+
+	WriteValue(ofs, static_cast<uint32_t>(SORTED.size()));
+
+	for (const auto& [type, param] : SORTED)
+	{
+		WriteValue(ofs, static_cast<int32_t>(type));
+		WriteString(ofs, param.actionName);
+		WriteValue(ofs, param.timeActive);
+		WriteValue(ofs, param.timeEnd);
+		WriteValue(ofs, param.timeTimingActive);
+		WriteValue(ofs, param.animationSpeed);
+		WriteValue(ofs, param.attackRadius);
+	}
+}
+
 const std::string& StatusManager::GetHandlePathPlayer(void)const
 {
 	return player_->GetPlayerParam().handlePath;
@@ -211,4 +568,12 @@ const std::string& StatusManager::GetHandlePathPlayer(void)const
 const std::string& StatusManager::GetHandlePathEnemy(int type)const
 {
 	return enemy_.at(type)->GetEnemyParam().handlePath;
+}
+
+void StatusManager::WriteString(std::ofstream& ofs, const std::string& str)
+{
+	// バイナリファイルに書き込み
+	const auto SIZE = static_cast<uint16_t>(str.size());
+	WriteValue(ofs, SIZE);
+	ofs.write(str.data(), SIZE);
 }

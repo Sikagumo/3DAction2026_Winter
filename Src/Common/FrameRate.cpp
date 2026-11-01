@@ -2,10 +2,7 @@
 #include <DxLib.h>
 
 
-FrameRate::FrameRate(void) :
-	curTime_(0.0f), lateTime_(0.0f),
-	frameCnt_(0), updateTime_(0),
-	viewFramelate_(0.0f)
+FrameRate::FrameRate(void)
 {
 }
 
@@ -21,7 +18,7 @@ void FrameRate::Update(void)
 void FrameRate::Draw(void)
 {
 	// 平均フレームレート 描画
-	DrawFormatString(0, 0, 0xFFFFFF, "%.1ffps", viewFramelate_);
+	DrawFormatString(0, 0, 0xFFFFFF, "%.1ffps", viewFrameRate_);
 }
 
 void FrameRate::SetFrameRate(void)
@@ -40,7 +37,7 @@ void FrameRate::SetFrameRate(void)
 		float fFrameCount = static_cast<float>(frameCnt_ * 1000);
 
 		// 描画フレーム単位 取得
-		viewFramelate_ = (fFrameCount / nDifTime);
+		viewFrameRate_ = (fFrameCount / nDifTime);
 
 		frameCnt_ = 0;
 

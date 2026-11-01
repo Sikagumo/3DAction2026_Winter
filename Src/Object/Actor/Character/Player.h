@@ -9,9 +9,12 @@ public:
 
 	enum class ANIMATION_TYPE
 	{
+		NONE = -1, // 無効状態
+
 		IDLE,          // 待機
 		WALK,          // 歩行
 		RUN,           // ダッシュ
+		DRAWING_SWORD,  // 弱攻撃
 		ATTACK_LIGHT,  // 弱攻撃
 		ATTACK_HEAVY, // 強攻撃
 		DEFENSE,       // 守備
@@ -20,6 +23,13 @@ public:
 		DEFEAT,        // 撃破
 
 		MAX,
+	};
+
+	enum class ATTACK_TYPE
+	{
+		NONE = -1, // 無効状態
+		LIGHT1, // 弱攻撃
+		HEAVY, // 強攻撃
 	};
 
 	Player(void);
@@ -53,7 +63,7 @@ protected:
 
 	void CollisionReserve(void)override;
 
-	void UpdateSwardParam(void)override;
+	void UpdateSwordParam(void)override;
 
 
 private:
@@ -63,8 +73,18 @@ private:
 
 	const StatusPlayer::PlayerParam& status_;
 	const std::unordered_map<StatusPlayer::ACTION_TYPE, StatusPlayer::ActionParam>& actionStatus_;
+	static constexpr float TIME_DRAWING_SWORD = 15.0f;
+
+	// 攻撃の種類
+	ATTACK_TYPE attackType_ = ATTACK_TYPE::NONE;
 
 	bool isDash_ = false;
+
+	// 抜刀中か否か
+	bool isDrawingSward_ = false;
+
+	// 抜刀中の現在時間
+	float timeDrawingSward_ = 0.0f;
 
 	bool isControl_ = false;
 
@@ -76,19 +96,28 @@ private:
 
 	/// @brief 回避
 	void ProcessDodge(void);
-	void Dodge(void);
+	void ActionDodge(void);
 
 	/// @brief 守備
 	void ProcessDefense(void);
-	void Defense(void);
+	void ActionDefense(void);
 
 	/// @brief 弱攻撃
 	void ProcessAttackLight(void);
-	void AttackLight(void);
+	void ActionAttackLight(void);
 
 	/// @brief 強攻撃
 	void ProcessAttackHeavy(void);
-	void AttackHeavy(void);
+	void ActionAttackHeavy(void);
 
-	void PlayAnimation(ANIMATION_TYPE type, bool isLoop = true);
+	/// @brief 抜刀
+	void ActionDrawingSword(void);
+
+	/// @brief アニメーション再生
+	/// @param type アニメーションの種類
+	/// @param isLoop ループ再生するか否か
+	/// @param isBlendAnimation ブレンドアニメーションをするか否か
+	void PlayAnimation(ANIMATION_TYPE type, bool isLoop = true, bool isBlendAnimation = true);
+
+	ACTION_TYPE GetActionType(void);
 };

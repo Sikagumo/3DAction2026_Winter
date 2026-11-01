@@ -1,10 +1,11 @@
-#define _CRTDBG_MAP_ALLOC
+//#define _CRTDBG_MAP_ALLOC
 #include <crtdbg.h>
 #include <memory>
 #include <string>
 #include <DxLib.h>
 #include "Application.h"
 
+/*
 #ifdef _DEBUG
 #define	new	new(_NORMAL_BLOCK, __FILE__, __LINE__)
 #endif
@@ -17,7 +18,7 @@ void TestShared(std::shared_ptr<int> a)
 
 	// シェアードポインタの参照カウント
 	int cnt3 = testSha_.use_count();
-}
+}*/
 
 // WinMain関数
 //---------------------------------
@@ -27,7 +28,7 @@ int WINAPI WinMain(
 {
 
 	// メモリリーク検出
-	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
+	//_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
 
 	// ①生ポインタ
 	//int* test = new int();

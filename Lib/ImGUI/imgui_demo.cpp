@@ -254,7 +254,7 @@ void ImGui::ShowDemoWindow(bool* p_open)
     static bool show_app_log = false;
     static bool show_app_layout = false;
     static bool show_app_property_editor = false;
-    static bool show_app_long_text = false;
+    static bool show_app_longtext = false;
     static bool show_app_auto_resize = false;
     static bool show_app_constrained_resize = false;
     static bool show_app_simple_overlay = false;
@@ -268,7 +268,7 @@ void ImGui::ShowDemoWindow(bool* p_open)
     if (show_app_log)                 ShowExampleAppLog(&show_app_log);
     if (show_app_layout)              ShowExampleAppLayout(&show_app_layout);
     if (show_app_property_editor)     ShowExampleAppPropertyEditor(&show_app_property_editor);
-    if (show_app_long_text)           ShowExampleAppLongText(&show_app_long_text);
+    if (show_app_longtext)           ShowExampleAppLongText(&show_app_longtext);
     if (show_app_auto_resize)         ShowExampleAppAutoResize(&show_app_auto_resize);
     if (show_app_constrained_resize)  ShowExampleAppConstrainedResize(&show_app_constrained_resize);
     if (show_app_simple_overlay)      ShowExampleAppSimpleOverlay(&show_app_simple_overlay);
@@ -361,7 +361,7 @@ void ImGui::ShowDemoWindow(bool* p_open)
             ImGui::MenuItem("Log", NULL, &show_app_log);
             ImGui::MenuItem("Simple layout", NULL, &show_app_layout);
             ImGui::MenuItem("Property editor", NULL, &show_app_property_editor);
-            ImGui::MenuItem("Long text display", NULL, &show_app_long_text);
+            ImGui::MenuItem("Long text display", NULL, &show_app_longtext);
             ImGui::MenuItem("Auto-resizing window", NULL, &show_app_auto_resize);
             ImGui::MenuItem("Constrained-resizing window", NULL, &show_app_constrained_resize);
             ImGui::MenuItem("Simple overlay", NULL, &show_app_simple_overlay);
@@ -1095,13 +1095,13 @@ static void ShowDemoWindowWidgets()
         float my_tex_w = (float)io.Fonts->TexWidth;
         float my_tex_h = (float)io.Fonts->TexHeight;
         {
-            static bool use_text_color_for_tint = false;
-            ImGui::Checkbox("Use Text Color for Tint", &use_text_color_for_tint);
+            static bool usetext_color_for_tint = false;
+            ImGui::Checkbox("Use Text Color for Tint", &usetext_color_for_tint);
             ImGui::Text("%.0fx%.0f", my_tex_w, my_tex_h);
             ImVec2 pos = ImGui::GetCursorScreenPos();
             ImVec2 uv_min = ImVec2(0.0f, 0.0f);                 // Top-left
             ImVec2 uv_max = ImVec2(1.0f, 1.0f);                 // Lower-right
-            ImVec4 tint_col = use_text_color_for_tint ? ImGui::GetStyleColorVec4(ImGuiCol_Text) : ImVec4(1.0f, 1.0f, 1.0f, 1.0f);   // No tint
+            ImVec4 tint_col = usetext_color_for_tint ? ImGui::GetStyleColorVec4(ImGuiCol_Text) : ImVec4(1.0f, 1.0f, 1.0f, 1.0f);   // No tint
             ImVec4 border_col = ImGui::GetStyleColorVec4(ImGuiCol_Border);
             ImGui::Image(my_tex_id, ImVec2(my_tex_w, my_tex_h), uv_min, uv_max, tint_col, border_col);
             if (ImGui::BeginItemTooltip())
@@ -3248,7 +3248,7 @@ static void ShowDemoWindowLayout()
             static bool show_h_scrollbar = true;
             static bool show_button = true;
             static bool show_tree_nodes = true;
-            static bool show_text_wrapped = false;
+            static bool showtext_wrapped = false;
             static bool show_columns = true;
             static bool show_tab_bar = true;
             static bool show_child = false;
@@ -3264,7 +3264,7 @@ static void ShowDemoWindowLayout()
             ImGui::Checkbox("H-scrollbar", &show_h_scrollbar);
             ImGui::Checkbox("Button", &show_button);            // Will grow contents size (unless explicitly overwritten)
             ImGui::Checkbox("Tree nodes", &show_tree_nodes);    // Will grow contents size and display highlight over full width
-            ImGui::Checkbox("Text wrapped", &show_text_wrapped);// Will grow and use contents size
+            ImGui::Checkbox("Text wrapped", &showtext_wrapped);// Will grow and use contents size
             ImGui::Checkbox("Columns", &show_columns);          // Will use contents size
             ImGui::Checkbox("Tab bar", &show_tab_bar);          // Will use contents size
             ImGui::Checkbox("Child", &show_child);              // Will grow and use contents size
@@ -3300,7 +3300,7 @@ static void ShowDemoWindowLayout()
                 }
                 ImGui::CollapsingHeader("CollapsingHeader", &open);
             }
-            if (show_text_wrapped)
+            if (showtext_wrapped)
             {
                 ImGui::TextWrapped("This text should automatically wrap on the edge of the work rectangle.");
             }
@@ -3831,8 +3831,8 @@ static void EditTableSizingFlags(ImGuiTableFlags* p_flags)
     for (idx = 0; idx < IM_ARRAYSIZE(policies); idx++)
         if (policies[idx].Value == (*p_flags & ImGuiTableFlags_SizingMask_))
             break;
-    const char* preview_text = (idx < IM_ARRAYSIZE(policies)) ? policies[idx].Name + (idx > 0 ? strlen("ImGuiTableFlags") : 0) : "";
-    if (ImGui::BeginCombo("Sizing Policy", preview_text))
+    const char* previewtext = (idx < IM_ARRAYSIZE(policies)) ? policies[idx].Name + (idx > 0 ? strlen("ImGuiTableFlags") : 0) : "";
+    if (ImGui::BeginCombo("Sizing Policy", previewtext))
     {
         for (int n = 0; n < IM_ARRAYSIZE(policies); n++)
             if (ImGui::Selectable(policies[n].Name, idx == n))
@@ -5328,7 +5328,7 @@ static void ShowDemoWindowTables()
         static float inner_width_with_scroll = 0.0f; // Auto-extend
         static bool outer_size_enabled = true;
         static bool show_headers = true;
-        static bool show_wrapped_text = false;
+        static bool show_wrappedtext = false;
         //static ImGuiTextFilter filter;
         //ImGui::SetNextItemOpen(true, ImGuiCond_Once); // FIXME-TABLE: Enabling this results in initial clipped first pass on table which tend to affect column sizing
         if (ImGui::TreeNode("Options"))
@@ -5412,7 +5412,7 @@ static void ShowDemoWindowTables()
             if (ImGui::TreeNodeEx("Other:", ImGuiTreeNodeFlags_DefaultOpen))
             {
                 ImGui::Checkbox("show_headers", &show_headers);
-                ImGui::Checkbox("show_wrapped_text", &show_wrapped_text);
+                ImGui::Checkbox("show_wrappedtext", &show_wrappedtext);
 
                 ImGui::DragFloat2("##OuterSize", &outer_size_value.x);
                 ImGui::SameLine(0.0f, ImGui::GetStyle().ItemInnerSpacing.x);
@@ -5577,7 +5577,7 @@ static void ShowDemoWindowTables()
                         ImGui::Text("%d", item->Quantity);
 
                     ImGui::TableSetColumnIndex(4);
-                    if (show_wrapped_text)
+                    if (show_wrappedtext)
                         ImGui::TextWrapped("Lorem ipsum dolor sit amet");
                     else
                         ImGui::Text("Lorem ipsum dolor sit amet");
@@ -6841,8 +6841,8 @@ struct ExampleAppConsole
 
         // Command-line
         bool reclaim_focus = false;
-        ImGuiInputTextFlags input_text_flags = ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_EscapeClearsAll | ImGuiInputTextFlags_CallbackCompletion | ImGuiInputTextFlags_CallbackHistory;
-        if (ImGui::InputText("Input", InputBuf, IM_ARRAYSIZE(InputBuf), input_text_flags, &TextEditCallbackStub, (void*)this))
+        ImGuiInputTextFlags inputtext_flags = ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_EscapeClearsAll | ImGuiInputTextFlags_CallbackCompletion | ImGuiInputTextFlags_CallbackHistory;
+        if (ImGui::InputText("Input", InputBuf, IM_ARRAYSIZE(InputBuf), inputtext_flags, &TextEditCallbackStub, (void*)this))
         {
             char* s = InputBuf;
             Strtrim(s);

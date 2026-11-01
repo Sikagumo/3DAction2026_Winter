@@ -143,7 +143,7 @@ void ResourceManager::Initialize(void)
 
 	// プレイヤーモデル
 	_SetResource(LOAD_TYPE::MODEL, SRC::MODEL_PLAYER, PATH_MODEL + "Player/Player.mv1");
-	_SetResource(LOAD_TYPE::MODEL, SRC::MODEL_PLAYER_SWARD, PATH_MODEL + "Sward/Sward.mv1");
+	_SetResource(LOAD_TYPE::MODEL, SRC::MODEL_PLAYER_SWORD, PATH_MODEL + "Sword/Sword.mv1");
 
 	// ステージモデル
 	_SetResource(LOAD_TYPE::MODEL, SRC::MODEL_STAGE, PATH_MODEL + "Stage/Stage.mv1");
@@ -155,6 +155,7 @@ void ResourceManager::Initialize(void)
 	/* アニメーション */
 	_SetResource(LOAD_TYPE::ANIMATION, SRC::ANIMATION_DAMAGE, PATH_ANIMATION + "Damage.mv1");
 	_SetResource(LOAD_TYPE::ANIMATION, SRC::ANIMATION_DEFEAT, PATH_ANIMATION + "Defeat.mv1");
+	_SetResource(LOAD_TYPE::ANIMATION, SRC::ANIMATION_DRAWING_SWORD, PATH_ANIMATION + "DrawingSword.mv1");
 	_SetResource(LOAD_TYPE::ANIMATION, SRC::ANIMATION_PLAYER_IDLE, PATH_ANIMATION + "Idle.mv1");
 	_SetResource(LOAD_TYPE::ANIMATION, SRC::ANIMATION_PLAYER_WALK, PATH_ANIMATION + "Walk.mv1");
 	_SetResource(LOAD_TYPE::ANIMATION, SRC::ANIMATION_PLAYER_RUN, PATH_ANIMATION + "Run.mv1");

@@ -223,7 +223,7 @@ void Sound::SetVolume(float per)
 	per = std::clamp(per, 0.0f, 1.0f);
 
 	// ‰¹—ÊŠ„‚è“–‚Ä
-	ChangeVolumeSoundMem((per * sound_.maxVolume), sound_.handle);
+	ChangeVolumeSoundMem(static_cast<int>(per * sound_.maxVolume), sound_.handle);
 
 }
 
@@ -232,7 +232,7 @@ void Sound::SetMaxVolume(float per)
 	// •‰‚Ì’l‚ÌA³‚Ì’l‚É•Ï‚¦‚é
 	float volume = ((per < 0.0f) ? -per : per);
 
-	sound_.maxVolume = (SoundManager::GetInstance().GetVolumeMaster() * per);
+	sound_.maxVolume = static_cast<int>(SoundManager::GetInstance().GetVolumeMaster() * per);
 }
 
 

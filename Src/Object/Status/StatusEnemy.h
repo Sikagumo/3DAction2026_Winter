@@ -149,6 +149,7 @@ public:
 			enemyParam_.animationSpeed[static_cast<int>(ANIM_TYPE::DEATH)], 0.0f);
 	}
 
+	void SetEnemyParam(const EnemyParam& param) { enemyParam_ = param; }
 	const EnemyParam& GetEnemyParam(void)const { return enemyParam_; }
 
 
@@ -164,10 +165,7 @@ private:
 	{
 		{ ENEMY_TYPE::BOSS, "BOSS"}
 	};
-
 	EnemyParam enemyParam_;
-
-
 
 	void SetType(const std::string& text);
 };

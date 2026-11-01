@@ -646,7 +646,7 @@ CODE
  - 2018/12/10 (1.67) - renamed io.ConfigResizeWindowsFromEdges to io.ConfigWindowsResizeFromEdges as we are doing a large pass on configuration flags.
  - 2018/10/12 (1.66) - renamed misc/stl/imgui_stl.* to misc/cpp/imgui_stdlib.* in prevision for other C++ helper files.
  - 2018/09/28 (1.66) - renamed SetScrollHere() to SetScrollHereY(). Kept redirection function (will obsolete).
- - 2018/09/06 (1.65) - renamed stb_truetype.h to imstb_truetype.h, stb_textedit.h to imstb_textedit.h, and stb_rect_pack.h to imstb_rectpack.h.
+ - 2018/09/06 (1.65) - renamed stb_truetype.h to imstb_truetype.h, stbtextedit.h to imstbtextedit.h, and stb_rect_pack.h to imstb_rectpack.h.
                        If you were conveniently using the imgui copy of those STB headers in your project you will have to update your include paths.
  - 2018/09/05 (1.65) - renamed io.OptCursorBlink/io.ConfigCursorBlink to io.ConfigInputTextCursorBlink. (#1427)
  - 2018/08/31 (1.64) - added imgui_widgets.cpp file, extracted and moved widgets code out of imgui.cpp into imgui_widgets.cpp. Re-ordered some of the code remaining in imgui.cpp.
@@ -2093,26 +2093,26 @@ IM_MSVC_RUNTIME_CHECKS_OFF
 // Convert UTF-8 to 32-bit character, process single character input.
 // A nearly-branchless UTF-8 decoder, based on work of Christopher Wellons (https://github.com/skeeto/branchless-utf8).
 // We handle UTF-8 decoding error by skipping forward.
-int ImTextCharFromUtf8(unsigned int* out_char, const char* in_text, const char* in_text_end)
+int ImTextCharFromUtf8(unsigned int* out_char, const char* intext, const char* intext_end)
 {
     static const char lengths[32] = { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 3, 3, 4, 0 };
     static const int masks[]  = { 0x00, 0x7f, 0x1f, 0x0f, 0x07 };
     static const uint32_t mins[] = { 0x400000, 0, 0x80, 0x800, 0x10000 };
     static const int shiftc[] = { 0, 18, 12, 6, 0 };
     static const int shifte[] = { 0, 6, 4, 2, 0 };
-    int len = lengths[*(const unsigned char*)in_text >> 3];
+    int len = lengths[*(const unsigned char*)intext >> 3];
     int wanted = len + (len ? 0 : 1);
 
-    if (in_text_end == NULL)
-        in_text_end = in_text + wanted; // Max length, nulls will be taken into account.
+    if (intext_end == NULL)
+        intext_end = intext + wanted; // Max length, nulls will be taken into account.
 
-    // Copy at most 'len' bytes, stop copying at 0 or past in_text_end. Branch predictor does a good job here,
+    // Copy at most 'len' bytes, stop copying at 0 or past intext_end. Branch predictor does a good job here,
     // so it is fast even with excessive branching.
     unsigned char s[4];
-    s[0] = in_text + 0 < in_text_end ? in_text[0] : 0;
-    s[1] = in_text + 1 < in_text_end ? in_text[1] : 0;
-    s[2] = in_text + 2 < in_text_end ? in_text[2] : 0;
-    s[3] = in_text + 3 < in_text_end ? in_text[3] : 0;
+    s[0] = intext + 0 < intext_end ? intext[0] : 0;
+    s[1] = intext + 1 < intext_end ? intext[1] : 0;
+    s[2] = intext + 2 < intext_end ? intext[2] : 0;
+    s[3] = intext + 3 < intext_end ? intext[3] : 0;
 
     // Assume a four-byte character and load four bytes. Unused bits are shifted out.
     *out_char  = (uint32_t)(s[0] & masks[len]) << 18;
@@ -2134,8 +2134,8 @@ int ImTextCharFromUtf8(unsigned int* out_char, const char* in_text, const char* 
 
     if (e)
     {
-        // No bytes are consumed when *in_text == 0 || in_text == in_text_end.
-        // One byte is consumed in case of invalid first byte of in_text.
+        // No bytes are consumed when *intext == 0 || intext == intext_end.
+        // One byte is consumed in case of invalid first byte of intext.
         // All available bytes (at most `len` bytes) are consumed on incomplete/invalid second to last bytes.
         // Invalid or incomplete input may consume less bytes than wanted, therefore every byte has to be inspected in s.
         wanted = ImMin(wanted, !!s[0] + !!s[1] + !!s[2] + !!s[3]);
@@ -2145,29 +2145,29 @@ int ImTextCharFromUtf8(unsigned int* out_char, const char* in_text, const char* 
     return wanted;
 }
 
-int ImTextStrFromUtf8(ImWchar* buf, int buf_size, const char* in_text, const char* in_text_end, const char** in_text_remaining)
+int ImTextStrFromUtf8(ImWchar* buf, int buf_size, const char* intext, const char* intext_end, const char** intext_remaining)
 {
     ImWchar* buf_out = buf;
     ImWchar* buf_end = buf + buf_size;
-    while (buf_out < buf_end - 1 && (!in_text_end || in_text < in_text_end) && *in_text)
+    while (buf_out < buf_end - 1 && (!intext_end || intext < intext_end) && *intext)
     {
         unsigned int c;
-        in_text += ImTextCharFromUtf8(&c, in_text, in_text_end);
+        intext += ImTextCharFromUtf8(&c, intext, intext_end);
         *buf_out++ = (ImWchar)c;
     }
     *buf_out = 0;
-    if (in_text_remaining)
-        *in_text_remaining = in_text;
+    if (intext_remaining)
+        *intext_remaining = intext;
     return (int)(buf_out - buf);
 }
 
-int ImTextCountCharsFromUtf8(const char* in_text, const char* in_text_end)
+int ImTextCountCharsFromUtf8(const char* intext, const char* intext_end)
 {
     int char_count = 0;
-    while ((!in_text_end || in_text < in_text_end) && *in_text)
+    while ((!intext_end || intext < intext_end) && *intext)
     {
         unsigned int c;
-        in_text += ImTextCharFromUtf8(&c, in_text, in_text_end);
+        intext += ImTextCharFromUtf8(&c, intext, intext_end);
         char_count++;
     }
     return char_count;
@@ -2217,10 +2217,10 @@ const char* ImTextCharToUtf8(char out_buf[5], unsigned int c)
 }
 
 // Not optimal but we very rarely use this function.
-int ImTextCountUtf8BytesFromChar(const char* in_text, const char* in_text_end)
+int ImTextCountUtf8BytesFromChar(const char* intext, const char* intext_end)
 {
     unsigned int unused = 0;
-    return ImTextCharFromUtf8(&unused, in_text, in_text_end);
+    return ImTextCharFromUtf8(&unused, intext, intext_end);
 }
 
 static inline int ImTextCountUtf8BytesFromChar(unsigned int c)
@@ -2232,13 +2232,13 @@ static inline int ImTextCountUtf8BytesFromChar(unsigned int c)
     return 3;
 }
 
-int ImTextStrToUtf8(char* out_buf, int out_buf_size, const ImWchar* in_text, const ImWchar* in_text_end)
+int ImTextStrToUtf8(char* out_buf, int out_buf_size, const ImWchar* intext, const ImWchar* intext_end)
 {
     char* buf_p = out_buf;
     const char* buf_end = out_buf + out_buf_size;
-    while (buf_p < buf_end - 1 && (!in_text_end || in_text < in_text_end) && *in_text)
+    while (buf_p < buf_end - 1 && (!intext_end || intext < intext_end) && *intext)
     {
-        unsigned int c = (unsigned int)(*in_text++);
+        unsigned int c = (unsigned int)(*intext++);
         if (c < 0x80)
             *buf_p++ = (char)c;
         else
@@ -2248,12 +2248,12 @@ int ImTextStrToUtf8(char* out_buf, int out_buf_size, const ImWchar* in_text, con
     return (int)(buf_p - out_buf);
 }
 
-int ImTextCountUtf8BytesFromStr(const ImWchar* in_text, const ImWchar* in_text_end)
+int ImTextCountUtf8BytesFromStr(const ImWchar* intext, const ImWchar* intext_end)
 {
     int bytes_count = 0;
-    while ((!in_text_end || in_text < in_text_end) && *in_text)
+    while ((!intext_end || intext < intext_end) && *intext)
     {
-        unsigned int c = (unsigned int)(*in_text++);
+        unsigned int c = (unsigned int)(*intext++);
         if (c < 0x80)
             bytes_count++;
         else
@@ -3266,14 +3266,14 @@ const char* ImGui::FindRenderedTextEnd(const char* text, const char* text_end)
 
 // Internal ImGui functions to render text
 // RenderText***() functions calls ImDrawList::AddText() calls ImBitmapFont::RenderText()
-void ImGui::RenderText(ImVec2 pos, const char* text, const char* text_end, bool hide_text_after_hash)
+void ImGui::RenderText(ImVec2 pos, const char* text, const char* text_end, bool hidetext_after_hash)
 {
     ImGuiContext& g = *GImGui;
     ImGuiWindow* window = g.CurrentWindow;
 
     // Hide anything after a '##' string
     const char* text_display_end;
-    if (hide_text_after_hash)
+    if (hidetext_after_hash)
     {
         text_display_end = FindRenderedTextEnd(text, text_end);
     }
@@ -5141,12 +5141,12 @@ void ImGui::Render()
 
 // Calculate text size. Text can be multi-line. Optionally ignore text after a ## marker.
 // CalcTextSize("") should return ImVec2(0.0f, g.FontSize)
-ImVec2 ImGui::CalcTextSize(const char* text, const char* text_end, bool hide_text_after_double_hash, float wrap_width)
+ImVec2 ImGui::CalcTextSize(const char* text, const char* text_end, bool hidetext_after_double_hash, float wrap_width)
 {
     ImGuiContext& g = *GImGui;
 
     const char* text_display_end;
-    if (hide_text_after_double_hash)
+    if (hidetext_after_double_hash)
         text_display_end = FindRenderedTextEnd(text, text_end);      // Hide anything after a '##' string
     else
         text_display_end = text_end;
@@ -8873,7 +8873,7 @@ void ImGui::UpdateInputEvents(bool trickle_fast_inputs)
     // Only trickle chars<>key when working with InputText()
     // FIXME: InputText() could parse event trail?
     // FIXME: Could specialize chars<>keys trickling rules for control keys (those not typically associated to characters)
-    const bool trickle_interleaved_keys_and_text = (trickle_fast_inputs && g.WantTextInputNextFrame == 1);
+    const bool trickle_interleaved_keys_andtext = (trickle_fast_inputs && g.WantTextInputNextFrame == 1);
 
     bool mouse_moved = false, mouse_wheeled = false, key_changed = false, text_inputted = false;
     int  mouse_button_changed = 0x00;
@@ -8940,11 +8940,11 @@ void ImGui::UpdateInputEvents(bool trickle_fast_inputs)
         else if (e->Type == ImGuiInputEventType_Text)
         {
             // Trickling Rule: Stop processing queued events if keys/mouse have been interacted with
-            if (trickle_fast_inputs && ((key_changed && trickle_interleaved_keys_and_text) || mouse_button_changed != 0 || mouse_moved || mouse_wheeled))
+            if (trickle_fast_inputs && ((key_changed && trickle_interleaved_keys_andtext) || mouse_button_changed != 0 || mouse_moved || mouse_wheeled))
                 break;
             unsigned int c = e->Text.Char;
             io.InputQueueCharacters.push_back(c <= IM_UNICODE_CODEPOINT_MAX ? (ImWchar)c : IM_UNICODE_CODEPOINT_INVALID);
-            if (trickle_interleaved_keys_and_text)
+            if (trickle_interleaved_keys_andtext)
                 text_inputted = true;
         }
         else if (e->Type == ImGuiInputEventType_Focus)

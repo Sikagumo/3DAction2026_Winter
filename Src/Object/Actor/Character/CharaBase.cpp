@@ -36,7 +36,7 @@ CharaBase::CharaBase(void)
 	, prevPos_(UtilityMath::VECTOR_ZERO)
 	, moveDir_(UtilityMath::VECTOR_ZERO)
 	, movePow_(UtilityMath::VECTOR_ZERO)
-	, sward_(Transform())
+	, sword_(Transform())
 {
 }
 
@@ -105,7 +105,7 @@ void CharaBase::Update(void)
 	animation_->Update();
 
 	// Œ•XVˆ—
-	UpdateSwardParam();
+	UpdateSwordParam();
 }
 
 void CharaBase::Release(void)

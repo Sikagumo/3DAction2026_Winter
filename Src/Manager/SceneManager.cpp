@@ -33,6 +33,7 @@ SceneManager::SceneManager(void)
 	: sceneId_(SCENE_ID::NONE)
 	, waitSceneId_(SCENE_ID::NONE)
 	, deltaTime_(1.0f / 60.0f)
+	, scenes_{}
 {
 }
 
@@ -109,7 +110,7 @@ void SceneManager::Init3D(void)
 
 void SceneManager::Update(void)
 {
-	if (scene_ == nullptr) { return; }
+	if (scenes_.empty()) { return; }
 
 	const bool IS_PRE_HIT_STOP = performance_->IsHitStop();
 
@@ -141,7 +142,8 @@ void SceneManager::Update(void)
 		}
 		else
 		{
-			scene_->Update();
+			// シーン更新
+			scenes_.back()->Update();
 		}
 
 		// カメラ更新
@@ -170,8 +172,11 @@ void SceneManager::Draw(void)
 	// Effekseerにより再生中のエフェクトを更新する。
 	UpdateEffekseer3D();
 
-	// 描画
-	scene_->Draw();
+	// 乗っているシーンを全て描画
+	for (auto& scene : scenes_)
+	{
+		scene->Draw();
+	}
 
 	// 主にポストエフェクト用
 	camera_->Draw();
@@ -212,6 +217,25 @@ float SceneManager::GetDeltaTime(void) const
 	return deltaTime_;
 }
 
+void SceneManager::PushScene(std::unique_ptr<SceneBase> scene)
+{
+	scenes_.push_back(std::move(scene));
+}
+
+void SceneManager::PopScene(void)
+{
+	if (scenes_.size() > 1)
+	{
+		scenes_.pop_back();
+	}
+}
+
+void SceneManager::ResetScene(std::unique_ptr<SceneBase> scene)
+{
+	scenes_.clear();
+	scenes_.push_back(std::move(scene));
+}
+
 void SceneManager::ResetDeltaTime(void)
 {
 	deltaTime_ = 0.016f;
@@ -223,32 +247,42 @@ void SceneManager::DoChangeScene(SCENE_ID sceneId)
 	// シーンを変更する
 	sceneId_ = sceneId;
 
-	// 現在のシーンを解放
-	if (scene_ != nullptr)
-	{
-		scene_.reset();
-	}
-
 	switch (sceneId_)
 	{
 		case SCENE_ID::TITLE:
 		{
-			scene_ = std::make_unique<TitleScene>();
+			ChangeScene(std::make_unique<TitleScene>());
+			InputManager::GetInstance().SetCursorMode(Input::CURSOR_MODE::NONE);
 		}
 		break;
 
 		case SCENE_ID::GAME:
 		{
-			scene_ = std::make_unique<GameScene>();
+			ChangeScene(std::make_unique<GameScene>());
+			InputManager::GetInstance().SetCursorMode(Input::CURSOR_MODE::CONFINED_SIDE);
 		}
 		break;
 	}
 
-	scene_->Initialize();
-
 	ResetDeltaTime();
 
 	waitSceneId_ = SCENE_ID::NONE;
+}
+
+void SceneManager::ChangeScene(std::unique_ptr<SceneBase> scene)
+{
+	scene->Initialize();
+	
+	if (scenes_.empty())
+	{
+		// 新規シーンの格納
+		scenes_.push_back(std::move(scene));
+	}
+	else
+	{
+		// 割り当て済みのシーンを破棄
+		scenes_.back() = std::move(scene);
+	}
 }
 
 void SceneManager::FadeScreen(void)

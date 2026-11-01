@@ -194,7 +194,19 @@ void Boss::UpdateProcess(void)
 	}
 	else
 	{
-		LookPlayerPos();
+		if (GetActionType() != ACTION_TYPE::ATTACK_HEAVY
+			&& GetActionType() != ACTION_TYPE::ATTACK_LIGHT)
+		{
+			LookPlayerPos();
+
+			actionTime_ -= SceneManager::GetInstance().GetDeltaTime();
+
+			if (actionTime_ <= 0.0f)
+			{
+				PlayAnimation(ANIMATION_TYPE::ATTACK_HEAVY, false);
+				actionController_->Active(static_cast<int>(ACTION_TYPE::ATTACK_HEAVY));
+			}
+		}
 
 		if (animation_->IsEnd())
 		{
@@ -307,6 +319,17 @@ void Boss::PlayAnimation(Boss::ANIMATION_TYPE _type, bool isLoop)
 	if (type == animation_->GetPlayType() && !animation_->IsEnd()) { return; }
 
 	animation_->Play(type, isLoop);
+}
+
+Boss::ACTION_TYPE Boss::GetActionType(void)
+{
+	int actionNum = actionController_->GetCurActionNum();
+	if (actionNum < 0 || actionNum >= static_cast<int>(ACTION_TYPE::MAX))
+	{
+		return ACTION_TYPE::NONE;
+	}
+
+	return static_cast<ACTION_TYPE>(actionNum);
 }
 
 void Boss::LookPlayerPos(void)

@@ -80,6 +80,9 @@ public:
 	
 	const std::unordered_map<ACTION_TYPE, ActionParam>& GetBossAction(void) { return action_; }
 
+	/// @brief 行動パラメータ割り当て
+	void SetActionParam(ACTION_TYPE type, const ActionParam& param) { action_[type] = param; }
+
 
 private:
 

@@ -117,7 +117,7 @@ bool SoundManager::Play(SRC _src, bool isLoop, bool isPitch, float _pitchRange, 
 
 	// 2Dサウンド再生処理
 	Sound::TIMES times = ((isLoop) ? Sound::TIMES::LOOP : Sound::TIMES::ONCE);
-	return findSound->second.Play(times, isPitch, _pitchRange,isForce);
+	return findSound->second.Play(times, isPitch, static_cast<int>(_pitchRange * 255.0f),isForce);
 }
 bool SoundManager::Play(SRC _src, bool isLoop, VECTOR _pos, float _radius)
 {
@@ -274,7 +274,7 @@ void SoundManager::SetVolumeMaster(float volume)
 	// 音量が最大値を超えた時、音量を最大値にする
 	vol = ((volume > VOLUME_MASTER_MAX) ? VOLUME_MASTER_MAX : vol);
 
-	vol = static_cast<int>(volume * VOLUME_MASTER_MAX);
+	vol = (volume * VOLUME_MASTER_MAX);
 
 	// 音量割り当て
 	volumeMaster_ = vol;

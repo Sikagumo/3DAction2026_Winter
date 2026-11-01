@@ -49,6 +49,8 @@ public:
 
 		DEBUG_SCENE_CHANGE, // デバッグシーン遷移
 		DEBUG_MODE,
+		DEBUG_CLICK_LEFT,
+		DEBUG_CLICK_RIGHT,
 
 		PAUSE, // ポーズ(開閉)
 

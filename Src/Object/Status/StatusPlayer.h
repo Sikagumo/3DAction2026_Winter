@@ -15,7 +15,7 @@ public:
 	{
 		HANDLE_PATH,  // モデルのハンドルパス
 		SCALE_MODEL,  // モデルのスケール
-		SCALE_SWARD,  // 剣モデルのスケール
+		SCALE_SWORD,  // 剣モデルのスケール
 		RADIUS,          // 半径
 		HP_MAX,          // 最大HP
 		STAMINA_MAX,     // 最大スタミナ
@@ -38,11 +38,13 @@ public:
 
 	enum class ACTION_TYPE
 	{
-		NONE = -1,    // 未割当
-		ATTACK_LIGHT, // 弱攻撃
-		ATTACK_HEAVY, // 強攻撃
-		DEFENSE,      // 防御
-		DODGE,        // 回避
+		NONE = -1, // 未割当
+
+		DRAWING_SWARD, // 抜刀
+		ATTACK_LIGHT,  // 弱攻撃
+		ATTACK_HEAVY,  // 強攻撃
+		DEFENSE,       // 防御
+		DODGE,         // 回避
 
 		MAX,
 	};
@@ -67,7 +69,7 @@ public:
 		std::string handlePath = "";
 
 		float scale = 0.0f;
-		float scaleSward = 0.0f;
+		float scaleSword = 0.0f;
 
 		float radius = 0.0f;
 
@@ -91,7 +93,7 @@ public:
 		// ダッシュ速度
 		float speedDash = 0.0f;
 
-		float dashSpeedMult = 0.0f;
+		float dashSpeedMultiple = 0.0f;
 
 		float timeEvasion = 0.0f;
 
@@ -128,7 +130,7 @@ public:
 		playerParam_.handlePath = _loadString[static_cast<int>(PARAM::HANDLE_PATH)];
 
 		UtilityCommon::ChangeString(_loadString[static_cast<int>(PARAM::SCALE_MODEL)], playerParam_.scale, 0.0f);
-		UtilityCommon::ChangeString(_loadString[static_cast<int>(PARAM::SCALE_SWARD)], playerParam_.scaleSward, 0.0f);
+		UtilityCommon::ChangeString(_loadString[static_cast<int>(PARAM::SCALE_SWORD)], playerParam_.scaleSword, 0.0f);
 		UtilityCommon::ChangeString(_loadString[static_cast<int>(PARAM::RADIUS)], playerParam_.radius, 0.0f);
 		UtilityCommon::ChangeString(_loadString[static_cast<int>(PARAM::HP_MAX)], playerParam_.hp, 0);
 		UtilityCommon::ChangeString(_loadString[static_cast<int>(PARAM::STAMINA_MAX)], playerParam_.stamina, 0);
@@ -138,7 +140,7 @@ public:
 		UtilityCommon::ChangeString(_loadString[static_cast<int>(PARAM::SPEED_ACC_TIME)], playerParam_.speedAccTime, 0.0f);
 		UtilityCommon::ChangeString(_loadString[static_cast<int>(PARAM::SPEED_WALK)], playerParam_.speedWalk, 0.0f);
 		UtilityCommon::ChangeString(_loadString[static_cast<int>(PARAM::SPEED_DASH)], playerParam_.speedDash, 0.0f);
-		UtilityCommon::ChangeString(_loadString[static_cast<int>(PARAM::DASH_SPEED_MULT)], playerParam_.dashSpeedMult, 1.0f);
+		UtilityCommon::ChangeString(_loadString[static_cast<int>(PARAM::DASH_SPEED_MULT)], playerParam_.dashSpeedMultiple , 1.0f);
 		UtilityCommon::ChangeString(_loadString[static_cast<int>(PARAM::TIME_INVINCIBLE)], playerParam_.timeInv, 0.0f);
 		UtilityCommon::ChangeString(_loadString[static_cast<int>(PARAM::TIME_EVASION)], playerParam_.timeEvasion, 0.0f);
 
@@ -162,10 +164,19 @@ public:
 		action_.emplace(type, action);
 	}
 
+	/// @brief プレイヤーパラメータ割り当て
+	void SetPlayerParam(const PlayerParam& param) { playerParam_ = param; }
+
+	/// @brief アニメーション速度割り当て
+	void SetAnimationSpeed(float idle, float walk, float run);
+
+	/// @brief 行動パラメータ割り当て
+	void SetActionParam(ACTION_TYPE type, const ActionParam& param) { action_[type] = param; }
+
 	/// @brief プレイヤーパラメータ取得
 	const PlayerParam& GetPlayerParam(void) { return playerParam_; }
 
-	const std::unordered_map<ACTION_TYPE, ActionParam>& GetBossAction(void) { return action_; }
+	const std::unordered_map<ACTION_TYPE, ActionParam>& GetPlayerAction(void) { return action_; }
 
 	/// @brief アニメーション速度
 	float GetAnimationSpeedIdle(void)const { return animationSpeedIdle_; }

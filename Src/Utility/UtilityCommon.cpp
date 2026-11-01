@@ -6,7 +6,7 @@
 #include "./UtilityMath.h"
 
 
-void UtilityCommon::ChangeString(const std::string& _text, int& target, int minNum)
+void UtilityCommon::ChangeString(const std::string& text, int& target, int minNum)
 {
     /* 文字列→int */
 
@@ -16,13 +16,13 @@ void UtilityCommon::ChangeString(const std::string& _text, int& target, int minN
     const char& minus = *"-";
 
     // 文字が空白のとき、最小値にする
-    if (_text == "" || _text == " ")
+    if (text == "" || text == " ")
     {
         target = minNum;
         return;
     }
 
-    for (char t : _text)
+    for (char t : text)
     {
         // 数字・マイナスではない文字列の時、終了
         if (!std::isdigit(static_cast<unsigned char>(t)) &&

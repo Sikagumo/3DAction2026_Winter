@@ -38,7 +38,7 @@ public:
 		/* モデル */
 		MODEL_SKYDOME, // スカイドーム
 		MODEL_PLAYER,  // プレイヤー
-		MODEL_PLAYER_SWARD,  // プレイヤー剣
+		MODEL_PLAYER_SWORD,  // プレイヤー剣
 		MODEL_BOSS,    // ボス
 		MODEL_ENEMY,   // 雑魚敵
 
@@ -50,6 +50,7 @@ public:
 		// プレイヤーアニメーション
 		ANIMATION_DAMAGE,        // 被ダメージアニメーション
 		ANIMATION_DEFEAT,        // 撃破アニメーション
+		ANIMATION_DRAWING_SWORD, // 抜刀アニメーション
 
 		ANIMATION_PLAYER_IDLE,        // 待機アニメーション
 		ANIMATION_PLAYER_WALK,        // 歩行アニメーション

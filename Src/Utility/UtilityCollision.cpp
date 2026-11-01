@@ -158,10 +158,10 @@ bool UtilityCollision::IsHitCapsuleToCapsule(const ColliderCapsule& capsule1, co
 		, capsule2.GetLocalPosTop(), capsule2.GetLocalPosDown(), capsule2.GetRadius());
 }
 
-void UtilityCollision::CollisionsReflectXZ(VECTOR& _targetPos1, float _targetRad1, VECTOR& _targetPos2, float _targetRad2)
+void UtilityCollision::CollisionsReflectXZ(VECTOR& targetPos1, float targetRad1, VECTOR& targetPos2, float targetRad2)
 {
-	VECTOR target1XZ = { _targetPos1.x, 0.0f, _targetPos1.z };
-	VECTOR target2XZ = { _targetPos2.x, 0.0f, _targetPos2.z };;
+	VECTOR target1XZ = { targetPos1.x, 0.0f, targetPos1.z };
+	VECTOR target2XZ = { targetPos2.x, 0.0f, targetPos2.z };;
 	// 反発方向
 	VECTOR target1RefDir = VNorm(VSub(target2XZ, target1XZ));
 	VECTOR target2RefDir = VNorm(VSub(target1XZ, target2XZ));
@@ -169,22 +169,22 @@ void UtilityCollision::CollisionsReflectXZ(VECTOR& _targetPos1, float _targetRad
 	// オブジェクト間の距離
 	float size = VSize(VSub(target1XZ, target2XZ));
 
-	float offset = ((_targetRad1 + _targetRad2) - abs(size));
+	float offset = ((targetRad1 + targetRad2) - abs(size));
 
 	// 両者を均等に反発させる
 	target1XZ = VAdd(target1XZ, VScale(target1RefDir, (offset / 2)));
 	target2XZ = VAdd(target2XZ, VScale(target2RefDir, (offset / 2)));
 
 	// 位置を反映
-	_targetPos1 = { target1XZ.x, _targetPos1.y, target1XZ.z };
-	_targetPos2 = { target2XZ.x, _targetPos2.y, target2XZ.z };
+	targetPos1 = { target1XZ.x, targetPos1.y, target1XZ.z };
+	targetPos2 = { target2XZ.x, targetPos2.y, target2XZ.z };
 }
-const VECTOR& UtilityCollision::CollisionReflectXZ(float _targetPosY, const VECTOR& _fromPos, float _fromRad, const VECTOR& _toPos, float _toRad)
+const VECTOR& UtilityCollision::CollisionReflectXZ(float targetPosY, const VECTOR& fromPos, float fromRad, const VECTOR& _toPos, float _toRad)
 {
 	VECTOR ret = UtilityMath::VECTOR_ZERO;
 
 	// オブジェクト間の距離
-	VECTOR diff = VSub(_fromPos, _toPos);
+	VECTOR diff = VSub(fromPos, _toPos);
 	diff.y = 0.0f;
 
 	// 反発方向
@@ -193,7 +193,7 @@ const VECTOR& UtilityCollision::CollisionReflectXZ(float _targetPosY, const VECT
 	float size = VSize(diff);
 	/*
 	// 反発する値(オブジェクト同士の半径-距離)
-	float offset = ((_fromRad + _toRad) - size)	;
+	float offset = ((fromRad + _toRad) - size)	;
 
 	if (offset > 0.0f)
 	{
@@ -205,7 +205,7 @@ const VECTOR& UtilityCollision::CollisionReflectXZ(float _targetPosY, const VECT
 
 	// 反発後の位置を割り当て
 	ret = VAdd(refDir, ret);
-	ret.y = _targetPosY;
+	ret.y = targetPosY;
 
 	return ret;
 }

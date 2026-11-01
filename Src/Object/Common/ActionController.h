@@ -11,11 +11,12 @@ class ActionController
 {
 public:
 
+	/// @brief 行動状態
 	enum class ACTION_STATE
 	{
-		NONE = -1,
-		ACTION,
-		END,
+		NONE = -1, // 無効状態
+		ACTION,    // 行動中
+		END,       // 終了状態
 	};
 
 	/// @brief 行動パラメータ(秒)
@@ -69,6 +70,9 @@ public:
 	/// @brief コマンド実行が済んでいるか否か
 	bool IsEndActionActive(void) const { return (curTimeActionActive_ <= 0.0f); }
 
+	/// @brief 行動が終了しているか否か
+	bool IsActionEnd(void)const { return (actionState_ != ACTION_STATE::ACTION && IsEndActionActive()); }
+
 	ACTION_STATE GetActionState(void) const { return actionState_; }
 
 private:
@@ -83,14 +87,26 @@ private:
 
 	std::unique_ptr<AnimationController>& animation_;
 
+	// 現在の行動状態
 	ACTION_STATE actionState_;
 
 	int curActionNum_ = -1;
+
+	// 有効時間
 	float curTimeAction_ = 0.0f;
+
+	// 行動までの時間
 	float curTimeActionActive_ = 0.0f;
+
+	// 次の入力までの有効時間
 	float curTimeInput_ = 0.0f;
+
+	// 停止までの時間
 	float curTimeStopActive_ = 0.0f;
 
+	/// @brief 行動中状態の更新
 	void Update_Action(void);
+
+	/// @brief 終了中状態の更新
 	void Update_End(void);
 };

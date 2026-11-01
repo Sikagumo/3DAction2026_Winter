@@ -57,11 +57,16 @@ private:
 	// çsìÆÇÃéÌóﬁ
 	using ACTION_TYPE = StatusBoss::ACTION_TYPE;
 
+	static constexpr float TIME_ACTION_INTERVAL = 5.0f;
+
 	const std::unique_ptr<Player>& player_;
 	const StatusEnemy::EnemyParam& status_;
 	const std::unordered_map<StatusBoss::ACTION_TYPE, StatusBoss::ActionParam>& actionStatus_;
 
 	int curActionNum_ = -1;
+
+	// çsìÆéûä‘
+	float actionTime_ = 0.0f;
 
 	// ëÄçÏ
 	void ProcessMove(void);
@@ -73,4 +78,6 @@ private:
 	void LookPlayerPos(void);
 
 	void PlayAnimation(ANIMATION_TYPE type, bool isLoop = true);
+
+	ACTION_TYPE GetActionType(void);
 };

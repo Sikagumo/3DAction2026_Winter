@@ -2,11 +2,12 @@
 #include <DxLib.h>
 #include <EffekseerForDXLib.h>
 #include <string>
-#include "Manager/StatusManager.h"
-#include "Manager/InputManager.h"
-#include "Manager/ResourceManager.h"
-#include "Manager/SceneManager.h"
-#include "Common/FrameRate.h"
+#include "./Manager/StatusManager.h"
+#include "./Manager/InputManager.h"
+#include "./Manager/ResourceManager.h"
+#include "./Manager/SceneManager.h"
+#include "./Common/FrameRate.h"
+#include "./Common/ImGuiWrapper.h"
 #include "./resource.h"
 
 namespace
@@ -65,6 +66,8 @@ void Application::Initialize(void)
 
 	InputManager::CreateInstance();
 
+	ImGuiWrapper::CreateInstance();
+
 	// 管理マネージャ初期化
 	StatusManager::CreateInstance();
 	ResourceManager::CreateInstance();
@@ -92,7 +95,12 @@ void Application::Run(void)
 			InputManager::GetInstance().Update();
 			SceneManager::GetInstance().Update();
 
+			ImGuiWrapper::GetInstance().Update();
+
 			SceneManager::GetInstance().Draw();
+
+			// ImGUI描画
+			ImGuiWrapper::GetInstance().Draw();
 
 #ifdef _DEBUG
 			if (SceneManager::GetInstance().GetIsDebugMode())
@@ -102,12 +110,17 @@ void Application::Run(void)
 				DrawString(SCREEN_HALF_X, 0, "デバッグモード有効化中", 0xff0000);
 
 				// データ再ロード
-				if (CheckHitKey(KEY_INPUT_DELETE) &&
-					SceneManager::GetInstance().GetIsDebugMode() &&
-					SceneManager::GetInstance().GetSceneID() == SceneManager::SCENE_ID::TITLE)
+				if (CheckHitKey(KEY_INPUT_DELETE)
+					&& SceneManager::GetInstance().GetSceneID() == SceneManager::SCENE_ID::TITLE)
 				{
 					StatusManager::GetInstance().Load();
 					OutputDebugString("\nリソースデータを再ロードしました。(・ω・)b ｸﾞｯ!\n");
+				}
+
+				if (CheckHitKey(KEY_INPUT_F1))
+				{
+					StatusManager::GetInstance().SaveStatusDat();
+					OutputDebugString("\nバイナリファイルにデータを書き出しました(・ω・)b ｸﾞｯ!\n");
 				}
 			}
 #endif
@@ -120,10 +133,11 @@ void Application::Run(void)
 void Application::DestroyInstance(void)
 {
 	// 管理マネージャのメモリ解放
-	InputManager::GetInstance().DestroyInstance();
 	StatusManager::GetInstance().DestroyInstance();
-	ResourceManager::GetInstance().DestroyInstance();
 	SceneManager::GetInstance().DestroyInstance();
+	ResourceManager::GetInstance().DestroyInstance();
+	ImGuiWrapper::GetInstance().DestroyInstance();
+	InputManager::GetInstance().DestroyInstance();
 
 	// Effekseerを終了
 	Effkseer_End();

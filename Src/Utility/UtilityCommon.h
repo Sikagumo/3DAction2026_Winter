@@ -8,26 +8,26 @@ class UtilityCommon
 public:
 
 	/// @brief 文字列→int型変換																							
-	/// @param _text 対象のテキスト
-	/// @param _target 数値割り当て先
+	/// @param text 対象のテキスト
+	/// @param target 数値割り当て先
 	/// @param minNum 最小値
-	static void ChangeString(const std::string& _text, int& _target, int minNum);
+	static void ChangeString(const std::string& text, int& target, int minNum);
 
 	/// @brief 文字列→int型変換
-	/// @param _text 対象のテキスト
-	/// @param _target 数値割り当て先
-	static void ChangeString(const std::string& _text, int& _target);
+	/// @param text 対象のテキスト
+	/// @param target 数値割り当て先
+	static void ChangeString(const std::string& text, int& target);
 
 	/// @brief 文字列→float型変換
-	/// @param _text 対象のテキスト
-	/// @param _target 数値割り当て先
+	/// @param text 対象のテキスト
+	/// @param target 数値割り当て先
 	/// @param minNum 最小値
-	static void ChangeString(const std::string& _text, float& _target, float minNum);
+	static void ChangeString(const std::string& text, float& target, float minNum);
 
 	/// @brief 文字列→float型変換
-	/// @param _text 対象のテキスト
-	/// @param _target 数値割り当て先
-	static void ChangeString(const std::string& _text, float& _target);
+	/// @param text 対象のテキスト
+	/// @param target 数値割り当て先
+	static void ChangeString(const std::string& text, float& target);
 
 
 	/// @brief 対象が最大値/最小値を超えたときに値を変える

@@ -69,19 +69,19 @@ public:
 	static bool IsHitCapsuleToCapsule(const ColliderCapsule& capsule1, const ColliderCapsule& capsule2);
 
 	/// @brief ‰¡”½”­ˆ—(—¼Ò‚ğ”½”­)
-	/// @param _targetPos1 ‘ÎÛ‚P‚ÌˆÊ’u
-	/// @param _targetRad1 ‘ÎÛ‚P‚Ì”¼Œa
-	/// @param _targetPos2 ‘ÎÛ‚Q‚ÌˆÊ’u
-	/// @param _targetRad2 ‘ÎÛ‚Q‚Ì”¼Œa
-	static void CollisionsReflectXZ(VECTOR& _targetPos1, float _targetRad1, VECTOR& _targetPos2, float _targetRad2);
+	/// @param targetPos1 ‘ÎÛ‚P‚ÌˆÊ’u
+	/// @param targetRad1 ‘ÎÛ‚P‚Ì”¼Œa
+	/// @param targetPos2 ‘ÎÛ‚Q‚ÌˆÊ’u
+	/// @param targetRad2 ‘ÎÛ‚Q‚Ì”¼Œa
+	static void CollisionsReflectXZ(VECTOR& targetPos1, float targetRad1, VECTOR& targetPos2, float targetRad2);
 
 	/// @brief ‰¡”½”­ˆ—(”½”­‘ÎÛ‚Ì‚İ”½”­)
-	/// @param _targetPos ‘ÎÛ‚ÌˆÊ’u
-	/// @param _fromRad ”½”­‘ÎÛ‚Ì”¼Œa
+	/// @param targetPos ‘ÎÛ‚ÌˆÊ’u
+	/// @param fromRad ”½”­‘ÎÛ‚Ì”¼Œa
 	/// @param _toPos ”½”­‚µ‚È‚¢‘ÎÛ‚ÌˆÊ’u
 	/// @param _toRad ”½”­‚µ‚È‚¢‚Ì”¼Œa
 	/// @returns ”½”­ƒxƒNƒgƒ‹
-	static const VECTOR& CollisionReflectXZ(float _targetPosY, const VECTOR& _fromPos, float _fromRad, const VECTOR& _toPos, float _toRad);
+	static const VECTOR& CollisionReflectXZ(float targetPosY, const VECTOR& fromPos, float fromRad, const VECTOR& _toPos, float _toRad);
 
 
 private:

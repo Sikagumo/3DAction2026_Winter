@@ -31,7 +31,7 @@ public:
 
 	virtual void SetDamage(int damageHp, int damageStamina) = 0;
 
-	int GetAttackPower(void) { return curAttackPower_; };
+	int GetAttackPower(void)const { return curAttackPower_; };
 
 	int GetHp(void)const { return hp_; };
 
@@ -55,7 +55,7 @@ protected:
 
 	std::unique_ptr<ActionController> actionController_ = nullptr;
 
-	Transform sward_;
+	Transform sword_;
 
 	// s“®ˆ—
 	std::map<int, std::function<void(void)>> functionActionMap_;
@@ -118,7 +118,7 @@ protected:
 	// ‰e•`‰æ
 	void DrawShadowRound(void);
 
-	virtual void UpdateSwardParam(void) {};
+	virtual void UpdateSwordParam(void) {};
 
 	/// @brief UŒ‚”ÍˆÍŠ„‚è“–‚Ä
 	/// @param _radius ”ÍˆÍ

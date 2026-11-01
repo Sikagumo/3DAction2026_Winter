@@ -109,14 +109,14 @@
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>$(DXLIB_DIR)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>./Lib/Dxlib/;$(DXLIB_DIR)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(DXLIB_DIR)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>./Lib/DxLib/;$(DXLIB_DIR)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -128,21 +128,30 @@
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>$(DXLIB_DIR)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>./Lib/Dxlib/;$(DXLIB_DIR)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(DXLIB_DIR)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>./Lib/DxLib/;$(DXLIB_DIR)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Lib\ImGUI\backends\imgui_impl_dx11.h" />
+    <ClInclude Include="Lib\ImGUI\backends\imgui_impl_win32.h" />
+    <ClInclude Include="Lib\ImGUI\imconfig.h" />
+    <ClInclude Include="Lib\ImGUI\imgui.h" />
+    <ClInclude Include="Lib\ImGUI\imgui_internal.h" />
+    <ClInclude Include="Lib\ImGUI\imstb_rectpack.h" />
+    <ClInclude Include="Lib\ImGUI\imstb_textedit.h" />
+    <ClInclude Include="Lib\ImGUI\imstb_truetype.h" />
     <ClInclude Include="Src\Application.h" />
     <ClInclude Include="Src\Camera\Camera.h" />
     <ClInclude Include="Src\Common\Fader.h" />
     <ClInclude Include="Src\Common\FrameRate.h" />
+    <ClInclude Include="Src\Common\ImGuiWrapper.h" />
     <ClInclude Include="Src\Common\Performance.h" />
     <ClInclude Include="Src\Common\Quaternion.h" />
     <ClInclude Include="Src\Common\Vector2.h" />
@@ -170,6 +179,7 @@
     <ClInclude Include="Src\Object\Common\AnimationController.h" />
     <ClInclude Include="Src\Object\Common\Transform.h" />
     <ClInclude Include="Src\Object\Actor\SkyDome.h" />
+    <ClInclude Include="Src\Object\Status\BinaryRender.h" />
     <ClInclude Include="Src\Object\Status\StatusEnemy.h" />
     <ClInclude Include="Src\Object\Status\StatusBoss.h" />
     <ClInclude Include="Src\Object\Status\StatusPlayer.h" />
@@ -178,15 +188,24 @@
     <ClInclude Include="Src\Scene\SceneBase.h" />
     <ClInclude Include="Src\Scene\TitleScene.h" />
     <ClInclude Include="Src\Utility\MatrixUtility.h" />
+    <ClInclude Include="Src\Utility\ModelFrameUtility.h" />
     <ClInclude Include="Src\Utility\UtilityCollision.h" />
     <ClInclude Include="Src\Utility\UtilityCommon.h" />
     <ClInclude Include="Src\Utility\UtilityMath.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Lib\ImGUI\backends\imgui_impl_dx11.cpp" />
+    <ClCompile Include="Lib\ImGUI\backends\imgui_impl_win32.cpp" />
+    <ClCompile Include="Lib\ImGUI\imgui.cpp" />
+    <ClCompile Include="Lib\ImGUI\imgui_demo.cpp" />
+    <ClCompile Include="Lib\ImGUI\imgui_draw.cpp" />
+    <ClCompile Include="Lib\ImGUI\imgui_tables.cpp" />
+    <ClCompile Include="Lib\ImGUI\imgui_widgets.cpp" />
     <ClCompile Include="Src\Application.cpp" />
     <ClCompile Include="Src\Camera\Camera.cpp" />
     <ClCompile Include="Src\Common\Fader.cpp" />
     <ClCompile Include="Src\Common\FrameRate.cpp" />
+    <ClCompile Include="Src\Common\ImGuiWrapper.cpp" />
     <ClCompile Include="Src\Common\Performance.cpp" />
     <ClCompile Include="Src\Common\Quaternion.cpp" />
     <ClCompile Include="Src\Common\Vector2.cpp" />
@@ -220,6 +239,7 @@
     <ClCompile Include="Src\Scene\SceneBase.cpp" />
     <ClCompile Include="Src\Scene\TitleScene.cpp" />
     <ClCompile Include="Src\Utility\MatrixUtility.cpp" />
+    <ClCompile Include="Src\Utility\ModelFrameUtility.cpp" />
     <ClCompile Include="Src\Utility\UtilityCollision.cpp" />
     <ClCompile Include="Src\Utility\UtilityCommon.cpp" />
     <ClCompile Include="Src\Utility\UtilityMath.cpp" />

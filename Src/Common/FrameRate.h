@@ -10,13 +10,11 @@ public:
 	/// @brief デフォルトデストラクタ
 	~FrameRate(void) = default;
 
-
 	/// @brief 更新処理
 	void Update(void);
 
 	/// @brief 描画処理
 	void Draw(void);
-
 
 	/// @brief フレームレート割り当て
 	void SetFrameRate(void);
@@ -42,17 +40,17 @@ private:
 
 
 	// 現在の時間
-	int curTime_;
+	int curTime_ = 0;
 
 	// 前フレーム実行時間
-	int lateTime_;
+	int lateTime_ = 0;
 
 	// フレームカウンタ
-	int frameCnt_;
+	int frameCnt_ = 0;
 
 	// フレーム更新時間
-	int updateTime_;
+	int updateTime_ = 0;
 
 	// フレームレート(描画用)
-	float viewFramelate_;
+	float viewFrameRate_ = 0.0f;
 };

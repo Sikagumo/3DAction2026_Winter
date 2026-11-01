@@ -12,6 +12,9 @@ class Camera : public ActorBase
 
 public:
 
+	// ロックオン切替イージング終了時間
+	static constexpr float LOCKON_DURATION = 0.2f;
+
 	// カメラのクリップ範囲
 	static constexpr float VIEW_NEAR = 10.0f;
 	static constexpr float VIEW_FAR = 20000.0f;
@@ -32,9 +35,11 @@ public:
 	enum class MODE
 	{
 		NONE = -1,   // 無効状態
+
 		FIXED_POINT, // 定点カメラ
 		FREE,        // フリー移動カメラ
 		FOLLOW,      // プレイヤー追従
+		TRACKING,    // トラッキング用カメラ
 	};
 
 	// 衝突判定種別
@@ -44,23 +49,13 @@ public:
 		MAX,
 	};
 
-	/// @brief ロックオン対象
-	enum class LOCKON_TARGET
+	/// @brief ロックオン対象の情報(対象は常に1つだけ)
+	struct TargetParam
 	{
-		NONE = -1,
-
-		BOSS_BODY,          // ボス胴体
-		BOSS_MACHINE_GUN_L, // マシンガン左
-		BOSS_MACHINE_GUN_R, // マシンガン右
-		BOSS_CANNON_L,      // 大砲左
-		BOSS_CANNON_R,      // 大砲右
-		BOSS_MISSILE_POD_L, // ボスミサイルポッド左
-		BOSS_MISSILE_POD_R, // ボスミサイルポッド右
-		BOSS_RAIL_GUN,      // ボスレールガン
-
-		MAX,
+		VECTOR pos = { 0.0f, 0.0f, 0.0f };
+		int hp = 0;
+		int maxHp = 0;
 	};
-
 
 	Camera(void);
 	~Camera(void)override = default;
@@ -89,8 +84,8 @@ public:
 	VECTOR GetForward(void) const;
 
 	/// @brief カメラモードの変更
-	/// @param _mode 遷移後のモード
-	void ChangeMode(MODE _mode);
+	/// @param mode 遷移後のモード
+	void ChangeMode(MODE mode);
 
 	/// @brief 追従対象の設定
 	/// @param _follow 追従対象
@@ -99,20 +94,15 @@ public:
 	/// @brief クォータニオン角度の割り当て
 	void SetQuaternionRot(Quaternion _rot) { transform_.quaRot = _rot; }
 
-	/// @brief 追従対象割り当て
-	/// @param _target 対象の種類
-	/// @param _targetPos 追従位置
-	/// @param _targetHp 追従対象HP
-	void SetLockOnTargets(LOCKON_TARGET _target,const VECTOR& _targetPos, int _targetHp);
+	/// @brief ロックオン対象割り当て
+	/// @param targetPos 追従位置
+	/// @param targetHp 追従位置
+	void SetLockOnTarget(const VECTOR& targetPos, int targetHp);
 
-	/// @brief 現在の追従対象割り当て
-	LOCKON_TARGET GetLockOnTargetNum(void)const { return lockOnTarget_; };
+	/// @brief ロックオン対象を破棄する(ロックオン中なら解除も行う)
+	void ClearLockOnTarget(void);
 
-	/// @brief 追従対象選択処理
-	void LockOnChoice(void);
-
-	/// @brief 
-	/// @param  
+	/// @brief ロックオン対象の有効性確認と、無効時のロックオン解除 
 	void FollowLockOnPosition(void);
 
 	// ロックオンするか否かの設定
@@ -125,10 +115,28 @@ public:
 	int GetLockOnMaxHp(void)const { return lockOnParam_.maxHp; };
 
 	/// @brief イージング遷移中か否か
-	bool IsEasingState(void)const { return (easingTerm_ < 1.0f); };
+	bool IsEasingState(void)const { return (easing_.term < 1.0f); };
 
-	// 押し返し処理
+	/// @brief 押し返し処理
 	void ResolveCollision(void);
+	
+	/// @brief トラッキング対象の設定
+	/// @param fromPos 開始位置
+	/// @param fromDir 開始方向
+	/// @param fromTarget 開始注視点位置
+	/// @param toPos 終了位置
+	/// @param toDir 終了方向
+	/// @param toTarget 終了注視点位置
+	/// @param easingTime イージング時間
+	void SetTrackingTarget(const VECTOR& fromPos, const VECTOR& fromDir, const VECTOR& fromTarget
+		, const VECTOR& toPos, const VECTOR& toDir, const VECTOR& toTarget, float easingTime);
+
+	/// @brief トラッキング対象の設定
+	/// @param toPos 終了位置
+	/// @param toDir 終了方向
+	/// @param toTarget 終了注視点位置
+	/// @param easingTime イージング時間
+	void SetTrackingTarget(const VECTOR& toPos, const VECTOR& toDir, const VECTOR& toTarget, float easingTime);
 
 
 protected:
@@ -152,7 +160,6 @@ private:
 
 	//ボスの追従時の座標
 	static constexpr VECTOR BOSS_CAMERA_POS = { 0,10,-500 };
-
 
 	// 衝突時の押し戻し試行回数
 	static constexpr int CNT_TRY_COLLISION_CAMERA = 30;
@@ -195,36 +202,52 @@ private:
 	VECTOR targetPos_;
 
 	// ターゲット
-	struct TargetParam
-	{
-		int hp = 0;
-		int maxHp = 0;
-		VECTOR pos;
-	};
-
-	std::map<LOCKON_TARGET, std::unique_ptr<TargetParam>> targetsParam_;
-	bool isLockOn_ = false;
 	TargetParam lockOnParam_;
-	LOCKON_TARGET lockOnTarget_;
 
-	float easingTerm_ = 0.0f; // イージング経過値
-	VECTOR easingFromPos_;    // カメラ位置イージング開始座標
-	VECTOR easingFromTarget_; // 注視点イージング開始座標
+	// 有効な対象が登録されているか否か
+	bool hasTarget_ = false;
+
+	// ロックオン中か否か
+	bool isLockOn_ = false;
+
+	struct EasingParam
+	{
+		// イージング経過値
+		float term = 0.0f;
+
+		// イージング終了時間
+		float endTime = 0.0f;
+
+		// イージング開始地点
+		VECTOR fromPosition = {}; // カメラ位置
+		VECTOR fromTarget   = {}; // 注視点
+
+		// イージング終了地点
+		VECTOR toPosition = {}; // カメラ位置
+		VECTOR toTarget   = {}; // 注視点
+		Quaternion toRotation = {}; // カメラ角度
+
+	};
+	EasingParam easing_;
+
 
 	// 壁衝突時の追従距離倍率
 	float followDistScale_;
 	
 
-	// カメラを初期位置に戻す
+	/// @brief カメラを初期位置に戻す
 	void SetDefault(void);
 
-	// 追従対象との位置同期を取る
+	/// @brief 追従対象との位置同期を取る
 	void SyncFollow(void);
 
 	/// @brief アングルとY軸回転の同期処理
 	void SyncAngleYFromRotY(void);
 
-	// カメラ操作
+	/// @brief 対象が有効かつ範囲内で、ロックオン開始が可能か
+	bool CanLockOn(void) const;
+
+	/// @brief カメラ操作
 	void ProcessRot(bool _isLimit);
 	void ProcessMove(void);
 
@@ -234,12 +257,13 @@ private:
 	void RotationGamePad(bool _isLimit);
 
 	/// @brief モード別更新ステップ
-	void SetBeforeDrawFixedPoint(void);
-	void SetBeforeDrawFree(void);
-	void SetBeforeDrawFollow(void);
+	void SetBeforeDrawFixedPoint(void); // 定点カメラ
+	void SetBeforeDrawFree(void);       // フリー移動カメラ
+	void SetBeforeDrawFollow(void);     // プレイヤー追従カメラ
+	void SetBeforeDrawTracking(void);   // トラッキングカメラ
 
 	/// @brief 衝突判定
 	void Collision(void);
 
-	VECTOR EasingChangeTarget(const VECTOR& _fromVec, const VECTOR& _toVec, float term);
+	VECTOR EasingChangeTarget(const VECTOR& fromVec, const VECTOR& toVec, float term);
 };

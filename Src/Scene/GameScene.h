@@ -21,6 +21,7 @@ public:
 
 	enum class GAME_STATE
 	{
+		NONE = -1,   // 無効
 		PERFORMANCE, // 演出
 		GAME_ACTIVE, // ゲーム有効
 		GAME_CLEAR,  // クリア
@@ -72,7 +73,8 @@ private:
 	// スカイドーム
 	std::unique_ptr<SkyDome> skyDome_ = nullptr;
 
-	GAME_STATE gameState_;
+	GAME_STATE gameState_ = GAME_STATE::NONE;
+
 	// ポストエフェクトモード
 	MODE mode_;
 

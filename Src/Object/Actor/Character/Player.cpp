@@ -19,13 +19,12 @@
 
 namespace
 {
-	constexpr int FRAME_NUM_SWARD_TOP = 38;
-	constexpr int FRAME_NUM_SWARD_BOTTOM = 52;
-	constexpr float LOCAL_ROT_Y = 180.0f;
+	constexpr int FRAME_NUM_SWORD_TOP = 38;
+	constexpr int FRAME_NUM_SWORD_BOTTOM = 52;
+	constexpr VECTOR LOCAL_ROT = { 0.0f, 180.0f, 0.0f };
 	constexpr VECTOR START_POS = { 0.0f, 2.5f, 0.0f };
-	//constexpr VECTOR LOCAL_POS_SWARD = { -8.15f, -5.0f, -5.0f };
-	constexpr VECTOR LOCAL_POS_SWARD = { 0.0f, 0.0f, 0.0f };
-	constexpr VECTOR LOCAL_ROT_SWARD = { 10.0f, 0.0f, 0.0f };
+	constexpr VECTOR LOCAL_POS_SWORD = { 0.0f, 0.0f, 0.0f };
+	constexpr VECTOR LOCAL_ROT_SWORD = { 25.0f, 0.0f, 0.0f };
 	const float ATTACK_RADIUS = 85.0f;
 
 	// 衝突判定用線分開始
@@ -82,32 +81,32 @@ Player::Player(void)
 	: CharaBase::CharaBase()
 	, isDash_(false)
 	, status_(StatusManager::GetInstance().GetPlayerStatus().GetPlayerParam())
-	, actionStatus_(StatusManager::GetInstance().GetPlayerStatus().GetBossAction())
+	, actionStatus_(StatusManager::GetInstance().GetPlayerStatus().GetPlayerAction())
 {
 }
 
 void Player::InitLoadPost(void)
 {
 	transform_.SetModel(ResourceManager::GetInstance().LoadModelDuplicate(ResourceManager::SRC::MODEL_PLAYER));
-	sward_.SetModel(ResourceManager::GetInstance().LoadModelDuplicate(ResourceManager::SRC::MODEL_PLAYER_SWARD));
+	sword_.SetModel(ResourceManager::GetInstance().LoadModelDuplicate(ResourceManager::SRC::MODEL_PLAYER_SWORD));
 }
 
 void Player::InitTransform(void)
 {
 	transform_.InitTransform(status_.scale
 		, Quaternion::Identity()
-		, Quaternion::AngleAxis(UtilityMath::Deg2Rad(LOCAL_ROT_Y), UtilityMath::AXIS_Y)
+		, Quaternion::Euler(UtilityMath::Deg2Rad(LOCAL_ROT))
 		, START_POS);
 
-	VECTOR posSwardTop = MV1GetFramePosition(transform_.modelId, FRAME_NUM_SWARD_TOP);
-	VECTOR posSwardBottom = MV1GetFramePosition(transform_.modelId, FRAME_NUM_SWARD_BOTTOM);
+	VECTOR posSwordTop = MV1GetFramePosition(transform_.modelId, FRAME_NUM_SWORD_TOP);
+	VECTOR posSwordBottom = MV1GetFramePosition(transform_.modelId, FRAME_NUM_SWORD_BOTTOM);
 
-	sward_.InitTransform(status_.scale
+	sword_.InitTransform(status_.scale
 		, Quaternion::Identity()
-		, Quaternion::Euler(UtilityMath::Deg2Rad(LOCAL_ROT_SWARD))
-		, posSwardBottom, LOCAL_POS_SWARD);
+		, Quaternion::Euler(UtilityMath::Deg2Rad(LOCAL_ROT_SWORD))
+		, posSwordBottom, LOCAL_POS_SWORD);
 
-	UpdateSwardParam();
+	UpdateSwordParam();
 }
 
 void Player::InitCollider(void)
@@ -151,6 +150,11 @@ void Player::InitAnimationPost(void)
 		, ResourceManager::GetInstance().LoadModelDuplicate(ResourceManager::SRC::ANIMATION_PLAYER_RUN)
 		, VGet(0.0f, 50.0f, 0.0f), 30.0f);
 
+	// 抜刀アニメーション
+	animation_->AddExternal(static_cast<int>(ANIMATION_TYPE::DRAWING_SWORD)
+		, ResourceManager::GetInstance().LoadModelDuplicate(ResourceManager::SRC::ANIMATION_DRAWING_SWORD)
+		, 75.0f);
+
 	// 弱攻撃アニメーション
 	animation_->AddExternal(static_cast<int>(ANIMATION_TYPE::ATTACK_LIGHT)
 		, ResourceManager::GetInstance().LoadModelDuplicate(ResourceManager::SRC::ANIMATION_PLAYER_SLASH_LIGHT)
@@ -176,23 +180,28 @@ void Player::InitAnimationPost(void)
 
 void Player::InitActionPost(void)
 {
-	const auto& actionMap = StatusManager::GetInstance().GetPlayerStatus().GetBossAction();
+	const auto& actionMap = StatusManager::GetInstance().GetPlayerStatus().GetPlayerAction();
+
+	// 抜刀
+	actionController_->SetAction(static_cast<int>(ACTION_TYPE::DRAWING_SWARD)
+		, ToControllerParam(actionMap, ACTION_TYPE::DRAWING_SWARD)
+		, MakeActionCommand([this]() { ActionDefense(); }));
 
 	// 防御
 	actionController_->SetAction(static_cast<int>(ACTION_TYPE::DEFENSE)
 		, ToControllerParam(actionMap, ACTION_TYPE::DEFENSE)
-		, MakeActionCommand([this]() { Defense(); }));
+		, MakeActionCommand([this]() { ActionDefense(); }));
 
 	// 弱攻撃
 	actionController_->SetAction(static_cast<int>(ACTION_TYPE::ATTACK_LIGHT)
 		, ToControllerParam(actionMap, ACTION_TYPE::ATTACK_LIGHT)
-		, MakeActionCommand([this]() { AttackLight(); })
+		, MakeActionCommand([this]() { ActionAttackLight(); })
 		);
 
 	// 強攻撃
 	actionController_->SetAction(static_cast<int>(ACTION_TYPE::ATTACK_HEAVY)
 		, ToControllerParam(actionMap, ACTION_TYPE::ATTACK_HEAVY)
-		, MakeActionCommand([this]() { AttackHeavy(); })
+		, MakeActionCommand([this]() { ActionAttackHeavy(); })
 		);
 }
 
@@ -200,6 +209,7 @@ void Player::InitPost(void)
 {
 	hp_ = status_.hp;
 	stamina_ = status_.stamina;
+	attackType_ = ATTACK_TYPE::NONE;
 }
 
 void Player::UpdateProcess(void)
@@ -234,20 +244,65 @@ void Player::UpdateProcess(void)
 
 	ProcessDodge();
 
-	ProcessAttackLight();
-	ProcessAttackHeavy();
+	UpdateSwordParam();
 
-	UpdateSwardParam();
+	if (timeDrawingSward_ <= 0.0f)
+	{
+		if (InputManager::GetInstance().IsTrgDown(InputManager::TYPE::PLAYER_ATTACK_HEAVY)
+			|| InputManager::GetInstance().IsTrgDown(InputManager::TYPE::PLAYER_ATTACK_LIGHT))
+		{
+			// 抜刀
+			timeDrawingSward_ = TIME_DRAWING_SWORD;
+			PlayAnimation(ANIMATION_TYPE::DRAWING_SWORD, false);
+			actionController_->Active(static_cast<int>(ACTION_TYPE::DRAWING_SWARD));
+
+			// 攻撃種類を決定
+			bool isAttackHeavy = InputManager::GetInstance().IsTrgDown(InputManager::TYPE::PLAYER_ATTACK_HEAVY);
+			attackType_ = ((isAttackHeavy) ? ATTACK_TYPE::HEAVY : ATTACK_TYPE::LIGHT1);
+		}
+	}
+	else
+	{
+		timeDrawingSward_ -= SceneManager::GetInstance().GetDeltaTime();
+
+		if (GetActionType() == ACTION_TYPE::DRAWING_SWARD)
+		{
+			if (actionController_->IsActionEnd())
+			{
+				int actionNum = -1;
+				ANIMATION_TYPE animationType = ANIMATION_TYPE::NONE;
+				if (attackType_ == ATTACK_TYPE::HEAVY)
+				{
+					actionNum = static_cast<int>(ACTION_TYPE::ATTACK_HEAVY);
+					animationType = ANIMATION_TYPE::ATTACK_HEAVY;
+				}
+				else
+				{
+					actionNum = static_cast<int>(ACTION_TYPE::ATTACK_LIGHT);
+					animationType = ANIMATION_TYPE::ATTACK_LIGHT;
+				}
+
+				// 抜刀終了時、即座に行動を実行
+				actionController_->Active(actionNum);
+				PlayAnimation(animationType);
+			}
+
+			return;
+		}
+
+		ProcessAttackLight();
+		ProcessAttackHeavy();
+	}
 }
 
-void Player::UpdateSwardParam(void)
+void Player::UpdateSwordParam(void)
 {
-	VECTOR posSwardTop = MV1GetFramePosition(transform_.modelId, FRAME_NUM_SWARD_TOP);
-	VECTOR posSwardBottom = MV1GetFramePosition(transform_.modelId, FRAME_NUM_SWARD_BOTTOM);
+	VECTOR posSwordTop = MV1GetFramePosition(transform_.modelId, FRAME_NUM_SWORD_TOP);
+	VECTOR posSwordBottom = MV1GetFramePosition(transform_.modelId, FRAME_NUM_SWORD_BOTTOM);
 
-	sward_.pos = posSwardBottom;
-	sward_.quaRot = Quaternion::Mult(transform_.quaRot, Quaternion::Euler(UtilityMath::Deg2Rad(LOCAL_ROT_SWARD)));
-	sward_.Update();
+	sword_.pos = posSwordBottom;
+	sword_.quaRot = Quaternion::Mult(transform_.quaRot, Quaternion::Euler(UtilityMath::Deg2Rad(LOCAL_ROT_SWORD)));
+	sword_.Update();
 }
 
 void Player::DrawDebug(void)
@@ -259,7 +314,7 @@ void Player::DrawDebug(void)
 }
 void Player::DrawPre(void)
 {
-	MV1DrawModel(sward_.modelId);
+	MV1DrawModel(sword_.modelId);
 }
 
 void Player::ChangeAction(ACTION_TYPE action)
@@ -387,7 +442,7 @@ void Player::ProcessDodge(void)
 {
 	
 }
-void Player::Dodge(void)
+void Player::ActionDodge(void)
 {
 }
 
@@ -400,12 +455,12 @@ void Player::ProcessDefense(void)
 		PlayAnimation(ANIMATION_TYPE::DEFENSE, false);
 	}
 
-	if (actionController_->GetCurActionNum() == static_cast<int>(ACTION_TYPE::DEFENSE))
+	if (GetActionType() == ACTION_TYPE::DEFENSE)
 	{
 		parryTime_ -= ((parryTime_ > 0.0f) ? SceneManager::GetInstance().GetDeltaTime() : 0.0f);
 	}
 }
-void Player::Defense(void)
+void Player::ActionDefense(void)
 {
 	parryTime_ = PARRY_TIME;
 }
@@ -414,13 +469,14 @@ void Player::ProcessAttackLight(void)
 {
 	if (InputManager::GetInstance().IsTrgDown(InputManager::TYPE::PLAYER_ATTACK_LIGHT))
 	{
+		timeDrawingSward_ = TIME_DRAWING_SWORD;
 		actionController_->Active(static_cast<int>(ACTION_TYPE::ATTACK_LIGHT));
 		ResetMove();
 		PlayAnimation(ANIMATION_TYPE::ATTACK_LIGHT, false);
 	}
 }
 
-void Player::AttackLight(void)
+void Player::ActionAttackLight(void)
 {
 	curAttackPower_ = status_.powerLight;
 	SetColliderAttackArea(ATTACK_RADIUS);
@@ -430,24 +486,45 @@ void Player::ProcessAttackHeavy(void)
 {
 	if (InputManager::GetInstance().IsTrgDown(InputManager::TYPE::PLAYER_ATTACK_HEAVY))
 	{
+		timeDrawingSward_ = TIME_DRAWING_SWORD;
 		actionController_->Active(static_cast<int>(ACTION_TYPE::ATTACK_HEAVY));
 		ResetMove();
 		PlayAnimation(ANIMATION_TYPE::ATTACK_HEAVY, false);
 	}
 }
 
-void Player::AttackHeavy(void)
+void Player::ActionAttackHeavy(void)
 {
 	curAttackPower_ = status_.powerHeavy;
 	SetColliderAttackArea(ATTACK_RADIUS);
+
+	timeDrawingSward_ = TIME_DRAWING_SWORD;
 }
 
-void Player::PlayAnimation(Player::ANIMATION_TYPE _type, bool isLoop)
+void Player::ActionDrawingSword(void)
+{
+	timeDrawingSward_ = TIME_DRAWING_SWORD;
+	ResetMove();
+}
+
+void Player::PlayAnimation(Player::ANIMATION_TYPE _type, bool isLoop, bool isBlendAnimation)
 {
 	int type = static_cast<int>(_type);
 
 	// 指定したアニメーションが割り当てられているとき、処理終了
 	if (type == animation_->GetPlayType() && !animation_->IsEnd()) { return; }
 
-	animation_->Play(type, isLoop);
+	animation_->Play(type, isLoop, -1, 
+		((isBlendAnimation) ? AnimationController::BLEND_TIME_DEFAULT : 0.0f));
+}
+
+Player::ACTION_TYPE Player::GetActionType(void)
+{
+	int actionNum = actionController_->GetCurActionNum();
+	if (actionNum < 0 || actionNum >= static_cast<int>(ACTION_TYPE::MAX))
+	{
+		return ACTION_TYPE::NONE;
+	}
+
+	return static_cast<ACTION_TYPE>(actionNum);
 }

@@ -1,6 +1,7 @@
 #pragma once
 #include <memory>
 #include <chrono>
+#include <list>
 
 class SceneBase;
 class Fader;
@@ -52,9 +53,22 @@ public:
 	bool GetIsDebugMode(void)const { return isDebugMode_; };
 	void ChangeIsDebugMode(void) { isDebugMode_ = !isDebugMode_; };
 
+	/// @brief 末尾にシーンを格納
+	/// @param scene 実行するシーン
+	void PushScene(std::unique_ptr<SceneBase> scene);
+
+	/// @brief 実行中のシーンを取り除く
+	/// @param  
+	void PopScene(void);
+
+	/// @brief 2以上のシーンが積まれてても1つのシーンにリセットする
+	/// @param scene リセット後のシーン
+	void ResetScene(std::unique_ptr<SceneBase> scene);
+
 	/// @brief 演出中か否か
 	bool IsActivePerformance(void)const { return (performTime_ > 0.0f); };
 	void SetPerformTime(float time) { performTime_ = time; };
+
 
 private:
 
@@ -66,8 +80,7 @@ private:
 
 	bool isDebugMode_ = false;
 
-	// 各種シーン
-	std::unique_ptr<SceneBase> scene_ = nullptr;
+	std::list<std::unique_ptr<SceneBase>> scenes_;
 
 	// フェード
 	std::unique_ptr<Fader> fader_ = nullptr;
@@ -112,6 +125,10 @@ private:
 
 	/// @brief シーン遷移
 	void DoChangeScene(SCENE_ID sceneId);
+
+	/// @brief 末尾のシーンを新規シーンに切り替える
+	/// @param scene 実行するシーン
+	void ChangeScene(std::unique_ptr<SceneBase> scene);
 
 	/// @brief フェード
 	void FadeScreen(void);

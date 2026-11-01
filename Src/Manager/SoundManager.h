@@ -169,7 +169,7 @@ private:
 	std::map<SRC, Sound> sounds_;
 
 	// 主音量
-	float volumeMaster_;
+	float volumeMaster_ = 255.0f;
 
 
 	/// @brief デフォルトコントラクタ

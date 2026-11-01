@@ -2955,7 +2955,7 @@ void ImGui::TableHeader(const char* label)
 
     // Calculate ideal size for sort order arrow
     float w_arrow = 0.0f;
-    float w_sort_text = 0.0f;
+    float w_sorttext = 0.0f;
     char sort_order_suf[4] = "";
     const float ARROW_SCALE = 0.65f;
     if ((table->Flags & ImGuiTableFlags_Sortable) && !(column->Flags & ImGuiTableColumnFlags_NoSort))
@@ -2964,12 +2964,12 @@ void ImGui::TableHeader(const char* label)
         if (column->SortOrder > 0)
         {
             ImFormatString(sort_order_suf, IM_ARRAYSIZE(sort_order_suf), "%d", column->SortOrder + 1);
-            w_sort_text = g.Style.ItemInnerSpacing.x + CalcTextSize(sort_order_suf).x;
+            w_sorttext = g.Style.ItemInnerSpacing.x + CalcTextSize(sort_order_suf).x;
         }
     }
 
     // We feed our unclipped width to the column without writing on CursorMaxPos, so that column is still considering for merging.
-    float max_pos_x = label_pos.x + label_size.x + w_sort_text + w_arrow;
+    float max_pos_x = label_pos.x + label_size.x + w_sorttext + w_arrow;
     column->ContentMaxXHeadersUsed = ImMax(column->ContentMaxXHeadersUsed, column->WorkMaxX);
     column->ContentMaxXHeadersIdeal = ImMax(column->ContentMaxXHeadersIdeal, max_pos_x);
 
@@ -3026,19 +3026,19 @@ void ImGui::TableHeader(const char* label)
     }
 
     // Sort order arrow
-    const float ellipsis_max = ImMax(cell_r.Max.x - w_arrow - w_sort_text, label_pos.x);
+    const float ellipsis_max = ImMax(cell_r.Max.x - w_arrow - w_sorttext, label_pos.x);
     if ((table->Flags & ImGuiTableFlags_Sortable) && !(column->Flags & ImGuiTableColumnFlags_NoSort))
     {
         if (column->SortOrder != -1)
         {
-            float x = ImMax(cell_r.Min.x, cell_r.Max.x - w_arrow - w_sort_text);
+            float x = ImMax(cell_r.Min.x, cell_r.Max.x - w_arrow - w_sorttext);
             float y = label_pos.y;
             if (column->SortOrder > 0)
             {
                 PushStyleColor(ImGuiCol_Text, GetColorU32(ImGuiCol_Text, 0.70f));
                 RenderText(ImVec2(x + g.Style.ItemInnerSpacing.x, y), sort_order_suf);
                 PopStyleColor();
-                x += w_sort_text;
+                x += w_sorttext;
             }
             RenderArrow(window->DrawList, ImVec2(x, y), GetColorU32(ImGuiCol_Text), column->SortDirection == ImGuiSortDirection_Ascending ? ImGuiDir_Up : ImGuiDir_Down, ARROW_SCALE);
         }

@@ -26,9 +26,6 @@ namespace
 	// カメラの初期角度
 	constexpr VECTOR DERFAULT_ANGLES = { 0.0f, 0.0f, 0.0f };
 
-	// ロックオン切替イージング終了時間
-	constexpr float LOCKON_DURATION = 0.2f;
-
 	// 追従対象の最大Y軸座標
 	constexpr float TARGET_POS_MAX_Y = 275.0f;
 
@@ -57,10 +54,8 @@ Camera::Camera(void)
 	, targetPos_(UtilityMath::VECTOR_ZERO)
 	, prePos_(UtilityMath::VECTOR_ZERO)
 	, lockOnParam_{}
-	, lockOnTarget_(LOCKON_TARGET::NONE)
 	, followDistScale_(1.0f)
-	, easingFromPos_(UtilityMath::VECTOR_ZERO)
-	, easingFromTarget_(UtilityMath::VECTOR_ZERO)
+	, easing_(EasingParam())
 {
 }
 
@@ -78,7 +73,11 @@ void Camera::InitPost(void)
 {
 	// 初期化処理
 	ChangeMode(MODE::NONE);
-	lockOnTarget_ = LOCKON_TARGET::NONE;
+
+	// ロックオン対象なし
+	hasTarget_ = false;
+	isLockOn_ = false;
+	lockOnParam_ = TargetParam();
 }
 
 void Camera::Update(void)
@@ -88,6 +87,13 @@ void Camera::Update(void)
 
 	// 各状態別処理
 	update_();
+
+	// ターゲット対象切替時のイージング進行
+	if (easing_.term < 1.0f)
+	{
+		easing_.term += (SceneManager::GetInstance().GetDeltaTime() / easing_.endTime);
+		easing_.term = std::clamp(easing_.term, 0.0f, 1.0f);
+	}
 }
 
 void Camera::SetBeforeDraw(void)
@@ -154,177 +160,97 @@ void Camera::ChangeMode(MODE _mode)
 			update_ = std::bind(&Camera::SetBeforeDrawFollow, this);
 			break;
 
+		// トラッキング
+		case Camera::MODE::TRACKING:
+			update_ = std::bind(&Camera::SetBeforeDrawTracking, this);
+			break;
+
 		default:
 			break;
 	}
 
 }
 
-void Camera::SetLockOnTargets(LOCKON_TARGET _target, const VECTOR& _targetPos, int _targetHp)
+void Camera::SetLockOnTarget(const VECTOR& targetPos, int targetHp)
 {
-	if (!targetsParam_.empty())
+	if (targetHp <= 0)
 	{
-		if (_targetHp <= 0)
-		{
-			// 追従対象が無効時、追従リストから除外させる
-			if (targetsParam_.contains(_target))
-			{
-				targetsParam_.erase(_target);
-			}
-
-			// ターゲット無効時、再抽選
-			if (lockOnTarget_ == _target)
-			{
-				LockOnChoice();
-			}
-
-			return;
-		}
-
-		if (targetsParam_.contains(_target))
-		{
-			// 追従リストに追従対象がある場合、対象にする
-			targetsParam_.at(_target)->pos = _targetPos;
-			targetsParam_.at(_target)->hp = _targetHp;
-
-			return;
-		}
+		// 対象が無効(HP0以下)の場合、対象を破棄
+		ClearLockOnTarget();
+		return;
 	}
 
-	if (_targetHp <= 0) { return; }
+	if (!hasTarget_)
+	{
+		// 初めて登録される対象の場合、最大HPを記録
+		lockOnParam_.maxHp = targetHp;
+		hasTarget_ = true;
+	}
 
-	// 対象をリストに追加
-	std::unique_ptr<TargetParam> param = std::make_unique<TargetParam>();
-	param->hp = param->maxHp = _targetHp;
-	param->pos = _targetPos;
-	targetsParam_.emplace(_target, std::move(param));
+	// 位置とHPを更新
+	lockOnParam_.pos = targetPos;
+	lockOnParam_.hp  = targetHp;
 }
 
-void Camera::LockOnChoice(void)
+void Camera::ClearLockOnTarget(void)
 {
-	/* ロックオン対象選択処理 */
-
-	float vecSize = POS_SPACE_MAX;
-	LOCKON_TARGET lockTarget = LOCKON_TARGET::NONE;
-
-	if (targetsParam_.empty()) { return; }
-
-	if (!isLockOn_)
+	// ロックオン中なら先に解除する(解除時の同期処理で対象位置を使うため、情報の破棄より前に行う)
+	if (isLockOn_)
 	{
-		for (auto& [target, param] : targetsParam_)
-		{
-			if (lockOnTarget_ == target) { continue; }
-
-			VECTOR posFollow = VGet(param->pos.x, 0.0f, param->pos.z);
-			VECTOR posCamera = VGet(transform_.pos.x, 0.0f, transform_.pos.z);
-
-			// 最も近い対象範囲内にいる対象を追尾
-			float sizeXZ = std::abs(VSize(VSub(posFollow, posCamera)));
-
-			if (sizeXZ < vecSize
-				&& sizeXZ <= POS_SPACE_MAX && sizeXZ >= POS_SPACE_MIN)
-			{
-				vecSize = sizeXZ;
-				lockTarget = target;
-			}
-		}
+		SetIsLockOn(false);
 	}
-	else
-	{
-		int moveCount = 0;
 
-		// パッド・キーボードによる切り替え
-		if (InputManager::GetInstance().IsTrgDown(InputManager::TYPE::CAMERA_TARGET_LEFT))
-		{
-			moveCount -= 1;
-		}
-		if (InputManager::GetInstance().IsTrgDown(InputManager::TYPE::CAMERA_TARGET_RIGHT))
-		{
-			moveCount += 1;
-		}
+	hasTarget_ = false;
+	lockOnParam_ = TargetParam();
+}
 
-		if (moveCount != 0)
-		{
-
-			int base = static_cast<int>(lockOnTarget_);
-
-			constexpr int TARGET_MAX = static_cast<int>(LOCKON_TARGET::MAX);
-
-			int target = ((base + moveCount) % TARGET_MAX);
-
-			bool isChange = false;
-
-			for (int i = 0; i < TARGET_MAX; i++)
-			{
-				target = ((TARGET_MAX + base + moveCount + i) % TARGET_MAX);
-
-				if (target == base) { continue; }
-
-				// 追従対象が有効ならば、検索終了
-				if (targetsParam_.contains(static_cast<LOCKON_TARGET>(target))
-					|| isChange)
-				{
-					isChange = true;
-					break;
-				}
-			}
-
-			if (!isChange)
-			{
-				return;
-			}
-
-			lockTarget = static_cast<LOCKON_TARGET>(target);
-		}
+bool Camera::CanLockOn(void) const
+{
+	// 追従対象が一定以上の高さにいる場合は不可
+	if (!hasTarget_
+		|| lockOnParam_.pos.y > TARGET_POS_MAX_Y) {
+		return false;
 	}
-	if (lockTarget == LOCKON_TARGET::NONE) { return; }
 
-	// ロックオン切り替え時にイージング開始点を記録
-	easingFromPos_ = transform_.pos;
-	easingFromTarget_ = targetPos_;
-	easingTerm_ = 0.0f;
+	// XZ平面上での、カメラと対象との距離
+	VECTOR posTarget = VGet(lockOnParam_.pos.x, 0.0f, lockOnParam_.pos.z);
+	VECTOR posCamera = VGet(transform_.pos.x, 0.0f, transform_.pos.z);
+	float sizeXZ = VSize(VSub(posTarget, posCamera));
 
-	isLockOn_ = true;
-	lockOnTarget_ = lockTarget;
-	lockOnParam_ = *targetsParam_.at(lockOnTarget_);
+	// 追従有効範囲内か
+	return (sizeXZ >= POS_SPACE_MIN && sizeXZ <= POS_SPACE_MAX);
 }
 
 void Camera::FollowLockOnPosition(void)
 {
-	if (targetsParam_.empty() || lockOnTarget_ == LOCKON_TARGET::NONE) { return; }
+	if (!isLockOn_) { return; }
 
-	// 追従対象が一定以上、追従対象が無効時、ロックオン解除
-	if (!targetsParam_.contains(static_cast<LOCKON_TARGET>(lockOnTarget_))
-		|| targetsParam_.at(lockOnTarget_)->pos.y > TARGET_POS_MAX_Y)
+	// 対象が無効、または一定以上の高さにいる場合、ロックオン解除
+	if (!hasTarget_ || lockOnParam_.pos.y > TARGET_POS_MAX_Y)
 	{
-		lockOnParam_ = TargetParam();
-		isLockOn_ = false;
-		return;
+		SetIsLockOn(false);
 	}
-	
-	lockOnParam_ = *targetsParam_.at(lockOnTarget_);
 }
 
 void Camera::SetIsLockOn(bool _isLockOn)
 {
+	// 状態が変わらない場合は何もしない
+	if (isLockOn_ == _isLockOn) { return; }
+
+	// ロックオン開始は、有効な対象が範囲内にいる場合のみ
+	if (_isLockOn && !CanLockOn()) { return; }
+
 	// ロックオン解除時、アングルとY軸回転を同期
-	if (isLockOn_ && !_isLockOn)
+	if (!_isLockOn)
 	{
 		SyncAngleYFromRotY();
 	}
 
 	// 切り替え時、現在の位置と注視点をイージング開始点として記録
-	if (isLockOn_ != _isLockOn)
-	{
-		easingFromPos_ = transform_.pos;
-		easingFromTarget_ = targetPos_;
-		easingTerm_ = 0.0f;
-	}
-
-	if (_isLockOn)
-	{
-		LockOnChoice();
-	}
+	easing_.fromPosition = transform_.pos;
+	easing_.fromTarget = targetPos_;
+	easing_.term = 0.0f;
+	easing_.endTime = LOCKON_DURATION;
 
 	isLockOn_ = _isLockOn;
 }
@@ -344,30 +270,31 @@ void Camera::SetDefault(void)
 
 void Camera::SyncFollow(void)
 {
+	if (followTransform_ == nullptr) { return; }
+
 	// 同期先の位置
 	VECTOR pos = followTransform_->pos;
 
 	// Y軸
 	rotY_ = Quaternion::AngleAxis(angles_.y, UtilityMath::AXIS_Y);
 
-	if (isLockOn_) 
+	if (isLockOn_)
 	{
 		// 追従位置 = ロックオン位置 - 追従座標
 		VECTOR target = followTransform_->pos;
 		target.y = lockOnParam_.pos.y;
 		VECTOR toTarget = VSub(lockOnParam_.pos, target);
-		
+
 
 		// XZ平面に投影（Y成分を無視）してY軸回転角を求める
 		float yAngle = atan2(toTarget.x, toTarget.z);
 
 		rotY_ = Quaternion::AngleAxis(yAngle, UtilityMath::AXIS_Y);
 	}
-	
+
 	// Y軸 + X軸
 	transform_.quaRot = rotY_.Mult(Quaternion::AngleAxis(angles_.x, UtilityMath::AXIS_X));
 
-	
 	// 注視点
 	VECTOR localPos = transform_.quaRot.PosAxis(FOLLOW_TARGET_LOCAL_POS);
 	VECTOR newTarget = VAdd(pos, localPos);
@@ -384,19 +311,19 @@ void Camera::SyncFollow(void)
 	const VECTOR LOCAL_POS = ((isLockOn_) ? FOLLOW_LOCAL_POS_LOCKON : FOLLOW_LOCAL_POS);
 	VECTOR scaledLocalPos = VScale(LOCAL_POS, followDistScale_);
 	localPos = transform_.quaRot.PosAxis(scaledLocalPos);
-	VECTOR newCamPos = VAdd(pos, localPos);
+	VECTOR newCameraPos = VAdd(pos, localPos);
 
-    // イージング中は EasingChangeTarget() で補間、完了後はそのまま代入
-    if (easingTerm_ < 1.0f)
-    {
-        transform_.pos = EasingChangeTarget(easingFromPos_,    newCamPos, easingTerm_);
-        targetPos_     = EasingChangeTarget(easingFromTarget_, newTarget, easingTerm_);
-    }
-    else
-    {
-        transform_.pos = newCamPos;
-        targetPos_     = newTarget;
-    }
+	// イージング中は EasingChangeTarget() で補間、完了後はそのまま代入
+	if (easing_.term < 1.0f)
+	{
+		transform_.pos = EasingChangeTarget(easing_.fromPosition, newCameraPos, easing_.term);
+		targetPos_ = EasingChangeTarget(easing_.fromTarget, newTarget, easing_.term);
+	}
+	else
+	{
+		transform_.pos = newCameraPos;
+		targetPos_ = newTarget;
+	}
 }
 
 void Camera::SyncAngleYFromRotY(void)
@@ -404,7 +331,7 @@ void Camera::SyncAngleYFromRotY(void)
 	// rotY_が示す前方ベクトルをXZ平面上で求める
 	VECTOR forward = rotY_.PosAxis(UtilityMath::DIR_FORWARD);
 
-	// atan2でY軸角度を逆算してangles_.yに書き戻す
+	// atan2でY軸角度を逆算して、angles_.yに書き戻す
 	angles_.y = atan2f(forward.x, forward.z);
 
 	SyncFollow();
@@ -418,7 +345,6 @@ void Camera::ProcessRot(bool _isLimit)
 	// 方向回転によるXYZの移動(ゲームパッド)
 	RotationGamePad(_isLimit);
 }
-
 
 void Camera::SetBeforeDrawFixedPoint(void)
 {
@@ -446,41 +372,14 @@ void Camera::SetBeforeDrawFree(void)
 
 void Camera::SetBeforeDrawFollow(void)
 {
-#ifdef _DEBUG
-	DrawSphere3D(targetPos_, 50.0f, 8, 0xff00aa, 0xffffff, true);
-#endif
-
 	if (InputManager::GetInstance().IsTrgDown(InputManager::TYPE::CAMERA_LOCKON))
 	{
-		if (!isLockOn_)
-		{
-			// ロックオン有効化
-			//LockOnChoice();
-		}
-		else
-		{
-			//SetIsLockOn(false);
-		}
+		// ロックオン切替
+		SetIsLockOn(!isLockOn_);
 	}
 
-	// ロックオン時、常に追従位置を取得する
-	if (isLockOn_)
-	{
-		if (InputManager::GetInstance().IsTrgDown(InputManager::TYPE::CAMERA_TARGET_LEFT)
-			|| InputManager::GetInstance().IsTrgDown(InputManager::TYPE::CAMERA_TARGET_RIGHT))
-		{
-			//LockOnChoice();
-		}
-
-		//FollowLockOnPosition();
-	}
-
-	// ターゲット対象切替時のイージング進行
-	if (easingTerm_ < 1.0f)
-	{
-		easingTerm_ += SceneManager::GetInstance().GetDeltaTime() / LOCKON_DURATION;
-		easingTerm_ = std::clamp(easingTerm_, 0.0f, 1.0f);
-	}
+	// ロックオン中、対象が無効になったら解除する
+	FollowLockOnPosition();
 
 	// カメラ位置の補間
 	transform_.pos = UtilityMath::Lerp(prePos_, transform_.pos, LERP_RATE_MOVE);
@@ -497,11 +396,30 @@ void Camera::SetBeforeDrawFollow(void)
 	Collision();
 
 	// 地面下に移動制限を掛ける
-	constexpr float RESOLVE_FOLLOW_POS_MIN_Y = -5.0f;
 	if (transform_.pos.y < RESOLVE_FOLLOW_POS_MIN_Y)
 	{
 		transform_.pos.y = RESOLVE_FOLLOW_POS_MIN_Y;
 	}
+}
+
+void Camera::SetBeforeDrawTracking(void)
+{
+	// イージング中は EasingChangeTarget() で補間、完了後はそのまま代入
+	if (easing_.term < 1.0f)
+	{
+		transform_.pos = EasingChangeTarget(easing_.fromPosition, easing_.toPosition, easing_.term);
+		targetPos_ = EasingChangeTarget(easing_.fromTarget, easing_.toTarget, easing_.term);
+	}
+	else
+	{
+		ChangeMode(MODE::FIXED_POINT);
+
+		transform_.pos = easing_.toPosition;
+		targetPos_ = easing_.toTarget;
+	}
+
+	// カメラ角度のイージング
+	transform_.quaRot = Quaternion::Slerp(transform_.quaRot, easing_.toRotation, 0.2f);
 }
 
 void Camera::ProcessMove(void)
@@ -529,8 +447,8 @@ void Camera::RotationMouse(bool _isLimit)
 	Vector2 mouseMove = InputManager::GetInstance().GetMouseMove();
 
 	// マウス移動量がしきい値未満の場合０にする
-	mouseMove.x = ((std::abs(mouseMove.x) > MOUSE_MOVE_THRESHOLD) ? mouseMove.x : 0.0f);
-	mouseMove.y = ((std::abs(mouseMove.y) > MOUSE_MOVE_THRESHOLD) ? mouseMove.y : 0.0f);
+	mouseMove.x = ((std::abs(mouseMove.x) > MOUSE_MOVE_THRESHOLD) ? mouseMove.x : 0);
+	mouseMove.y = ((std::abs(mouseMove.y) > MOUSE_MOVE_THRESHOLD) ? mouseMove.y : 0);
 
 	/*
 	// マウス感度を適用
@@ -621,7 +539,7 @@ void Camera::Collision(void)
 
 			// 除外フレームは無視する
 			if (colliderModel->IsExcludeFrame(hit.FrameIndex)) { continue; }
-			// 
+			//
 			// 対象フレームは無視する
 			if (!colliderModel->IsTargetFrame(hit.FrameIndex)) { continue; }
 
@@ -689,12 +607,50 @@ void Camera::ResolveCollision(void)
 	}
 }
 
-VECTOR Camera::EasingChangeTarget(const VECTOR& _fromVec, const VECTOR& _toVec, float term)
+void Camera::SetTrackingTarget(const VECTOR& fromPos, const VECTOR& fromDir, const VECTOR& fromTarget
+	, const VECTOR& toPos, const VECTOR& toDir, const VECTOR& toTarget, float easingTime)
 {
-	 /* QuadInOut イージング
-	   t < 0.5 : 加速フェーズ (2t^2)
-	   t >= 0.5: 減速フェーズ (1 - (-2t+2)^2 / 2)
-	*/
+	ChangeMode(MODE::TRACKING);
+	easing_.term = 0.0f;
+
+	// 開始地点
+	transform_.quaRot = Quaternion::Euler(fromDir);
+	easing_.fromPosition = fromPos;
+	easing_.fromTarget   = fromTarget;
+
+	// 終了地点
+	easing_.toPosition = toPos;
+	easing_.toRotation = Quaternion::Euler(toDir);
+	easing_.toTarget   = toTarget;
+
+	// イージング時間
+	easing_.endTime = easingTime;
+}
+
+void Camera::SetTrackingTarget(const VECTOR& toPos, const VECTOR& toDir, const VECTOR& toTarget, float easingTime)
+{
+	ChangeMode(MODE::TRACKING);
+	easing_.term = 0.0f;
+
+	// 開始地点
+	easing_.fromPosition = transform_.pos;
+	easing_.fromTarget = targetPos_;
+
+	// 終了地点
+	easing_.toPosition = toPos;
+	easing_.toRotation = Quaternion::Euler(toDir);
+	easing_.toTarget   = toTarget;
+
+	// イージング時間
+	easing_.endTime = easingTime;
+}
+
+VECTOR Camera::EasingChangeTarget(const VECTOR& fromVec, const VECTOR& toVec, float term)
+{
+	/* QuadInOut イージング
+	  t < 0.5 : 加速フェーズ (2t^2)
+	  t >= 0.5: 減速フェーズ (1 - (-2t+2)^2 / 2)
+   */
 	term = std::clamp(term, 0.0f, 1.0f);
 
 	// 開始イージング
@@ -707,7 +663,7 @@ VECTOR Camera::EasingChangeTarget(const VECTOR& _fromVec, const VECTOR& _toVec, 
 	const float MIDDLE = 0.5f;
 	const float easedT = ((term < MIDDLE) ? QUAD_IN : QUAD_OUT);
 
-	return VGet(_fromVec.x + (_toVec.x - _fromVec.x) * easedT,
-				_fromVec.y + (_toVec.y - _fromVec.y) * easedT,
-				_fromVec.z + (_toVec.z - _fromVec.z) * easedT);
+	return VGet(fromVec.x + (toVec.x - fromVec.x) * easedT
+		, fromVec.y + (toVec.y - fromVec.y) * easedT
+		, fromVec.z + (toVec.z - fromVec.z) * easedT);
 }
