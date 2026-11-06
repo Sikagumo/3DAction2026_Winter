@@ -44,8 +44,10 @@ public:
 	/// @brief ”íƒ_ƒ[ƒWˆ—
 	void SetDamage(int damageHp, int damageStamina)override;
 
-	void SetIsControl(bool isControl) { isControl_ = isControl; };
+	void SetIsControl(bool isControl) { isControl_ = isControl; }
 	bool GetIsControl(void)const { return isControl_; }
+
+	bool IsActiveParry(void)const { return (parryTime_ > 0.0f); }
 
 
 protected:

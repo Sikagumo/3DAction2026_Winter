@@ -49,6 +49,11 @@ protected:
 	// Õ“Ë‘Šè‚Ìî•ñ
 	std::vector<const ColliderBase*> hitColliders_;
 
+#ifdef _DEBUG
+	// “–‚½‚è”»’è‚ğ•\¦‚·‚é‚©”Û‚©
+	bool isViewCollision_ = true;
+#endif
+
 
 	virtual void InitLoad(void)      = 0;
 	virtual void InitTransform(void) = 0;

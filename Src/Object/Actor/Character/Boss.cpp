@@ -8,6 +8,7 @@
 #include "../../../Utility/UtilityMath.h"
 #include "../../../Utility/UtilityCommon.h"
 #include "../../../Utility/MatrixUtility.h"
+#include "../../../Utility/ModelFrameUtility.h"
 #include "../../Common/AnimationController.h"
 #include "../../Common/ActionController.h"
 #include "../../../Manager/InputManager.h"
@@ -27,7 +28,14 @@ namespace
 	constexpr float LOCAL_ROT_Y = 180.0f;
 	constexpr VECTOR START_POS = { 0.0f, 2.5f, 500.0f };
 	const float ATTACK_RADIUS = 300.0f;
-	constexpr float SWORD_SCALE = 1.85f;
+	constexpr float SWORD_SCALE = 0.85f;
+
+	static constexpr VECTOR LOCAL_POS_SWORD = { 0.0f, 0.0f, 0.0f };
+	static constexpr VECTOR LOCAL_ROT_SWORD = { 175.0f, 0.0f, 0.0f };
+
+	// 剣の位置のフレーム
+	constexpr int FRAME_NUM_SWORD_POINT = 21;
+	constexpr int FRAME_NUM_SWORD_BOTTOM = 21;
 
 	// 衝突判定用線分開始
 	constexpr VECTOR COL_LINE_START_LOCAL_POS = { 0.0f, 80.0f, 0.0f };
@@ -42,13 +50,13 @@ namespace
 	constexpr VECTOR COL_CAPSULE_DOWN_LOCAL_POS = { 0.0f, 50.0f, 0.0f };
 
 	// 攻撃位置ローカル座標
-	constexpr VECTOR COL_ATTACK_AREA_LOCAL_POS = { 0.0f, 50.0f, 100.0f };
+	constexpr VECTOR COL_ATTACK_AREA_LOCAL_POS = { 0.0f, 50.0f, 0.0f };
 
 
 	// 衝突判定用カプセル球体半径
 	constexpr float COL_CAPSULE_RADIUS = 20.0f;
 
-	constexpr float PARRY_TIME = 0.5f;
+	constexpr float PARRY_TIME = 0.875f;
 
 
 	/// @brief CSV由来のパラメータを行動コントローラに変換
@@ -95,7 +103,6 @@ void Boss::InitTransform(void)
 		, Quaternion::AngleAxis(UtilityMath::Deg2Rad(LOCAL_ROT_Y), UtilityMath::AXIS_Y)
 		, START_POS);
 
-	VECTOR posSwordTop = MV1GetFramePosition(transform_.modelId, FRAME_NUM_SWORD_TOP);
 	VECTOR posSwordBottom = MV1GetFramePosition(transform_.modelId, FRAME_NUM_SWORD_BOTTOM);
 
 	sword_.InitTransform(SWORD_SCALE
@@ -104,6 +111,21 @@ void Boss::InitTransform(void)
 		, posSwordBottom, LOCAL_POS_SWORD);
 
 	UpdateSwordParam();
+}
+
+void Boss::UpdateSwordParam(void)
+{
+	VECTOR scl = {};
+	ModelFrameUtility::GetFrameWorldMatrix(transform_.modelId, FRAME_NUM_SWORD_BOTTOM, scl, sword_.matRot, sword_.pos);
+
+	ModelFrameUtility::SetFrameWorldMatrix(
+		transform_, FRAME_NUM_SWORD_BOTTOM, sword_, LOCAL_POS_SWORD, VGet(0.0f, 0.0f, 0.0f));
+
+	// matRot(プレイヤーの向き+手の回転)を quaRot に変換して反映する
+	sword_.quaRot = Quaternion::GetRotation(sword_.matRot);
+
+	// 誤った Mult 行は削除(プレイヤーの向きはフレーム行列に含まれており、二重掛けになる)
+	sword_.Update();
 }
 
 void Boss::InitCollider(void)
@@ -132,6 +154,8 @@ void Boss::InitCollider(void)
 
 void Boss::InitAnimationPost(void)
 {
+	constexpr VECTOR ANIMATION_LOCAL_POS = { 0.0f, 50.0f, 0.0f };
+
 	// 立ち上がりアニメーション
 	animation_->AddExternal(static_cast<int>(ANIMATION_TYPE::STAND_UP)
 		, ResourceManager::GetInstance().LoadHandleId(ResourceManager::SRC::ANIMATION_BOSS_STAND_UP)
@@ -145,12 +169,12 @@ void Boss::InitAnimationPost(void)
 	// 歩行アニメーション
 	animation_->AddExternal(static_cast<int>(ANIMATION_TYPE::WALK)
 		, ResourceManager::GetInstance().LoadHandleId(ResourceManager::SRC::ANIMATION_PLAYER_WALK)
-		, 30.0f);
+		, ANIMATION_LOCAL_POS, 30.0f);
 
 	// 弱攻撃アニメーション
 	animation_->AddExternal(static_cast<int>(ANIMATION_TYPE::ATTACK_LIGHT)
 		, ResourceManager::GetInstance().LoadHandleId(ResourceManager::SRC::ANIMATION_PLAYER_SLASH_LIGHT)
-		, 30.0f);
+		, actionStatus_.at(ACTION_TYPE::ATTACK_LIGHT).animationSpeed);
 
 	// 強攻撃アニメーション
 	animation_->AddExternal(static_cast<int>(ANIMATION_TYPE::ATTACK_HEAVY)
@@ -186,6 +210,12 @@ void Boss::InitActionPost(void)
 		, MakeActionCommand([this]() { AttackHeavy(); })
 	);
 
+	// 撃破
+	actionController_->SetAction(static_cast<int>(ACTION_TYPE::DEFEAT)
+		, ToControllerParam(actionMap, ACTION_TYPE::DEFEAT)
+		, MakeActionCommand([this]() { ActionNone(); })
+	);
+
 }
 
 void Boss::InitPost(void)
@@ -195,43 +225,65 @@ void Boss::InitPost(void)
 
 	constexpr float INIT_ANIMATION_STOP = 0.5f;
 	animation_->Stop(INIT_ANIMATION_STOP);
+
+	curActionNum_ = 0;
 }
 
 void Boss::UpdateProcessPost(void)
 {
+	animation_->SetIsSlow((stanTime_ > 0.0f));
+
+	// 立ち上がりアニメーションが終わるまでは処理終了
 	if (animation_->GetPlayType() == static_cast<int>(ANIMATION_TYPE::STAND_UP)
-		&& !animation_->IsEnd()) { return; }
-
-	if (hp_ <= 0)
-	{
-		PlayAnimation(ANIMATION_TYPE::DEFEAT, false);
+		&& !animation_->IsEnd()
+		|| hp_ <= 0 || !isAction_) {
+		return;
 	}
-	else
+	if (curActionNum_ == 0)
 	{
-		if (GetActionType() != ACTION_TYPE::ATTACK_HEAVY
-			&& GetActionType() != ACTION_TYPE::ATTACK_LIGHT)
+		// 移動処理
+		ProcessMove();
+
+		if (!isMove_)
 		{
-			LookPlayerPos();
+			curActionNum_++;
+			ResetMove();
 
-			actionTime_ -= SceneManager::GetInstance().GetDeltaTime();
-
-			if (actionTime_ <= 0.0f && animation_->IsEnd()
-				&& GetActionType() == ACTION_TYPE::NONE)
+			PlayAnimation(ANIMATION_TYPE::ATTACK_HEAVY, false, true);
+			ActiveAction(ACTION_TYPE::ATTACK_HEAVY);
+		}
+	}
+	if (curActionNum_ == 1)
+	{
+		// 攻撃
+		if (actionController_->IsActionEnd()
+			&& animation_->IsEnd())
+		{
+			if (isMove_)
 			{
+				// 移動
+				curActionNum_ = 0;
+			}
+			else
+			{
+				// プレイヤーの向き追従
+				LookPlayerPos();
+
+				// 再攻撃
 				animation_->ReStart();
 				PlayAnimation(ANIMATION_TYPE::ATTACK_HEAVY, false, true);
 				ActiveAction(ACTION_TYPE::ATTACK_HEAVY);
 			}
 		}
+	}
 
-		if (animation_->IsEnd())
+	if (animation_->IsEnd())
+	{
+		if (animation_->GetPlayType() == static_cast<int>(ANIMATION_TYPE::DAMAGE)
+			|| animation_->GetPlayType() == static_cast<int>(ANIMATION_TYPE::STAND_UP))
 		{
-			if (animation_->GetPlayType() == static_cast<int>(ANIMATION_TYPE::DAMAGE)
-				|| animation_->GetPlayType() == static_cast<int>(ANIMATION_TYPE::STAND_UP))
-			{
-				// 被ダメージアニメーション終了時、待機に遷移
-				PlayAnimation(ANIMATION_TYPE::IDLE);
-			}
+			// 被ダメージアニメーション終了時、待機に遷移
+			//PlayAnimation(ANIMATION_TYPE::IDLE);
 		}
 	}
 }
@@ -242,7 +294,8 @@ void Boss::CollisionReserve(void)
 
 void Boss::DrawPre(void)
 {
-	if (sword_.modelId != -1)
+	if (sword_.modelId != -1
+		&& animation_->GetPlayType() != static_cast<int>(ANIMATION_TYPE::STAND_UP))
 	{
 		MV1DrawModel(sword_.modelId);
 	}
@@ -252,10 +305,10 @@ void Boss::DrawDebug(void)
 {
 #ifdef _DEBUG
 	EnemyBase::DrawDebug();
-	DrawFormatString(Application::SCREEN_HALF_X, (8 * 2), 0xffffff, ", actionNum:%d", actionController_->GetCurActionNum());
+	DrawFormatString(Application::SCREEN_HALF_X + 50, (8 * 2), 0xffffff, ", actionNum:%d", actionController_->GetCurActionNum());
 #endif
 
-	DrawFormatString(Application::SCREEN_HALF_X - 50, (8 * 2), 0xffffff, "BossHp:%d", hp_);
+	DrawFormatString(Application::SCREEN_HALF_X - 50, (8 * 2), 0xff0000, "師範HP:%d", hp_);
 }
 
 void Boss::SetDamage(int damageHp, int damageStamina)
@@ -268,7 +321,13 @@ void Boss::SetDamage(int damageHp, int damageStamina)
 	hp_ = (((hp_ - damageHp) <= 0) ? 0 : (hp_ - damageHp));
 	stamina_ = (((stamina_ - damageStamina) <= 0) ? 0 : (stamina_ - damageHp));
 
-	if (actionController_->IsEndActionActive())
+	if (hp_ <= 0)
+	{
+		// 撃破処理
+		ActiveAction(ACTION_TYPE::DEFEAT);
+		PlayAnimation(ANIMATION_TYPE::DEFEAT, false);
+	}
+	else if (actionController_->IsEndActionActive())
 	{
 		// 行動終了時、ダメージアニメーション
 		PlayAnimation(ANIMATION_TYPE::DAMAGE, false, true);
@@ -279,54 +338,31 @@ void Boss::ProcessMove(void)
 {
 	InputManager& input = InputManager::GetInstance();
 
-	VECTOR dir = UtilityMath::VECTOR_ZERO;
+	LookPlayerPos();
 
+	if (!UtilityMath::EqualsVZero(moveDir_))
+	{
+		VECTOR dir = moveDir_;
 
-	if (GetJoypadNum() > 0)
-	{
-		dir = input.GetDirXZ_LStick();
-	}
-	else
-	{
-		if (input.IsNew(InputManager::TYPE::PLAYER_MOVE_BACK)) { dir.z += 1.0f; }
-		if (input.IsNew(InputManager::TYPE::PLAYER_MOVE_FRONT)) { dir.z += -1.0f; }
-		if (input.IsNew(InputManager::TYPE::PLAYER_MOVE_LEFT)) { dir.x += -1.0f; }
-		if (input.IsNew(InputManager::TYPE::PLAYER_MOVE_RIGHT)) { dir.x += 1.0f; }
-	}
-
-	if (!UtilityMath::EqualsVZero(dir))
-	{
 		// 移動を正規化
 		const float len = std::sqrtf((dir.x * dir.x) + (dir.z * dir.z));
 		dir.x /= len;
 		dir.z /= len;
 
-		TimeMove_ += SceneManager::GetInstance().GetDeltaTime();
-
 		// 徐々に最高速度に到達させる
 		if (moveSpeed_ < status_.speedMax)
 		{
-			const float rate = UtilityCommon::EaseInOutQuart(TimeMove_ / status_.speedAcc);
+			timeMove_ += SceneManager::GetInstance().GetDeltaTime();
+
+			const float rate = UtilityCommon::EaseInOutQuart(timeMove_ / status_.speedAcc);
 			moveSpeed_ = status_.speedInit + (status_.speedMax - status_.speedInit) * rate;
 		}
 
 		// アニメーション再生
 		PlayAnimation(ANIMATION_TYPE::WALK);
 
-		// カメラの方向で進行
-		Quaternion cameraRot = SceneManager::GetInstance().GetCamera().GetQuaRotY();
-
-		// 移動方向を取得
-		moveDir_ = Quaternion::PosAxis(cameraRot, dir);
-
 		// 加速度に割り当て
 		movePow_ = VScale(moveDir_, moveSpeed_);
-	}
-	else
-	{
-		ResetMove();
-
-		PlayAnimation(ANIMATION_TYPE::IDLE);
 	}
 }
 

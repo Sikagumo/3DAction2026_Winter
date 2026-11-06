@@ -56,23 +56,15 @@ public:
 	// 攻撃判定無効化
 	void ResetColliderAttackArea(void);
 
+	void SetIsAction(bool isActive) { isAction_ = isActive; }
+
 protected:
-
-	static constexpr VECTOR LOCAL_POS_SWORD = { 0.0f, 0.0f, 0.0f };
-	static constexpr VECTOR LOCAL_ROT_SWORD = { -90.0f, 180.0f, 0.0f };
-
-	// 剣の位置のフレーム
-	static constexpr int FRAME_NUM_SWORD_POINT = 52;
-
-	static constexpr int FRAME_NUM_SWORD_TOP = 38;
-	static constexpr int FRAME_NUM_SWORD_BOTTOM = 52;
 
 	// 防御時のダメージカット倍率
 	static constexpr float DEFENSE_CUT_DAMAGE = 0.75f;
 
 	// 無効時間
 	static constexpr float DAMAGE_INV_TIME = 1.0f;
-
 
 	std::unique_ptr<AnimationController> animation_ = nullptr;
 
@@ -91,7 +83,7 @@ protected:
 
 	float timeInv_ = 0.0f;
 
-	float TimeMove_ = 0.0f;
+	float timeMove_ = 0.0f;
 
 	float curSpeed_ = 0.0f;
 
@@ -113,6 +105,7 @@ protected:
 
 	bool isSwordActive_ = false;
 
+	bool isAction_ = true;
 	
 	virtual void InitLoad(void)override final;
 	virtual void InitLoadPost(void) = 0;

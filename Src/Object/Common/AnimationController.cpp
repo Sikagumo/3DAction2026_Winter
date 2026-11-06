@@ -260,7 +260,7 @@ void AnimationController::Play(int type, bool isLoop, bool isReversePlay, float 
 void AnimationController::Update(void)
 {
 	// Œo‰ßŽžŠÔ‚ÌŽæ“¾
-	float deltaTime = SceneManager::GetInstance().GetDeltaTime();
+	float deltaTime = ((isSlow_) ? SceneManager::GetInstance().GetDeltaTime() / 2 : SceneManager::GetInstance().GetDeltaTime());
 
 	// ’âŽ~Žž‚Éˆ—I—¹
 	if (isStop_ && timeStop_ > 0.0f)

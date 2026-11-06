@@ -1,6 +1,7 @@
 #include "Player.h"
 #include <array>
 #include <cassert>
+#include <unordered_map>
 #include <functional>
 #include "../../../Application.h"
 #include "../../../Manager/ResourceManager.h"
@@ -25,6 +26,15 @@ namespace
 	constexpr VECTOR LOCAL_ROT = { 0.0f, 180.0f, 0.0f };
 	constexpr VECTOR START_POS = { 0.0f, 2.5f, 0.0f };
 	const float ATTACK_RADIUS = 85.0f;
+
+	static constexpr VECTOR LOCAL_POS_SWORD = { 0.0f, 0.0f, 0.0f };
+	static constexpr VECTOR LOCAL_ROT_SWORD = { -90.0f, 180.0f, 0.0f };
+
+	// 剣の位置のフレーム
+	constexpr int FRAME_NUM_SWORD_POINT = 52;
+
+	constexpr int FRAME_NUM_SWORD_TOP = 38;
+	constexpr int FRAME_NUM_SWORD_BOTTOM = 52;
 
 	// 衝突判定用線分開始
 	constexpr VECTOR COL_LINE_START_LOCAL_POS = { 0.0f, 80.0f, 0.0f };
@@ -227,7 +237,8 @@ void Player::InitActionPost(void)
 		, ToControllerParam(actionMap, ACTION_TYPE::DAMAGE)
 		, MakeActionCommand([this]() { ActionNone(); })
 		);
-	// 強攻撃
+
+	// 撃破
 	actionController_->SetAction(static_cast<int>(ACTION_TYPE::DEFEAT)
 		, ToControllerParam(actionMap, ACTION_TYPE::DEFEAT)
 		, MakeActionCommand([this]() { ActionNone(); })
@@ -246,12 +257,6 @@ void Player::UpdateProcess(void)
 {
 	if (hp_ <= 0)
 	{
-		if (GetAnimationType() != ANIMATION_TYPE::DEFEAT)
-		{
-			// 撃破処理
-			ActiveAction(ACTION_TYPE::DEFEAT);
-			PlayAnimation(ANIMATION_TYPE::DEFEAT, false);
-		}
 		return;
 	}
 
@@ -330,7 +335,7 @@ void Player::Draw(void)
 	diffuseColor = ((timeInv_ > 0.0f) ? DAMAGE_COLOR : diffuseColor);
 
 	// パリィ有効時、白く光らせる
-	diffuseColor = ((parryTime_ > 0.0f && actionState_ == ACTION_STATE::DEFENSE) ? PARRY_COLOR : diffuseColor);
+	diffuseColor = ((parryTime_ > 0.0f) ? PARRY_COLOR : diffuseColor);
 
 	MV1SetDifColorScale(transform_.modelId, diffuseColor);
 
@@ -341,12 +346,12 @@ void Player::DrawDebug(void)
 {
 #ifdef _DEBUG
 	DrawFormatString(0, 0, 0xff0000, "Player:speed(time:%.2f, speed:%.2f)"
-		, TimeMove_, moveSpeed_);
+		, timeMove_, moveSpeed_);
 
 	actionController_->DrawDebug();
 #endif
 
-	DrawFormatString(0, Application::SCREEN_HALF_Y + (8 * 3), 0xffffff, "PlayerHp:%d", hp_, actionController_->GetCurActionNum());
+	DrawFormatString(0, Application::SCREEN_HALF_Y + (8 * 3), 0xffffff, "プレイヤーHP:%d", hp_, actionController_->GetCurActionNum());
 }
 void Player::DrawPre(void)
 {
@@ -386,7 +391,7 @@ void Player::CollisionReserve(void)
 
 void Player::SetDamage(int damageHp, int damageStamina)
 {
-	if (timeInv_ > 0.0f || hp_ <= 0) {
+	if (timeInv_ > 0.0f || hp_ <= 0 || !isAction_) {
 		return;
 	}
 
@@ -426,14 +431,22 @@ void Player::SetDamage(int damageHp, int damageStamina)
 	stamina_ -= static_cast<int>(damagePowerStamina);
 
 	// 行動終了時、ダメージ演出
-	PlayAnimation(ANIMATION_TYPE::DAMAGE, false, false, true);
-	ActiveAction(ACTION_TYPE::DAMAGE);
-	ResetMove();
-	actionState_ = ACTION_STATE::IDLE;
+	if (hp_ <= 0)
+	{
+		// 撃破処理
+		ActiveAction(ACTION_TYPE::DEFEAT);
+		PlayAnimation(ANIMATION_TYPE::DEFEAT, false);
+	}
+	else if (GetActionType() == ACTION_TYPE::ATTACK_HEAVY && GetActionType() == ACTION_TYPE::ATTACK_LIGHT)
+	{
+		PlayAnimation(ANIMATION_TYPE::DAMAGE, false, false, true);
+		ActiveAction(ACTION_TYPE::DAMAGE);
+		ResetMove();
+		actionState_ = ACTION_STATE::IDLE;
+	}
 
 #ifdef _DEBUG
-	if (actionState_ == ACTION_STATE::DEFENSE
-		&& GetAnimationType() == ANIMATION_TYPE::DEFENSE)
+	if (actionState_ == ACTION_STATE::DEFENSE)
 	{
 		printfDx("パリィ失敗");
 	}
@@ -466,14 +479,14 @@ void Player::ProcessMove(void)
 		dir.x /= len;
 		dir.z /= len;
 		
-		TimeMove_ += SceneManager::GetInstance().GetDeltaTime();
+		timeMove_ += SceneManager::GetInstance().GetDeltaTime();
 
 		// ダッシュ時と通常時で最高速度を切替
 		const float SPEED_MAX = (IS_DASH ? status_.speedDash : status_.speedWalk);
 
 		if (moveSpeed_ < SPEED_MAX)
 		{
-			const float rate = UtilityCommon::EaseInOutQuart(TimeMove_ / status_.speedAccTime);
+			const float rate = UtilityCommon::EaseInOutQuart(timeMove_ / status_.speedAccTime);
 			moveSpeed_ = status_.speedInit + (SPEED_MAX - status_.speedInit) * rate;
 		}
 

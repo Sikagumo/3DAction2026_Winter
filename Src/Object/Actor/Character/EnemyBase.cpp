@@ -1,10 +1,10 @@
 #include "CharaBase.h"
 #include "../../../Manager/SceneManager.h"
 #include "../../../Manager/StatusManager.h"
-#include "../../../Utility/ModelFrameUtility.h"
 #include "../../Status/StatusEnemy.h"
 #include "../../Common/ActionController.h"
 #include "Player.h"
+#include <memory>
 #include "EnemyBase.h"
 
 EnemyBase::EnemyBase(const std::unique_ptr<Player>& player, StatusEnemy::ENEMY_TYPE enemyType)
@@ -17,6 +17,10 @@ EnemyBase::EnemyBase(const std::unique_ptr<Player>& player, StatusEnemy::ENEMY_T
 void EnemyBase::UpdateProcess(void)
 {
 	SearchField();
+
+	stanTime_ = ((stanTime_ > 0.0f) ? (stanTime_ - SceneManager::GetInstance().GetDeltaTime()) : stanTime_);
+
+	actionController_->SetIsSlow((stanTime_ > 0.0f));
 
 	UpdateProcessPost();
 }
@@ -50,18 +54,6 @@ void EnemyBase::LookPlayerPos(void)
 
 	// 向きに反映
 	transform_.quaRot = Quaternion::LookRotation(moveDir_, UtilityMath::AXIS_Y);
-}
-
-void EnemyBase::UpdateSwordParam(void)
-{
-	ModelFrameUtility::SetFrameWorldMatrix(
-		transform_, FRAME_NUM_SWORD_TOP, sword_, LOCAL_POS_SWORD, VGet(0.0f, 0.0f, 0.0f));
-
-	// matRot(プレイヤーの向き+手の回転)を quaRot に変換して反映する
-	sword_.quaRot = Quaternion::GetRotation(sword_.matRot);
-
-	// 誤った Mult 行は削除(プレイヤーの向きはフレーム行列に含まれており、二重掛けになる)
-	sword_.Update();
 }
 
 void EnemyBase::SearchField(void)

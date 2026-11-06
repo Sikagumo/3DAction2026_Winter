@@ -78,6 +78,11 @@ void Camera::InitPost(void)
 	hasTarget_ = false;
 	isLockOn_ = false;
 	lockOnParam_ = TargetParam();
+
+#ifdef _DEBUG
+	// “–‚½‚è”»’è‚ð•\Ž¦‚µ‚È‚¢
+	isViewCollision_ = false;
+#endif
 }
 
 void Camera::Update(void)

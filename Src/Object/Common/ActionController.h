@@ -49,11 +49,11 @@ public:
 
 	/// @brief 行動の登録(コマンド所有版)
 	void SetAction(int _actionNum, const ActionParam& param
-				   , std::unique_ptr<IActionCommand> command);
+		, std::unique_ptr<IActionCommand> command);
 
 	/// @brief 行動の登録(std::function版。std::bindからの移行用)
 	void SetAction(int _actionNum, const ActionParam& param
-				   , std::function<void(void)> function);
+		, std::function<void(void)> function);
 
 	/// @brief 登録した行動を開始する
 	void Active(int actionNum);
@@ -71,9 +71,12 @@ public:
 	bool IsEndActionActive(void) const { return (curTimeActionActive_ <= 0.0f); }
 
 	/// @brief 行動が終了しているか否か
-	bool IsActionEnd(void)const { return (actionState_ != ACTION_STATE::ACTION && IsEndActionActive()); }
+	bool IsActionEnd(void)const { return (actionState_ != ACTION_STATE::ACTION && curTimeAction_ <= 0.0f); }
 
 	ACTION_STATE GetActionState(void) const { return actionState_; }
+
+	void SetIsSlow(bool isSlow) { isSlow_ = isSlow; }
+
 
 private:
 
@@ -86,6 +89,8 @@ private:
 	std::map<int, ActionEntry> actions_;
 
 	std::unique_ptr<AnimationController>& animation_;
+
+	bool isSlow_ = false;
 
 	// 現在の行動状態
 	ACTION_STATE actionState_;

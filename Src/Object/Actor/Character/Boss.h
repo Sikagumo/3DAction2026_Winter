@@ -27,6 +27,7 @@ public:
 		MAX,
 	};
 
+
 	Boss(const std::unique_ptr<Player>& player);
 	~Boss(void)override = default;
 
@@ -53,6 +54,8 @@ protected:
 
 	void DrawPre(void)override;
 
+	void UpdateSwordParam(void)override;
+
 
 private:
 
@@ -64,6 +67,8 @@ private:
 	const std::unordered_map<StatusBoss::ACTION_TYPE, StatusBoss::ActionParam>& actionStatus_;
 
 	ACTION_TYPE nextActionType_;
+
+	static constexpr int PATTERN_MAX = 3;
 
 	// ëÄçÏ
 	void ProcessMove(void);

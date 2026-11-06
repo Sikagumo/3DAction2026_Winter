@@ -12,7 +12,8 @@ public:
 	// “G‚ÌŽí—Þ
 	enum class ENEMY_TYPE
 	{
-		NONE = 0,
+		NONE = -1,
+
 		BOSS,
 		MAX,
 	};

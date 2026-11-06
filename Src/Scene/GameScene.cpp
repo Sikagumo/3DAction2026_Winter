@@ -193,7 +193,7 @@ void GameScene::Draw(void)
 	// ƒV[ƒ“‘JˆÚ
 	if (gameState_ != GAME_STATE::GAME_ACTIVE)
 	{
-		constexpr int MOVIE_SIZE = 85;
+		constexpr int MOVIE_SIZE = 65;
 		DrawBox(0, 0, Application::SCREEN_SIZE_X
 			, MOVIE_SIZE, 0x0, true);
 
@@ -212,12 +212,11 @@ void GameScene::Draw(void)
 	else
 	{
 		boss_->DrawDebug();
+		player_->DrawDebug();
 	}
 
 #ifdef _DEBUG
 
-	player_->DrawDebug();
-	boss_->DrawDebug();
 	SceneManager::GetInstance().GetCamera().DrawDebug();
 
 #endif
@@ -249,6 +248,7 @@ void GameScene::Collision(void)
 	{
 		boss_->SetDamage(player_->GetAttackPower(), 0);
 		player_->ResetColliderAttackArea();
+		SoundManager::GetInstance().Play(SoundManager::SRC::SE_SWORD_LIGHT, false);
 	}
 
 	const auto& bossAttack = dynamic_cast<const ColliderSphere*>(boss_->GetOwnCollider(COLLIDER_TYPE_ATTACK_AREA));
@@ -258,6 +258,13 @@ void GameScene::Collision(void)
 	{
 		player_->SetDamage(boss_->GetAttackPower(), 0);
 		boss_->ResetColliderAttackArea();
+		SoundManager::GetInstance().Play(SoundManager::SRC::SE_SWORD_LIGHT, false, true, -1.0f);
+
+		if (player_->IsActiveParry())
+		{
+			constexpr float STAN_TIME = 1.5f;
+			boss_->SetStanTime(STAN_TIME);
+		}
 	}
 }
 
@@ -289,12 +296,17 @@ void GameScene::UpdateStateGameActive(void)
 
 	if (boss_->GetHp() <= 0)
 	{
+		player_->SetIsAction(false);
+		boss_->SetIsAction(false);
 		SceneManager::GetInstance().GetPerformance().StartHitSlow(PERFORM_CLEAR_SLOW, PERFORM_CLEAR_SLOW_POWER);
 		SceneManager::GetInstance().SetPerformTime(PERFORM_CLEAR_TIME);
 		gameState_ = GAME_STATE::GAME_CLEAR;
 	}
 	else if (player_->GetHp() <= 0)
 	{
+		player_->SetIsAction(false);
+		boss_->SetIsAction(false);
+		SceneManager::GetInstance().GetPerformance().StartHitSlow(PERFORM_CLEAR_SLOW, PERFORM_CLEAR_SLOW_POWER);
 		SceneManager::GetInstance().SetPerformTime(PERFORM_CLEAR_TIME);
 		gameState_ = GAME_STATE::GAME_OVER;
 	}

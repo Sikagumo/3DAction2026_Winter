@@ -35,7 +35,7 @@ public:
 	StatusPlayer& GetPlayerStatus(void)const { return *player_; };
 
 	/// @brief 敵ステータス参照
-	StatusEnemy& GetEnemyStatus(int target)const { return *enemy_.at(target - 1).get(); };
+	const StatusEnemy& GetEnemyStatus(int target);
 
 	/// @brief 敵ステータスマップ参照
 	const EnemyMap& GetEnemyStatusMap(void)const { return enemy_; };

@@ -37,7 +37,7 @@ void ActorBase::Draw(void)
 	DrawLate();
 
 #ifdef _DEBUG
-	if (SceneManager::GetInstance().GetIsDebugMode())
+	if (SceneManager::GetInstance().GetIsDebugMode() && isViewCollision_)
 	{
 		// 所有しているコライダの描画
 		for (const auto& [type, collider] : ownColliders_)

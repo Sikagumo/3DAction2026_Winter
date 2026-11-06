@@ -134,6 +134,8 @@ public:
 	/// @brief 停止しているか否か
 	bool IsStop(void)const { return isStop_; };
 
+	void SetIsSlow(bool isSlow) { isSlow_ = isSlow; }
+
 	/// @brief 再生位置変更
 	/// @param rate 再生位置の割合(0.0f～1.0f)
 	void SetAnimationStepRate(float rate);
@@ -177,6 +179,8 @@ private:
 
 	// アニメーションを停止するか否か
 	bool isStop_ = false;
+
+	bool isSlow_ = false;
 
 	// 停止時間
 	float timeStop_ = 0.0f;

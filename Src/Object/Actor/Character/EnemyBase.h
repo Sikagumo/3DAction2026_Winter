@@ -15,6 +15,8 @@ public:
 
 	void SetDamage(int damageHp, int damageStamina)override = 0;
 
+	void SetStanTime(float time) { stanTime_ = time; }
+
 
 protected:
 
@@ -29,6 +31,11 @@ protected:
 	// 行動時間
 	float actionTime_ = 0.0f;
 
+	// 移動するか否か
+	bool isMove_ = false;
+
+	float stanTime_ = 0.0f;
+
 	virtual void InitLoadPost(void)override = 0;
 	virtual void InitAnimationPost(void)override = 0;
 	virtual void InitActionPost(void)override = 0;
@@ -42,11 +49,4 @@ protected:
 
 	/// @brief プレイヤーの方向を追尾
 	void LookPlayerPos(void);
-
-	void UpdateSwordParam(void)override;
-
-
-private:
-
-	bool isMove_ = false;
 };

@@ -100,7 +100,7 @@ void ActionController::Update(void)
 
 void ActionController::Update_Action(void)
 {
-	const float delta = SceneManager::GetInstance().GetDeltaTime();
+	const float delta = ((isSlow_) ? SceneManager::GetInstance().GetDeltaTime() / 2 : SceneManager::GetInstance().GetDeltaTime());
 	const ActionEntry& entry = actions_.at(curActionNum_);
 
 	if (curTimeStopActive_ > 0.0f)
@@ -138,7 +138,7 @@ void ActionController::Update_Action(void)
 
 void ActionController::Update_End(void)
 {
-	if (curTimeAction_ < 0.0f)
+	if (curTimeAction_ <= 0.0f)
 	{
 		actionState_ = ACTION_STATE::NONE;
 		curActionNum_ = -1;

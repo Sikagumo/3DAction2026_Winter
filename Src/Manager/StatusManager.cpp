@@ -52,6 +52,10 @@ void StatusManager::DestroyInstance(void)
 {
 	if (instance_ != nullptr)
 	{
+		if (!instance_->SaveStatusDat())
+		{
+			OutputDebugStringA("\nバイナリファイルを書き込みできませんでした。\n");
+		}
 		delete instance_;
 	}
 }
@@ -84,6 +88,18 @@ void StatusManager::Load(void)
 	{
 		LoadBossAction();
 	}
+}
+
+const StatusEnemy& StatusManager::GetEnemyStatus(int target)
+{
+	const auto& it = enemy_.find(target);
+	if (it == enemy_.end())
+	{
+		OutputDebugStringA(("敵のパラメータサイズ: " + std::to_string(enemy_.size()) + "\n").c_str());
+		assert(false);
+	}
+
+	return *it->second.get();
 }
 
 std::string StatusManager::ReadCsvFile(const std::string& path)
@@ -282,7 +298,6 @@ bool StatusManager::ReadBinaryPlayerStatus(BinaryReader& reader, StatusPlayer& p
 		reader.Read(param.speedAccTime) &&
 		reader.Read(param.speedWalk) &&
 		reader.Read(param.speedDash) &&
-		reader.Read(param.dashSpeedMultiple) &&
 		reader.Read(param.timeEvasion) &&
 		reader.Read(param.timeInv) &&
 		reader.Read(animationSpeed.idle) &&
@@ -474,7 +489,6 @@ void StatusManager::WritePlayerStatus(std::ofstream& ofs) const
 	WriteValue(ofs, playerParam.speedAccTime);
 	WriteValue(ofs, playerParam.speedWalk);
 	WriteValue(ofs, playerParam.speedDash);
-	WriteValue(ofs, playerParam.dashSpeedMultiple);
 	WriteValue(ofs, playerParam.timeEvasion);
 	WriteValue(ofs, playerParam.timeInv);
 

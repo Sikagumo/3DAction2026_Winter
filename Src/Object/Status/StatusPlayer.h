@@ -21,11 +21,10 @@ public:
 		STAMINA_MAX,     // 最大スタミナ
 		POWER_LIGHT,     // 弱攻撃力
 		POWER_HEAVY,     // 強攻撃力
-		ANIMATION_SPEED, // 初期移動速度
+		SPEED_INIT,      // 初期移動速度
 		SPEED_ACC_TIME,  // 最高速度到達度
 		SPEED_WALK,      // 歩行速度
 		SPEED_DASH,      // ダッシュ速度
-		DASH_SPEED_MULT, // ダッシュ時の増加倍率
 		TIME_INVINCIBLE, // 無敵時間
 		TIME_EVASION,    // 回避時間
 
@@ -96,8 +95,6 @@ public:
 		// ダッシュ速度
 		float speedDash = 0.0f;
 
-		float dashSpeedMultiple = 0.0f;
-
 		float timeEvasion = 0.0f;
 
 		// 回避時間
@@ -146,11 +143,10 @@ public:
 		UtilityCommon::ChangeString(_loadString[static_cast<int>(PARAM::STAMINA_MAX)], playerParam_.stamina, 0);
 		UtilityCommon::ChangeString(_loadString[static_cast<int>(PARAM::POWER_LIGHT)], playerParam_.powerLight, 0);
 		UtilityCommon::ChangeString(_loadString[static_cast<int>(PARAM::POWER_HEAVY)], playerParam_.powerHeavy, 0);
-		UtilityCommon::ChangeString(_loadString[static_cast<int>(PARAM::ANIMATION_SPEED)], playerParam_.speedInit, 0.0f);
+		UtilityCommon::ChangeString(_loadString[static_cast<int>(PARAM::SPEED_INIT)], playerParam_.speedInit, 0.0f);
 		UtilityCommon::ChangeString(_loadString[static_cast<int>(PARAM::SPEED_ACC_TIME)], playerParam_.speedAccTime, 0.0f);
 		UtilityCommon::ChangeString(_loadString[static_cast<int>(PARAM::SPEED_WALK)], playerParam_.speedWalk, 0.0f);
 		UtilityCommon::ChangeString(_loadString[static_cast<int>(PARAM::SPEED_DASH)], playerParam_.speedDash, 0.0f);
-		UtilityCommon::ChangeString(_loadString[static_cast<int>(PARAM::DASH_SPEED_MULT)], playerParam_.dashSpeedMultiple , 1.0f);
 		UtilityCommon::ChangeString(_loadString[static_cast<int>(PARAM::TIME_INVINCIBLE)], playerParam_.timeInv, 0.0f);
 		UtilityCommon::ChangeString(_loadString[static_cast<int>(PARAM::TIME_EVASION)], playerParam_.timeEvasion, 0.0f);
 

@@ -418,7 +418,7 @@ void CharaBase::SetColliderAttackArea(float radius)
 
 	// ÉçÅ[ÉJÉãç¿ïWí≤êÆ
 	VECTOR localPos = sphere.GetLocalPos();
-	localPos.z = (sphere.LOCAL_POS_INIT.z + radius);
+	localPos.z = (sphere.LOCAL_POS_INIT.z + (radius / 2));
 	sphere.SetLocalPos(localPos);
 }
 
@@ -486,6 +486,6 @@ void CharaBase::ResetMove(void)
 {
 	movePow_ = UtilityMath::VECTOR_ZERO;
 
-	TimeMove_ = 0.0f;
+	timeMove_ = 0.0f;
 	moveSpeed_ = 0.0f;
 }
