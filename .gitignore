@@ -39,3 +39,4 @@ Debug/
 Release/
 Log.txt
 imgui.ini
+*.pdb

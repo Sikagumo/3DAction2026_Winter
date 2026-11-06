@@ -1,17 +1,19 @@
-#include <chrono>
-#include <DxLib.h>
-#include <EffekseerForDXLib.h>
 #include "../Application.h"
 #include "../Common/Fader.h"
 #include "../Scene/SceneBase.h"
 #include "../Scene/TitleScene.h"
 #include "../Scene/GameScene.h"
-#include "./ResourceManager.h"
+#include "ResourceManager.h"
+#include "SoundManager.h"
 #include "../Utility/UtilityMath.h"
-#include "./InputManager.h"
+#include "InputManager.h"
 #include "../Object/Actor/ActorBase.h"
 #include "../Camera/Camera.h"
 #include "../Common/Performance.h"
+#include <chrono>
+#include <map>
+#include <DxLib.h>
+#include <EffekseerForDXLib.h>
 #include "SceneManager.h"
 
 namespace
@@ -244,6 +246,12 @@ void SceneManager::ResetDeltaTime(void)
 
 void SceneManager::DoChangeScene(SCENE_ID sceneId)
 {
+	// 音声全停止
+	if (sceneId_ == SCENE_ID::GAME && sceneId == SCENE_ID::TITLE)
+	{
+		SoundManager::GetInstance().StopAll();
+	}
+
 	// シーンを変更する
 	sceneId_ = sceneId;
 

@@ -1,19 +1,17 @@
 #include "Sound.h"
-#include "./SoundManager.h"
+#include "SoundManager.h"
 #include <algorithm>
 
-Sound::Sound(void):
-	sound_(SoundInfo())
+Sound::Sound(void)
+	: sound_{}
 {
 
 }
-Sound::Sound(TYPE type, const std::string& path, bool isBGM):
-	sound_(SoundInfo(type, path, isBGM))
-
+Sound::Sound(TYPE type, int handle, bool isBGM)
+	: Sound::Sound()
 {
-
+	SetSoundInfo(type, handle, isBGM);
 }
-
 
 void Sound::Update(VECTOR pos)
 {
@@ -37,33 +35,29 @@ void Sound::Update(VECTOR pos)
 
 void Sound::Load(void)
 {
-	if (sound_.type == TYPE::NONE) return;
-
-
-	// 3Dサウンド時に、3Dサウンドのフラグ割り当て
-	SetCreate3DSoundFlag((sound_.type == TYPE::SOUND_3D));
+	if (sound_.handle != -1) { return; }
 
 	// 音声ハンドル割り当て
-	sound_.handle = LoadSoundMem(sound_.path.c_str());
-	
+	ResourceManager::SRC soundSrc = static_cast<ResourceManager::SRC>(sound_.src);
+	sound_.handle = ResourceManager::GetInstance().LoadHandleId(soundSrc);
+
+	// ピッチ変更の基準
+	sound_.baseFrequency = GetFrequencySoundMem(sound_.handle);
 }
 
 void Sound::Release(void)
 {
-	if (sound_.handle == -1) return;
+	if (sound_.handle == -1) { return; }
 
-	if (CheckSoundMem(sound_.handle) == 1)
-	{
-		// 再生時、再生中の音声を停止
-		StopSoundMem(sound_.handle);
-	}
+	// 再生時、再生中の音声を停止
+	StopSoundMem(sound_.handle);
 
-	// 音声ファイルを解放
-	DeleteSoundMem(sound_.handle);
+	// ハンドルを未割当化
+	sound_.handle = -1;
 }
 
 
-bool Sound::Play(TIMES times, bool isPitch, int _pitchRange, bool isForce)
+bool Sound::Play(TIMES times, bool isPitch, int pitchRange, bool isForce)
 {
 	sound_.isPlayOld = sound_.isPlay;
 
@@ -89,14 +83,12 @@ bool Sound::Play(TIMES times, bool isPitch, int _pitchRange, bool isForce)
 		DX_PLAYTYPE_BACK :
 		DX_PLAYTYPE_LOOP);
 
-
-	// 音声のピッチをランダムで変更しソースを再読み込み
 	if (isPitch)
 	{
-		int range = _pitchRange;
-		int rand = GetRand(range + range) - (range / 2);
-		SetCreateSoundPitchRate(static_cast<float>(rand) * MUSICAL_SCALE_HALF);
-		sound_.handle = LoadSoundMem(sound_.path.c_str());
+		// 半音の幅によって音声のピッチをランダムで変更
+		float semitone = (GetRand(2000) / 1000.0f - 1.0f) * pitchRange;
+		SetFrequencySoundMem(static_cast<int>(sound_.baseFrequency * std::exp2(semitone / 12.0f)),
+			sound_.handle);
 	}
 
 	// サウンド割り当て判定
@@ -199,7 +191,7 @@ void Sound::Stop(void)
 }
 
 
-bool Sound::CheckSoundHandle(void)
+bool Sound::CheckSoundHandle(void) const
 {
 	if (CheckSoundMem(sound_.handle) != -1)
 	{
@@ -210,13 +202,13 @@ bool Sound::CheckSoundHandle(void)
 	return true;
 }
 
-bool Sound::IsLoad(void)
+bool Sound::IsLoad(void)const
 {
 	// ハンドルが読み込まれている時、true
 	return (sound_.handle != -1);
 }
 
-void Sound::SetVolume(float per)
+void Sound::SetVolume(float per)const
 {
 	// 音量の上限・下限制限(0.0～1.0)
 
@@ -236,7 +228,7 @@ void Sound::SetMaxVolume(float per)
 }
 
 
-bool Sound::IsStart(void)
+bool Sound::IsStart(void)const
 {
 	// サウンド未割当時、無効
 	if (sound_.handle != -1) return false;
@@ -245,7 +237,7 @@ bool Sound::IsStart(void)
 	return (sound_.isPlay && !sound_.isPlayOld);
 }
 
-bool Sound::IsPlay(void)
+bool Sound::IsPlay(void)const
 {
 	// サウンド未割当時、無効
 	if (sound_.handle != -1) return false;
@@ -254,7 +246,7 @@ bool Sound::IsPlay(void)
 	return (sound_.isPlay && sound_.isPlayOld);
 }
 
-bool Sound::IsEnd(void)
+bool Sound::IsEnd(void)const
 {
 	// サウンド未割当時、無効
 	if (sound_.handle != -1) return false;
@@ -263,7 +255,15 @@ bool Sound::IsEnd(void)
 	return (!sound_.isPlay && sound_.isPlayOld);
 }
 
-bool Sound::IsBGM(void)
+bool Sound::IsBGM(void)const
 {
 	return (sound_.isBgm && sound_.handle != -1);
+}
+
+void Sound::SetSoundInfo(TYPE type, int src, bool isBgm)
+{
+	sound_.type = type;
+	sound_.src = src;
+	sound_.handle = -1;
+	sound_.isBgm = isBgm;
 }

@@ -40,11 +40,14 @@ public:
 	{
 		NONE = -1, // 未割当
 
-		DRAWING_SWARD, // 抜刀
+		DRAWING_SWORD,   // 抜刀
+		SHEATHING_SWORD, // 納刀
 		ATTACK_LIGHT,  // 弱攻撃
 		ATTACK_HEAVY,  // 強攻撃
 		DEFENSE,       // 防御
 		DODGE,         // 回避
+		DAMAGE,        // 被ダメージ
+		DEFEAT,        // 撃破
 
 		MAX,
 	};
@@ -120,6 +123,13 @@ public:
 		float animationSpeed = 0.0f;
 	};
 
+	/// @brief アニメーション速度
+	struct AnimationSpeed
+	{
+		float idle = 0.0f;
+		float walk = 0.0f;
+		float run = 0.0f;
+	};
 
 	StatusPlayer(void);
 
@@ -144,9 +154,9 @@ public:
 		UtilityCommon::ChangeString(_loadString[static_cast<int>(PARAM::TIME_INVINCIBLE)], playerParam_.timeInv, 0.0f);
 		UtilityCommon::ChangeString(_loadString[static_cast<int>(PARAM::TIME_EVASION)], playerParam_.timeEvasion, 0.0f);
 
-		UtilityCommon::ChangeString(_loadString[static_cast<int>(PARAM::ANIM_SPEED_IDLE)], animationSpeedIdle_, 0.0f);
-		UtilityCommon::ChangeString(_loadString[static_cast<int>(PARAM::ANIM_SPEED_WALK)], animationSpeedWalk_, 0.0f);
-		UtilityCommon::ChangeString(_loadString[static_cast<int>(PARAM::ANIM_SPEED_DASH)], animationSpeedRun_, 0.0f);
+		UtilityCommon::ChangeString(_loadString[static_cast<int>(PARAM::ANIM_SPEED_IDLE)], animationSpeed_.idle, 0.0f);
+		UtilityCommon::ChangeString(_loadString[static_cast<int>(PARAM::ANIM_SPEED_WALK)], animationSpeed_.walk, 0.0f);
+		UtilityCommon::ChangeString(_loadString[static_cast<int>(PARAM::ANIM_SPEED_DASH)], animationSpeed_.run, 0.0f);
 	}
 
 	void LoadActionParam(ACTION_TYPE type, const std::array<std::string, static_cast<int>(ACTION_PARAM::MAX)>& _loadString)
@@ -167,8 +177,7 @@ public:
 	/// @brief プレイヤーパラメータ割り当て
 	void SetPlayerParam(const PlayerParam& param) { playerParam_ = param; }
 
-	/// @brief アニメーション速度割り当て
-	void SetAnimationSpeed(float idle, float walk, float run);
+	void SetAnimationSpeed(const AnimationSpeed& animationSpeed) { animationSpeed_ = animationSpeed; }
 
 	/// @brief 行動パラメータ割り当て
 	void SetActionParam(ACTION_TYPE type, const ActionParam& param) { action_[type] = param; }
@@ -178,20 +187,14 @@ public:
 
 	const std::unordered_map<ACTION_TYPE, ActionParam>& GetPlayerAction(void) { return action_; }
 
-	/// @brief アニメーション速度
-	float GetAnimationSpeedIdle(void)const { return animationSpeedIdle_; }
-	float GetAnimationSpeedWalk(void)const { return animationSpeedWalk_; }
-	float GetAnimationSpeedRun(void)const { return animationSpeedRun_; }
-
+	/// @brief アニメーション速度取得
+	const AnimationSpeed& GetAnimationSpeed(void) { return animationSpeed_; };
 
 private:
 	
 	PlayerParam playerParam_;
 
-	// アニメーション速度
-	float animationSpeedIdle_ = 0.0f;
-	float animationSpeedWalk_ = 0.0f;
-	float animationSpeedRun_ = 0.0f;
+	AnimationSpeed animationSpeed_;
 
 	// モーションパラメータ
 	std::unordered_map<ACTION_TYPE, ActionParam> action_;

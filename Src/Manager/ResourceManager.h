@@ -2,7 +2,7 @@
 
 #include <unordered_map>
 #include <string>
-#include "./Resource.h"
+#include "Resource.h"
 
 class ResourceManager
 {
@@ -36,11 +36,12 @@ public:
 		IMGS_SELECT_PUSE_TEX,
 
 		/* モデル */
-		MODEL_SKYDOME, // スカイドーム
-		MODEL_PLAYER,  // プレイヤー
-		MODEL_PLAYER_SWORD,  // プレイヤー剣
-		MODEL_BOSS,    // ボス
-		MODEL_ENEMY,   // 雑魚敵
+		MODEL_SKYDOME,      // スカイドーム
+		MODEL_PLAYER,       // プレイヤー
+		MODEL_PLAYER_SWORD, // プレイヤー剣
+		MODEL_BOSS,         // ボス
+		MODEL_ENEMY,        // 雑魚敵
+		MODEL_ENEMY_SWORD,  // 敵の剣
 
 		MODEL_STAGE,           // ステージ
 		MODEL_STAGE_COLLISION, // ステージの当たり判定
@@ -76,21 +77,15 @@ public:
 		/* 映像 */
 
 		/* BGM */
-		BGM_TITLE_SEA,
-		BGM_TITLE_THUNDER,
+		BGM_TITLE,
 		BGM_GAME,
 		BGM_RESULT,
 		BGM_LOBBY,
 
 		/* 効果音 */
 		SE_SELECT,
-		SE_PLAYER_DAMAGE,
-		SE_PLAYER_RECOVERY,
-		SE_HIT_POISON,
-		SE_PBULLET_POISON,
-		SE_BOSS_MG_FIRE,
-		SE_BOSS_LANDING,
-		SE_BOSS_ROAD,
+		SE_PARRY,
+		SE_SLASH_LIGHT,
 		SE_HIT_BLAST,
 		SE_LOBBY_SELCET,
 		SE_UI_SELECT,
@@ -138,28 +133,28 @@ public:
 
 
 	/// @brief リソースのハンドルを取得
-	/// @param _src 読み込み対象
-	const int LoadHandleId(SRC _src);
-	const int LoadHandleId(int _src) { return LoadHandleId(static_cast<SRC>(_src)); };
+	/// @param src 読み込み対象
+	const int LoadHandleId(SRC src);
+	const int LoadHandleId(int src) { return LoadHandleId(static_cast<SRC>(src)); };
 
 	/// @brief 複数画像のハンドルを画像ハンドルに割り当て
-	/// @param _src 読み込み対象
+	/// @param src 読み込み対象
 	/// @param target 複数画像配列の先頭パス
-	void LoadHandleIds(SRC _src, int* target);
+	void LoadHandleIds(SRC src, int* target);
 
 	/// @brief 複数画像のハンドルを画像ハンドルの部分割り当て
-	/// @param _src 複数画像の読み込み対象
+	/// @param src 複数画像の読み込み対象
 	/// @param _imageNum 画像対象
-	const int LoadHandleIdsOnce(SRC _src, int _imageNum);
+	const int LoadHandleIdsOnce(SRC src, int _imageNum);
 
 	/// @brief 3Dモデル重複利用時の読み込み
-	/// @param _src 読み込み対象
-	int LoadModelDuplicate(SRC _src);
+	/// @param src 読み込み対象
+	int LoadModelDuplicate(SRC src);
 
 	/// @brief リソースのハンドルを取得
-	/// @param _src 読み込み対象
-	std::string GetHandlePath(SRC _src);
-	std::string GetHandlePath(int _src) { return GetHandlePath(static_cast<SRC>(_src)); };
+	/// @param src 読み込み対象
+	std::string GetHandlePath(SRC src);
+	std::string GetHandlePath(int src) { return GetHandlePath(static_cast<SRC>(src)); };
 
 
 private:
@@ -189,17 +184,17 @@ private:
 	
 
 	/// @brief リソースのロード
-	/// @param _src 読み込み対象
-	Resource Load(SRC _src);
+	/// @param src 読み込み対象
+	Resource Load(SRC src);
 
 	/// @brief リソース取得処理(複数画像)
 	/// @param _loadType 読み込み方法
-	/// @param _src リソース対象
+	/// @param src リソース対象
 	/// @param path パス
 	/// @param allNum 画像の数
 	/// @param numX 最大横画像数
 	/// @param numY 最大縦画像数
-	void _SetResource(Resource::LOAD_TYPE _loadType, SRC _src, std::string path
+	void _SetResource(Resource::LOAD_TYPE _loadType, SRC src, std::string path
 					  , int allNum = -1, int numX = -1, int numY = -1);
 
 	/// @brief 内部ロード処理

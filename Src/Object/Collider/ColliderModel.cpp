@@ -1,7 +1,7 @@
 #include "ColliderModel.h"
 #include <string>
 #include <vector>
-#include "./ColliderBase.h"
+#include "ColliderBase.h"
 #include "../Common/Transform.h"
 
 

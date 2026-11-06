@@ -10,13 +10,14 @@ public:
 	{
 		NONE = -1,
 
-		IMAGE,     // 単一画像
-		IMAGES,    // 複数画像
-		MODEL,     // 3Dモデル
-		MOVIE,     // 映像ファイル
-		ANIMATION, // アニメーションファイル
-		EFFECT,    // エフェクト
-		SOUND,     // 音声
+		IMAGE,         // 単一画像
+		IMAGES,        // 複数画像
+		MODEL,         // 3Dモデル
+		MOVIE,         // 映像ファイル
+		ANIMATION,     // アニメーションファイル
+		EFFECT,        // エフェクト
+		SOUND,         // 音声
+		SOUND_3D,      // 3D音声
 		VERTEX_SHADER, // 頂点シェーダ
 		PIXEL_SHADER,  // ピクセルシェーダ
 	};
@@ -91,20 +92,20 @@ private:
 
 
 	/// @brief 読み込み処理
-	void Load_ImageAndMovie(void);
-	void Load_Images(void);
-	void Load_ModelAndAnimation(void);
-	void Load_Effect(void);
-	void Load_Sound(void);
-	void Load_VertexShader(void);
-	void Load_PixelShader(void);
+	void LoadImageAndMovie(void);
+	void LoadImages(void);
+	void LoadModelAndAnimation(void);
+	void LoadEffect(void);
+	void LoadSound(void);
+	void LoadShaderVertex(void);
+	void LoadShaderPixel(void);
 
 	/// @brief リソース解放処理
-	void Release_ImageAndMovie(void)const;
-	void Release_Images(void);
-	void Release_ModelAndAnimation(void)const;
-	void Release_Effect(void)const;
-	void Release_Sound(void)const;
-	void Release_VertexShader(void)const;
-	void Release_PixelShader(void)const;
+	void ReleaseImageAndMovie(void)const;
+	void ReleaseImages(void);
+	void ReleaseModelAndAnimation(void)const;
+	void ReleaseEffect(void)const;
+	void ReleaseSound(void)const;
+	void ReleaseShaderVertex(void)const;
+	void ReleaseShaderPixel(void)const;
 };

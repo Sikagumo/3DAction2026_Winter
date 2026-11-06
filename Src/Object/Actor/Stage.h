@@ -1,7 +1,7 @@
 #pragma once
 #include <memory>
 #include <map>
-#include "./ActorBase.h"
+#include "ActorBase.h"
 class ResourceManager;
 class Player;
 

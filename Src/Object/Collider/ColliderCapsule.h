@@ -34,7 +34,7 @@ public:
 
 	/// @brief 始点終点の半径
 	float GetRadius(void) const { return radius_; }
-	void SetRadius(float _radius) { radius_ = _radius; }
+	void SetRadius(float radius) { radius_ = radius; }
 
 	/// @brief 始点終点間の高さ取得
 	float GetHeight(void) const { return localPosTop_.y; }

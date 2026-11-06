@@ -85,7 +85,7 @@ public:
 
 	/// @brief カメラモードの変更
 	/// @param mode 遷移後のモード
-	void ChangeMode(MODE mode);
+	void SetCameraMode(MODE mode);
 
 	/// @brief 追従対象の設定
 	/// @param _follow 追従対象

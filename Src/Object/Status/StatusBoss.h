@@ -3,7 +3,7 @@
 #include <array>
 #include <unordered_map>
 #include "../../Utility/UtilityCommon.h"
-#include "./StatusEnemy.h"
+#include "StatusEnemy.h"
 
 
 class StatusBoss : public StatusEnemy
@@ -24,10 +24,15 @@ public:
 
 	enum class ACTION_TYPE
 	{
-		NONE = -1,    // 未割当
-		ATTACK_LIGHT, // 弱攻撃
-		ATTACK_HEAVY, // 強攻撃
-		DEFENSE,      // 防御
+		NONE = -1, // 未割当
+
+		STAND_UP,      // 立ち上がり
+		DRAWING_SWORD, // 抜刀
+		ATTACK_LIGHT,  // 弱攻撃
+		ATTACK_HEAVY,  // 強攻撃
+		DEFENSE,       // 防御
+		DAMAGE,        // ダメージ
+		DEFEAT,        // 撃破
 
 		MAX,
 	};
@@ -41,7 +46,8 @@ public:
 		TIME_TIMING_ACTIVE,  // 有効のタイミング
 
 		ANIMATION_SPEED, // モーションアニメーション速度
-		ATTACK_RADIUS,    // 攻撃範囲
+		ATTACK_RADIUS,   // 攻撃範囲
+		ATTACK_POWER,    // 行動別攻撃力 
 
 		MAX,
 	};
@@ -59,6 +65,8 @@ public:
 		float animationSpeed = 0.0f;
 
 		float attackRadius = 0.0f;
+
+		int attackPower = 0;
 	};
 
 
@@ -75,6 +83,7 @@ public:
 		UtilityCommon::ChangeString(_loadString[static_cast<int>(ACTION_PARAM::TIME_TIMING_ACTIVE)], action.timeTimingActive, 0.0f);
 		UtilityCommon::ChangeString(_loadString[static_cast<int>(ACTION_PARAM::ANIMATION_SPEED)], action.animationSpeed, 0.0f);
 		UtilityCommon::ChangeString(_loadString[static_cast<int>(ACTION_PARAM::ATTACK_RADIUS)], action.attackRadius, 0.0f);
+		UtilityCommon::ChangeString(_loadString[static_cast<int>(ACTION_PARAM::ATTACK_POWER)], action.attackPower, 0);
 		action_.emplace(type, action);
 	}
 	

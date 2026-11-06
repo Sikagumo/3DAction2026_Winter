@@ -20,13 +20,14 @@ public:
 		ANIMATION_TYPE type = ANIMATION_TYPE::NONE;
 		int modelId	        = -1;   // アニメーションモデル
 		int attachNo        = -1;
-		int animationIndex	= 0;    // モデル内アニメーション番号
-		float speedWalk		    = 0.0f; // 再生速度
+		int animationIndex  = 0;    // モデル内アニメーション番号
+		float speed		    = 0.0f; // 再生速度
 		float totalTime     = 0.0f; // 最大再生時間
 		float step          = 0.0f;	// 現在再生時間
 
-		bool isLoadPath = false; // パスで読み込んでいるか否か
-		bool isInPlace  = false; // アニメーションの位置を固定するか否か
+		bool isLoadPath    = false; // パスで読み込んでいるか否か
+		bool isInPlace     = false; // アニメーションの位置を固定するか否か
+		bool isReversePlay = false; // 逆再生するか否か
 
 		// 固定するアニメーションローカル位置
 		VECTOR inPlaceLocalPos = UtilityMath::VECTOR_ZERO;
@@ -84,9 +85,10 @@ public:
 	/// @brief アニメーション再生
 	/// @param type アニメーションの種類
 	/// @param isLoop ループするか否か @hint default = true
+	/// @param isReversePlay 逆再生するか否か
 	/// @param playSpeed 再生速度 @hint default = initSpeed
 	/// @param blendTime アニメーション遷移時間
-	void Play(int type, bool isLoop = true, float playSpeed = -1.0f, float blendTime = BLEND_TIME_DEFAULT);
+	void Play(int type, bool isLoop = true, bool isReversePlay = false, float playSpeed = -1.0f, float blendTime = BLEND_TIME_DEFAULT);
 
 	/// @brief 更新処理
 	void Update(void);
@@ -97,6 +99,8 @@ public:
 	/// @brief メモリ解放処理
 	void Release(void);
 
+	/// @brief 再生中のアニメーションを再生し直す
+	void ReStart(void);
 
 	/// @brief アニメーションが終了しているか否か
 	bool IsEnd(void) const;
@@ -113,6 +117,11 @@ public:
 	/// @brief 再生中のアニメーション番号取得
 	int GetPlayType(void)const { return playType_; };
 
+	/// @brief 再生方向を考慮した終端到達判定
+	bool IsReachedEnd(const Animation& animation) const;
+
+	/// @brief 再生方向を考慮した「再生の進み具合」(0.0～1.0)
+	float GetProgressRate(const Animation& animation) const;
 
 	/// @brief アニメーション停止処理
 	/// @param stopTime 停止時間

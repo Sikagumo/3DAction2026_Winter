@@ -4,6 +4,7 @@
 #include "../Manager/SceneManager.h"
 #include "../Manager/ResourceManager.h"
 #include "../Manager/InputManager.h"
+#include "../Manager/SoundManager.h"
 #include "../Camera/Camera.h"
 #include <DxLib.h>
 #include "TitleScene.h"
@@ -32,7 +33,10 @@ void TitleScene::Initialize(void)
 	imagePush_ = ResourceManager::GetInstance().LoadHandleId(ResourceManager::SRC::IMAGE_UI_PUSH_SPACE);
 
 	// ÉJÉÅÉâìoò^
-	SceneManager::GetInstance().GetCamera().ChangeMode(Camera::MODE::FIXED_POINT);
+	SceneManager::GetInstance().GetCamera().SetCameraMode(Camera::MODE::FIXED_POINT);
+
+	// BGMçƒê∂
+	SoundManager::GetInstance().Play(SoundManager::SRC::BGM_TITLE, true);
 }
 
 void TitleScene::Update(void)
@@ -41,6 +45,7 @@ void TitleScene::Update(void)
 	if (InputManager::GetInstance().IsTrgDown(InputManager::TYPE::SELECT_DECISION))
 	{
 		SceneManager::GetInstance().ChangeScene(SceneManager::SCENE_ID::GAME);
+		SoundManager::GetInstance().Play(SoundManager::SRC::SE_CLICK, false);
 	}
 }
 

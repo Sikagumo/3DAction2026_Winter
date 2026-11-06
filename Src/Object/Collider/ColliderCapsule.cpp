@@ -1,7 +1,7 @@
 #include "ColliderCapsule.h"
 #include <DxLib.h>
 #include "../Common/Transform.h"
-#include "./ColliderModel.h"
+#include "ColliderModel.h"
 
 
 ColliderCapsule::ColliderCapsule(TAG tag, const Transform* follow

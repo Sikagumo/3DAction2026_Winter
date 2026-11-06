@@ -1,5 +1,5 @@
 #include "StatusBoss.h"
-#include "./StatusEnemy.h"
+#include "StatusEnemy.h"
 
 StatusBoss::StatusBoss(void)
 	: StatusEnemy::StatusEnemy()

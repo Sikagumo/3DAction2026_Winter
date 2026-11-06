@@ -2,7 +2,7 @@
 #include <map>
 #include <memory>
 #include <functional>
-#include "./ActionCommand.h"
+#include "ActionCommand.h"
 
 class AnimationController;
 

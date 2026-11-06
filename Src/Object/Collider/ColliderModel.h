@@ -1,5 +1,5 @@
 #pragma once
-#include "./ColliderBase.h"
+#include "ColliderBase.h"
 #include <vector>
 #include <string>
 

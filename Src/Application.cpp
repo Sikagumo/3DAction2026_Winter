@@ -2,13 +2,14 @@
 #include <DxLib.h>
 #include <EffekseerForDXLib.h>
 #include <string>
-#include "./Manager/StatusManager.h"
-#include "./Manager/InputManager.h"
-#include "./Manager/ResourceManager.h"
-#include "./Manager/SceneManager.h"
-#include "./Common/FrameRate.h"
-#include "./Common/ImGuiWrapper.h"
-#include "./resource.h"
+#include "Manager/StatusManager.h"
+#include "Manager/InputManager.h"
+#include "Manager/ResourceManager.h"
+#include "Manager/SceneManager.h"
+#include "Manager/SoundManager.h"
+#include "Common/FrameRate.h"
+#include "Common/ImGuiWrapper.h"
+#include "resource.h"
 
 namespace
 {
@@ -71,6 +72,7 @@ void Application::Initialize(void)
 	// 管理マネージャ初期化
 	StatusManager::CreateInstance();
 	ResourceManager::CreateInstance();
+	SoundManager::CreateInstance();
 	SceneManager::CreateInstance();
 }
 
@@ -133,8 +135,9 @@ void Application::Run(void)
 void Application::DestroyInstance(void)
 {
 	// 管理マネージャのメモリ解放
-	StatusManager::GetInstance().DestroyInstance();
 	SceneManager::GetInstance().DestroyInstance();
+	SoundManager::GetInstance().DestroyInstance();
+	StatusManager::GetInstance().DestroyInstance();
 	ResourceManager::GetInstance().DestroyInstance();
 	ImGuiWrapper::GetInstance().DestroyInstance();
 	InputManager::GetInstance().DestroyInstance();

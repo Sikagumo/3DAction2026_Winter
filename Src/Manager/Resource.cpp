@@ -37,42 +37,42 @@ void Resource::Load(void)
 	switch (resType_)
 	{
 		case LOAD_TYPE::IMAGE: case LOAD_TYPE::MOVIE:
-			Load_ImageAndMovie();
+			LoadImageAndMovie();
 		break;
 
 		case LOAD_TYPE::IMAGES:
-			Load_Images();
+			LoadImages();
 		break;
 
 		case LOAD_TYPE::MODEL: case LOAD_TYPE::ANIMATION:
-			Load_ModelAndAnimation();
+			LoadModelAndAnimation();
 		break;
 		
 		case LOAD_TYPE::EFFECT:
-			Load_Effect();
+			LoadEffect();
 		break;
 
 		case LOAD_TYPE::SOUND:
-			Load_Sound();
+			LoadSound();
 		break;
 
 		case LOAD_TYPE::VERTEX_SHADER:
-			Load_VertexShader();
+			LoadShaderVertex();
 		break;
 
 		case LOAD_TYPE::PIXEL_SHADER:
-			Load_PixelShader();
+			LoadShaderPixel();
 		break;
 	}
 
 }
 
-void Resource::Load_ImageAndMovie(void)
+void Resource::LoadImageAndMovie(void)
 {
 	/* 単一画像・映像ファイルの読み込み */
 	handleId_ = LoadGraph(path_.c_str());
 }
-void Resource::Load_Images(void)
+void Resource::LoadImages(void)
 {
 	/* 複数画像の読み込み */
 	int handle = LoadGraph(path_.c_str());
@@ -88,12 +88,12 @@ void Resource::Load_Images(void)
 		sizeX, sizeY,
 		(&handleIds_[0]));
 }
-void Resource::Load_ModelAndAnimation(void)
+void Resource::LoadModelAndAnimation(void)
 {
 	/* 3Dモデル・アニメーションファイルの読み込み */
 	handleId_ = MV1LoadModel(path_.c_str());
 }
-void Resource::Load_Effect(void)
+void Resource::LoadEffect(void)
 {
 	/* エフェクトの読み込み */
 	// 1. 現在の非同期フラグの状態を一時的に保存しつつ、一時的に「同期読み込み(false)」にする
@@ -106,19 +106,21 @@ void Resource::Load_Effect(void)
 	// 3. 読み込みが終わったら、元の非同期フラグの状態に戻す
 	SetUseASyncLoadFlag(prevAsyncFlag);
 }
-void Resource::Load_Sound(void)
+void Resource::LoadSound(void)
 {
 	/* 音声ファイルの読み込み */
+	SetCreate3DSoundFlag(resType_ == LOAD_TYPE::SOUND_3D);
 	handleId_ = LoadSoundMem(path_.c_str());
+	SetCreate3DSoundFlag(FALSE);
 }
 
-void Resource::Load_VertexShader(void)
+void Resource::LoadShaderVertex(void)
 {
 	/* 頂点シェーダファイルの読み込み */
 	handleId_ = LoadVertexShader(path_.c_str());
 }
 
-void Resource::Load_PixelShader(void)
+void Resource::LoadShaderPixel(void)
 {
 	/* ピクセルシェーダファイルの読み込み */
 	handleId_ = LoadPixelShader(path_.c_str());
@@ -132,50 +134,50 @@ void Resource::Release(void)
 	switch (resType_)
 	{
 		case LOAD_TYPE::IMAGE: case LOAD_TYPE::MOVIE:
-			Release_ImageAndMovie();
+			ReleaseImageAndMovie();
 		break;
 
 		case LOAD_TYPE::IMAGES:
-			Release_Images();
+			ReleaseImages();
 		break;
 
 		case LOAD_TYPE::MODEL: case LOAD_TYPE::ANIMATION:
-			Release_ModelAndAnimation();
+			ReleaseModelAndAnimation();
 		break;
 
 		case LOAD_TYPE::EFFECT:
-			Release_Effect();
+			ReleaseEffect();
 		break;
 
 		case LOAD_TYPE::SOUND:
-			Release_Sound();
+			ReleaseSound();
 		break;
 
 		case LOAD_TYPE::VERTEX_SHADER:
-			Release_VertexShader();
+			ReleaseShaderVertex();
 			break;
 
 		case LOAD_TYPE::PIXEL_SHADER:
-			Release_PixelShader();
+			ReleaseShaderPixel();
 			break;
 	}
 }
-void Resource::Release_ImageAndMovie(void)const
+void Resource::ReleaseImageAndMovie(void)const
 {
 	/* 単一画像・映像ファイルの解放 */
 	DeleteGraph(handleId_);
 }
-void Resource::Release_Images(void)
+void Resource::ReleaseImages(void)
 {
-	/* 複数画像の解放 */
+	// 複数画像の解放
 	for (int& handle : handleIds_)
 	{
 		DeleteGraph(handle);
 	}
 }
-void Resource::Release_ModelAndAnimation(void)const
+void Resource::ReleaseModelAndAnimation(void)const
 {
-	/* 3Dモデル・アニメーションファイルの解放 */
+	// 3Dモデル・アニメーションファイルの解放
 	MV1DeleteModel(handleId_);
 
 	auto& ids = duplicationModelIds_;
@@ -191,14 +193,14 @@ void Resource::Release_ModelAndAnimation(void)const
 		MV1DeleteModel(id);
 	}
 }
-void Resource::Release_Effect(void)const
+void Resource::ReleaseEffect(void)const
 {
-	/* エフェクトの解放 */
+	// エフェクトの解放
 	DeleteEffekseerEffect(handleId_);
 }
-void Resource::Release_Sound(void)const
+void Resource::ReleaseSound(void)const
 {
-	/* 音声ファイルの解放 */
+	// 音声ファイルの解放
 	if (CheckSoundMem(handleId_) == 1)
 	{
 		// 再生時、再生中の音声を停止
@@ -209,15 +211,15 @@ void Resource::Release_Sound(void)const
 	DeleteSoundMem(handleId_);
 }
 
-void Resource::Release_VertexShader(void) const
+void Resource::ReleaseShaderVertex(void) const
 {
-	/* 頂点シェーダの解放 */
+	// 頂点シェーダの解放
 	DeleteShader(handleId_);
 }
 
-void Resource::Release_PixelShader(void) const
+void Resource::ReleaseShaderPixel(void) const
 {
-	/* ピクセルシェーダの解放 */
+	// ピクセルシェーダの解放
 	DeleteShader(handleId_);
 }
 

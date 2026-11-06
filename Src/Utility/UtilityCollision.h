@@ -81,7 +81,7 @@ public:
 	/// @param _toPos 反発しない対象の位置
 	/// @param _toRad 反発しないの半径
 	/// @returns 反発ベクトル
-	static const VECTOR& CollisionReflectXZ(float targetPosY, const VECTOR& fromPos, float fromRad, const VECTOR& _toPos, float _toRad);
+	static VECTOR CollisionReflectXZ(float targetPosY, const VECTOR& fromPos, float fromRad, const VECTOR& _toPos, float _toRad);
 
 
 private:

@@ -1,5 +1,5 @@
 #include "ColliderSphere.h"
-#include "./ColliderBase.h"
+#include "ColliderBase.h"
 #include "../Common/Transform.h"
 
 ColliderSphere::ColliderSphere(TAG tag, const Transform* follow, const VECTOR& localPos, float radius)

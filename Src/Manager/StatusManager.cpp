@@ -12,7 +12,7 @@
 #include "../Object/Status/StatusEnemy.h"
 #include "../Object/Status/StatusBoss.h"
 #include "../Object/Status/BinaryRender.h"
-#include "./ResourceManager.h"
+#include "ResourceManager.h"
 
 namespace
 {
@@ -266,7 +266,7 @@ void StatusManager::LoadBossAction(void)
 bool StatusManager::ReadBinaryPlayerStatus(BinaryReader& reader, StatusPlayer& player)
 {
 	StatusPlayer::PlayerParam param{};
-	float idle = 0.0f, walk = 0.0f, run = 0.0f;
+	StatusPlayer::AnimationSpeed animationSpeed{};
 
 	// 書き出し(WritePlayerStatus)と同じ順番
 	const bool IS_OK = (
@@ -285,15 +285,15 @@ bool StatusManager::ReadBinaryPlayerStatus(BinaryReader& reader, StatusPlayer& p
 		reader.Read(param.dashSpeedMultiple) &&
 		reader.Read(param.timeEvasion) &&
 		reader.Read(param.timeInv) &&
-		reader.Read(idle) &&
-		reader.Read(walk) &&
-		reader.Read(run)
+		reader.Read(animationSpeed.idle) &&
+		reader.Read(animationSpeed.walk) &&
+		reader.Read(animationSpeed.run)
 		);
 	if (!IS_OK) { return false; }
 
 	
 	player.SetPlayerParam(param);
-	player.SetAnimationSpeed(idle, walk, run);
+	player.SetAnimationSpeed(animationSpeed);
 	return true;
 }
 
@@ -479,9 +479,10 @@ void StatusManager::WritePlayerStatus(std::ofstream& ofs) const
 	WriteValue(ofs, playerParam.timeInv);
 
 	// PlayerParam外のアニメーション速度
-	WriteValue(ofs, player_->GetAnimationSpeedIdle());
-	WriteValue(ofs, player_->GetAnimationSpeedWalk());
-	WriteValue(ofs, player_->GetAnimationSpeedRun());
+	const auto& animationSpeed = player_->GetAnimationSpeed();
+	WriteValue(ofs, animationSpeed.idle);
+	WriteValue(ofs, animationSpeed.walk);
+	WriteValue(ofs, animationSpeed.run);
 }
 
 void StatusManager::WritePlayerAction(std::ofstream& ofs) const

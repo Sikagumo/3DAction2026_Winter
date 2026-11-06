@@ -1,5 +1,6 @@
 #pragma once
 #include "../ActorBase.h"
+#include "../../Common/ActionController.h"
 #include <memory>
 #include <functional>
 
@@ -21,13 +22,26 @@ public:
 		MAX,
 	};
 
+	enum class ACTION_STATE
+	{
+		NONE = -1,
+
+		IDLE,    // 待機
+		WALK,    // 歩行
+		DASH,    // ダッシュ
+		ACTION,  // 行動
+		DEFENSE, // 防御
+		DEFEAT,  // 撃破
+
+		MAX
+	};
 
 	CharaBase(void);
-	virtual ~CharaBase(void) override = default;
+	virtual ~CharaBase(void) override;
 
 	void Update(void)override final;
 
-	void Release(void)override;
+	void Release(void)override final;
 
 	virtual void SetDamage(int damageHp, int damageStamina) = 0;
 
@@ -43,6 +57,15 @@ public:
 	void ResetColliderAttackArea(void);
 
 protected:
+
+	static constexpr VECTOR LOCAL_POS_SWORD = { 0.0f, 0.0f, 0.0f };
+	static constexpr VECTOR LOCAL_ROT_SWORD = { -90.0f, 180.0f, 0.0f };
+
+	// 剣の位置のフレーム
+	static constexpr int FRAME_NUM_SWORD_POINT = 52;
+
+	static constexpr int FRAME_NUM_SWORD_TOP = 38;
+	static constexpr int FRAME_NUM_SWORD_BOTTOM = 52;
 
 	// 防御時のダメージカット倍率
 	static constexpr float DEFENSE_CUT_DAMAGE = 0.75f;
@@ -88,6 +111,8 @@ protected:
 	// ジャンプ判定
 	bool isFall_ = false;
 
+	bool isSwordActive_ = false;
+
 	
 	virtual void InitLoad(void)override final;
 	virtual void InitLoadPost(void) = 0;
@@ -121,8 +146,11 @@ protected:
 	virtual void UpdateSwordParam(void) {};
 
 	/// @brief 攻撃範囲割り当て
-	/// @param _radius 範囲
-	void SetColliderAttackArea(float _radius);
+	/// @param radius 範囲
+	void SetColliderAttackArea(float radius);
 
 	void ChangeUpdateAction(int actionType);
+
+	/// @brief 行動の処理なし
+	void ActionNone(void) {};
 };

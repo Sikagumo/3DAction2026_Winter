@@ -1,19 +1,12 @@
-#include "SoundManager.h"
+#include "ResourceManager.h"
+#include "Resource.h"
 #include <DxLib.h>
 #include <string>
 #include <cassert>
-#include "./ResourceManager.h"
-#include "./Resource.h"
+#include <memory>
+#include "SoundManager.h"
 
 SoundManager* SoundManager::instance_ = nullptr;
-
-const std::string SoundManager::PATH_BGM_TITLE = ResourceManager::PATH_BGM + "TitleBGM.mp3";
-const std::string SoundManager::PATH_BGM_GAME  = ResourceManager::PATH_BGM + "GameBGM.mp3";
-
-const std::string SoundManager::PATH_SE_CLICK  = ResourceManager::PATH_SE + "Click.mp3";
-const std::string SoundManager::PATH_SE_SWORD_LIGHT = ResourceManager::PATH_SE + "SwordLight.mp3";
-const std::string SoundManager::PATH_SE_SWORD_HEAVY = ResourceManager::PATH_SE + "SwordHeavy.mp3";
-const std::string SoundManager::PATH_SE_KNOCK  = ResourceManager::PATH_SE + "KnockDown.mp3";
 
 void SoundManager::CreateInstance(void)
 {
@@ -27,7 +20,6 @@ void SoundManager::CreateInstance(void)
 	instance_->Load();
 }
 
-
 void SoundManager::Load(void)
 {
 	// 主音量割り当て
@@ -40,50 +32,53 @@ void SoundManager::Load(void)
 	SetSounds();
 }
 
-
 void SoundManager::SetSounds(void)
 {
+	using RESOURCE = ResourceManager::SRC;
+
 	// SE
+	SetSound(SRC::SE_CLICK, static_cast<int>(RESOURCE::SE_SELECT)
+		, Sound::TYPE::SOUND_2D, VOLUME_CLICK);
 
-	SetSound(SRC::SE_CLICK, PATH_SE_CLICK, Sound::TYPE::SOUND_2D, VOLUME_CLICK);
-	SetSound(SRC::SE_SWORD_LIGHT, PATH_SE_SWORD_LIGHT, Sound::TYPE::SOUND_2D, VOLUME_LIGHT);
-	SetSound(SRC::SE_SWORD_HEAVY, PATH_SE_SWORD_HEAVY, Sound::TYPE::SOUND_2D, VOLUME_HEAVY);
+	SetSound(SRC::SE_SWORD_LIGHT, static_cast<int>(RESOURCE::SE_SLASH_LIGHT)
+		, Sound::TYPE::SOUND_2D, VOLUME_LIGHT);
 
-	//SetSound(SRC::SE_KNOCK, PATH_SE_KNOCK, Sound::TYPE::SOUND_2D, VOLUME_KNOCK);
-
+	SetSound(SRC::SE_PARRY, static_cast<int>(RESOURCE::SE_PARRY)
+		, Sound::TYPE::SOUND_2D, VOLUME_PARRY);
 
 	//　BGM
+	SetSound(SRC::BGM_TITLE, static_cast<int>(RESOURCE::BGM_TITLE)
+		, Sound::TYPE::SOUND_2D, VOLUME_TITLE, true);
 
-	SetSound(SRC::BGM_TITLE, PATH_BGM_TITLE, Sound::TYPE::SOUND_2D, VOLUME_TITLE, true);
-	SetSound(SRC::BGM_GAME, PATH_BGM_GAME, Sound::TYPE::SOUND_2D, VOLUME_GAME, true);
+	SetSound(SRC::BGM_GAME, static_cast<int>(RESOURCE::BGM_GAME)
+		, Sound::TYPE::SOUND_2D, VOLUME_GAME, true);
 
 }
-void SoundManager::SetSound(SoundManager::SRC _src, const std::string& path,
+void SoundManager::SetSound(SoundManager::SRC src, int resource,
 							Sound::TYPE type, float maxVolume, bool isBGM)
 {
-	Sound res;
+	std::unique_ptr<Sound> res = std::make_unique<Sound>(type, resource, isBGM);
 
-	res = Sound(type, path, isBGM);
-	res.SetMaxVolume(maxVolume);
-	sounds_.emplace(_src, res);
+	res->SetMaxVolume(maxVolume);
+	sounds_.emplace(src, std::move(res));
 }
 
 
 void SoundManager::Release(void)
 {
-	if (sounds_.empty()) return;
+	if (sounds_.empty()) { return; }
 
 	for (auto& sound : sounds_)
 	{
 		// 各サウンドのメモリ解放
-		sound.second.Release();
+		sound.second->Release();
 	}
 
 	// リストをクリア
 	sounds_.clear();
 }
 
-void SoundManager::Destroy(void)
+void SoundManager::DestroyInstance(void)
 {
 	// メモリ解放
 	Release();
@@ -95,10 +90,10 @@ void SoundManager::Destroy(void)
 	delete instance_;
 }
 
-bool SoundManager::Play(SRC _src, bool isLoop, bool isPitch, float _pitchRange, bool isForce)
+bool SoundManager::Play(SRC src, bool isLoop, bool isPitch, float pitchRange, bool isForce)
 {
 	/* 2D音声を再生 */
-	const auto& findSound = sounds_.find(_src);
+	const auto& findSound = sounds_.find(src);
 
 	if (findSound == sounds_.end())
 	{
@@ -109,20 +104,20 @@ bool SoundManager::Play(SRC _src, bool isLoop, bool isPitch, float _pitchRange, 
 	}
 
 
-	if (!findSound->second.IsLoad())
+	if (!findSound->second->IsLoad())
 	{
 		// 読み込み処理
-		findSound->second.Load();
+		findSound->second->Load();
 	}
 
 	// 2Dサウンド再生処理
 	Sound::TIMES times = ((isLoop) ? Sound::TIMES::LOOP : Sound::TIMES::ONCE);
-	return findSound->second.Play(times, isPitch, static_cast<int>(_pitchRange * 255.0f),isForce);
+	return findSound->second->Play(times, isPitch, static_cast<int>(pitchRange * 255.0f),isForce);
 }
-bool SoundManager::Play(SRC _src, bool isLoop, VECTOR _pos, float _radius)
+bool SoundManager::Play(SRC src, bool isLoop, VECTOR _pos, float radius)
 {
 	/* 3D音声を再生 */
-	const auto& lPair = sounds_.find(_src);
+	const auto& lPair = sounds_.find(src);
 
 	if (lPair == sounds_.end())
 	{
@@ -133,20 +128,20 @@ bool SoundManager::Play(SRC _src, bool isLoop, VECTOR _pos, float _radius)
 	}
 
 
-	if (!lPair->second.IsLoad())
+	if (!lPair->second->IsLoad())
 	{
 		// 読み込み処理
-		lPair->second.Load();
+		lPair->second->Load();
 	}
 
 	// 3Dサウンド再生処理
 	Sound::TIMES times = ((isLoop) ? Sound::TIMES::LOOP : Sound::TIMES::ONCE);
-	return lPair->second.Play(times, _pos, _radius);
+	return lPair->second->Play(times, _pos, radius);
 }
 
-void SoundManager::Stop(SRC _src)
+void SoundManager::Stop(SRC src)
 {
-	const auto& listPair = sounds_.find(_src);
+	const auto& listPair = sounds_.find(src);
 
 	// 判定対象
 	if (listPair == sounds_.end())
@@ -159,7 +154,7 @@ void SoundManager::Stop(SRC _src)
 	}
 	
 	// 指定の音声を停止
-	return listPair->second.Stop();
+	return listPair->second->Stop();
 }
 
 void SoundManager::StopAll(void)
@@ -168,14 +163,14 @@ void SoundManager::StopAll(void)
 
 	for (auto& sound : sounds_)
 	{
-		if (!sound.second.IsLoad())
+		if (!sound.second->IsLoad())
 		{
 			// 未読み込み時、スキップ
 			continue;
 		}
 
 		// リスト内のサウンドを全て停止
-		sound.second.Stop();
+		sound.second->Stop();
 	}
 }
 
@@ -187,26 +182,26 @@ void SoundManager::StopAllChoice(bool isBGM)
 
 	for (auto& sound : sounds_)
 	{
-		if (!sound.second.IsLoad() ||
-			!sound.second.IsBGM() == isBGM)
+		if (!sound.second->IsLoad() ||
+			!sound.second->IsBGM() == isBGM)
 		{
 			// 未読み込み時、指定の種類以外スキップ
 			continue;
 		}
 
 		// リスト内のサウンドを全て停止
-		sound.second.Stop();
+		sound.second->Stop();
 	}
 }
 
-void SoundManager::SetVolume(SRC _src, float per)
+void SoundManager::SetVolume(SRC src, float per)
 {
-	const auto& lPair = sounds_.find(_src);
+	const auto& lPair = sounds_.find(src);
 
 	if (lPair != sounds_.end())
 	{
 		// 音声があるとき、音量を割り当て
-		return lPair->second.SetVolume(per);
+		return lPair->second->SetVolume(per);
 	}
 
 #ifdef _DEBUG
@@ -215,11 +210,11 @@ void SoundManager::SetVolume(SRC _src, float per)
 #endif
 }
 
-bool SoundManager::IsSoundStart(SRC _src)
+bool SoundManager::IsSoundStart(SRC src)
 {
-	const auto& soundlist = sounds_.find(_src);
+	const auto& soundList = sounds_.find(src);
 
-	if (soundlist == sounds_.end())
+	if (soundList == sounds_.end())
 	{
 #ifdef _DEBUG
 		assert(false &&"\n停止するサウンドが割り当てられていません\n(；_；)\n"); // 例外スロー
@@ -228,14 +223,14 @@ bool SoundManager::IsSoundStart(SRC _src)
 	}
 
 	// 音声があるとき、再生か判定
-	return soundlist->second.IsStart();
+	return soundList->second->IsStart();
 }
 
-bool SoundManager::IsSoundPlay(SRC _src)
+bool SoundManager::IsSoundPlay(SRC src)
 {
-	const auto& soundlist = sounds_.find(_src);
+	const auto& soundList = sounds_.find(src);
 
-	if (soundlist == sounds_.end())
+	if (soundList == sounds_.end())
 	{
 #ifdef _DEBUG
 		assert(false &&"\n停止するサウンドが割り当てられていません\n(；_；)\n"); // 例外スロー
@@ -244,14 +239,14 @@ bool SoundManager::IsSoundPlay(SRC _src)
 	}
 
 	// 音声があるとき、再生か判定
-	return soundlist->second.IsPlay();
+	return soundList->second->IsPlay();
 }
 
-bool SoundManager::IsSoundEnd(SRC _src)
+bool SoundManager::IsSoundEnd(SRC src)
 {
-	const auto& soundlist = sounds_.find(_src);
+	const auto& soundList = sounds_.find(src);
 
-	if (soundlist == sounds_.end())
+	if (soundList == sounds_.end())
 	{
 #ifdef _DEBUG
 		assert(false &&"\n停止するサウンドが割り当てられていません\n(；_；)\n"); // 例外スロー
@@ -261,7 +256,7 @@ bool SoundManager::IsSoundEnd(SRC _src)
 
 	// 音声があるとき、再生か判定
 
-	return soundlist->second.IsEnd();;
+	return soundList->second->IsEnd();;
 }
 
 void SoundManager::SetVolumeMaster(float volume)

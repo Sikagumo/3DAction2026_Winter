@@ -167,6 +167,7 @@
     <ClInclude Include="Src\Object\Actor\ActorBase.h" />
     <ClInclude Include="Src\Object\Actor\Character\Boss.h" />
     <ClInclude Include="Src\Object\Actor\Character\CharaBase.h" />
+    <ClInclude Include="Src\Object\Actor\Character\EnemyBase.h" />
     <ClInclude Include="Src\Object\Actor\Character\Player.h" />
     <ClInclude Include="Src\Object\Actor\Stage.h" />
     <ClInclude Include="Src\Object\Collider\ColliderBase.h" />
@@ -221,6 +222,7 @@
     <ClCompile Include="Src\Object\Actor\ActorBase.cpp" />
     <ClCompile Include="Src\Object\Actor\Character\Boss.cpp" />
     <ClCompile Include="Src\Object\Actor\Character\CharaBase.cpp" />
+    <ClCompile Include="Src\Object\Actor\Character\EnemyBase.cpp" />
     <ClCompile Include="Src\Object\Actor\Character\Player.cpp" />
     <ClCompile Include="Src\Object\Actor\Stage.cpp" />
     <ClCompile Include="Src\Object\Collider\ColliderBase.cpp" />

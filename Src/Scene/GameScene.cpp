@@ -3,6 +3,7 @@
 #include "../Utility/UtilityMath.h"
 #include "../Utility/UtilityCollision.h"
 #include "../Manager/SceneManager.h"
+#include "../Manager/SoundManager.h"
 #include "../Camera/Camera.h"
 #include "../Manager/InputManager.h"
 #include "../Object/Actor/SkyDome.h"
@@ -76,10 +77,11 @@ void GameScene::Initialize(void)
 	// カメラ登録
 	Camera& camera = SceneManager::GetInstance().GetCamera();
 	camera.SetFollow(&player_->GetTransform());
-	camera.ChangeMode(Camera::MODE::FOLLOW);
+	camera.SetCameraMode(Camera::MODE::FOLLOW);
 	camera.AddHitCollider(stage_->GetOwnCollider(0));
 
 	// 演出時間割り当て
+	camera.Update();
 	SceneManager::GetInstance().SetPerformTime(TIME_PERFORM_PREMOVIE);
 
 	/*	
@@ -92,7 +94,7 @@ void GameScene::Initialize(void)
 	monoMaterial_->AddConstBuf({ 1.0f, 1.0f, 1.0f, 1.0f });
 	monoMaterial_->AddTextureBuf(SceneManager::GetInstance().GetMainScreen());
 	monoRenderer_ = std::make_unique<PixelRenderer>(*monoMaterial_);
-	monoRenderer_->MakeSquereVertex(
+	monoRenderer_->MakeSquareVertex(
 		Vector2(0, 0),
 		Vector2(Application::SCREEN_SIZE_X, Application::SCREEN_SIZE_Y)
 	);
@@ -103,7 +105,7 @@ void GameScene::Initialize(void)
 	scanMaterial_->AddConstBuf({ 0.0f, 0.0f, 0.0f, 0.0f });
 	scanMaterial_->AddTextureBuf(SceneManager::GetInstance().GetMainScreen());
 	scanRenderer_ = std::make_unique<PixelRenderer>(*scanMaterial_);
-	scanRenderer_->MakeSquereVertex(
+	scanRenderer_->MakeSquareVertex(
 		Vector2(0, 0),
 		Vector2(Application::SCREEN_SIZE_X, Application::SCREEN_SIZE_Y)
 	);
@@ -113,7 +115,7 @@ void GameScene::Initialize(void)
 	vineMaterial_->AddConstBuf({ 3.5f, 0.0f, 0.0f, 0.0f });
 	vineMaterial_->AddTextureBuf(SceneManager::GetInstance().GetMainScreen());
 	vineRenderer_ = std::make_unique<PixelRenderer>(*vineMaterial_);
-	vineRenderer_->MakeSquereVertex(
+	vineRenderer_->MakeSquareVertex(
 		Vector2(0, 0),
 		Vector2(Application::SCREEN_SIZE_X, Application::SCREEN_SIZE_Y)
 	);
@@ -123,7 +125,7 @@ void GameScene::Initialize(void)
 	lensMaterial_->AddConstBuf({ 3.5f, 0.0f, 0.0f, 0.0f });
 	lensMaterial_->AddTextureBuf(SceneManager::GetInstance().GetMainScreen());
 	lensRenderer_ = std::make_unique<PixelRenderer>(*lensMaterial_);
-	lensRenderer_->MakeSquereVertex(
+	lensRenderer_->MakeSquareVertex(
 		Vector2(0, 0),
 		Vector2(Application::SCREEN_SIZE_X, Application::SCREEN_SIZE_Y)
 	);*/
@@ -132,6 +134,10 @@ void GameScene::Initialize(void)
 	// 初期モード
 	mode_ = MODE::MAIN;
 	gameState_ = INIT_GAME_STATE;
+
+	constexpr VECTOR PERFORM_TO_POS = { 0.0f, 67.5f, 425.0f };
+	constexpr VECTOR PERFORM_TARGET_POS = { 0.0f, 55.0f, 485.0f };
+	camera.SetTrackingTarget(PERFORM_TO_POS, UtilityMath::AXIS_Y, PERFORM_TARGET_POS, TIME_PERFORM_PREMOVIE - 2.0f);
 }
 
 void GameScene::Update(void)
@@ -141,9 +147,10 @@ void GameScene::Update(void)
 	{
 		SceneManager::GetInstance().ChangeScene(SceneManager::SCENE_ID::TITLE);
 	}
-	if (!SceneManager::GetInstance().IsActivePerformance() && gameState_ == GAME_STATE::PERFORMANCE)
+	
+	if (gameState_ == GAME_STATE::PERFORMANCE)
 	{
-		gameState_ = GAME_STATE::GAME_ACTIVE;
+		UpdateStatePerformance();
 	}
 
 	skyDome_->Update();
@@ -159,31 +166,7 @@ void GameScene::Update(void)
 
 	if (gameState_ == GAME_STATE::GAME_ACTIVE)
 	{
-		if (SceneManager::GetInstance().IsActivePerformance()) { return; }
-
-		if (InputManager::GetInstance().IsTrgDown(InputManager::TYPE::CAMERA_LOCKON))
-		{
-			SceneManager::GetInstance().GetCamera().SetIsLockOn(!SceneManager::GetInstance().GetCamera().GetIsLockOn());
-		}
-
-		if (boss_->GetHp() <= 0)
-		{
-			SceneManager::GetInstance().GetPerformance().StartHitSlow(PERFORM_CLEAR_SLOW, PERFORM_CLEAR_SLOW_POWER);
-			SceneManager::GetInstance().SetPerformTime(PERFORM_CLEAR_TIME);
-			gameState_ = GAME_STATE::GAME_CLEAR;
-		}
-		else if (player_->GetHp() <= 0)
-		{
-			SceneManager::GetInstance().SetPerformTime(PERFORM_CLEAR_TIME);
-			gameState_ = GAME_STATE::GAME_OVER;
-		}
-
-		if (CheckHitKey(KEY_INPUT_T))
-		{
-			auto& camera = SceneManager::GetInstance().GetCamera();
-			camera.SetTrackingTarget({ 0.0f, 100.0f, 850.0f }, { 0.0f, 180.0f, 0.0f }, { 0.0f, 100.0f, 850.0f }, 2.5f);
-		}
-
+		UpdateStateGameActive();
 	}
 	else if (gameState_ == GAME_STATE::GAME_OVER
 		|| gameState_ == GAME_STATE::GAME_CLEAR)
@@ -234,6 +217,7 @@ void GameScene::Draw(void)
 #ifdef _DEBUG
 
 	player_->DrawDebug();
+	boss_->DrawDebug();
 	SceneManager::GetInstance().GetCamera().DrawDebug();
 
 #endif
@@ -265,6 +249,54 @@ void GameScene::Collision(void)
 	{
 		boss_->SetDamage(player_->GetAttackPower(), 0);
 		player_->ResetColliderAttackArea();
+	}
+
+	const auto& bossAttack = dynamic_cast<const ColliderSphere*>(boss_->GetOwnCollider(COLLIDER_TYPE_ATTACK_AREA));
+	const auto& playerCapsule = dynamic_cast<const ColliderCapsule*>(player_->GetOwnCollider(COLLIDER_TYPE_CAPSULE));
+
+	if (UtilityCollision::IsHitSphereToCapsule(*bossAttack, *playerCapsule))
+	{
+		player_->SetDamage(boss_->GetAttackPower(), 0);
+		boss_->ResetColliderAttackArea();
+	}
+}
+
+void GameScene::UpdateStatePerformance(void)
+{
+	if (!SceneManager::GetInstance().IsActivePerformance())
+	{
+		// 演出終了時、状態遷移
+		gameState_ = GAME_STATE::GAME_ACTIVE;
+
+		// カメラをプレイヤーに追従
+		SceneManager::GetInstance().GetCamera().SetCameraMode(Camera::MODE::FOLLOW);
+
+		// BGM再生
+		SoundManager::GetInstance().StopAllChoice(true);
+		SoundManager::GetInstance().Play(SoundManager::SRC::BGM_GAME, true);
+	}
+}
+
+void GameScene::UpdateStateGameActive(void)
+{
+	// 演出中は処理終了
+	if (SceneManager::GetInstance().IsActivePerformance()) { return; }
+
+	if (InputManager::GetInstance().IsTrgDown(InputManager::TYPE::CAMERA_LOCKON))
+	{
+		SceneManager::GetInstance().GetCamera().SetIsLockOn(!SceneManager::GetInstance().GetCamera().GetIsLockOn());
+	}
+
+	if (boss_->GetHp() <= 0)
+	{
+		SceneManager::GetInstance().GetPerformance().StartHitSlow(PERFORM_CLEAR_SLOW, PERFORM_CLEAR_SLOW_POWER);
+		SceneManager::GetInstance().SetPerformTime(PERFORM_CLEAR_TIME);
+		gameState_ = GAME_STATE::GAME_CLEAR;
+	}
+	else if (player_->GetHp() <= 0)
+	{
+		SceneManager::GetInstance().SetPerformTime(PERFORM_CLEAR_TIME);
+		gameState_ = GAME_STATE::GAME_OVER;
 	}
 }
 

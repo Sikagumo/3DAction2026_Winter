@@ -1,4 +1,4 @@
-#include "Boss.h"
+#include "EnemyBase.h"
 #include <unordered_map>
 #include <cassert>
 #include <memory>
@@ -13,17 +13,21 @@
 #include "../../../Manager/InputManager.h"
 #include "../../../Manager/SceneManager.h"
 #include "../../../Camera/Camera.h"
-#include "./Player.h"
+#include "Player.h"
 #include "../../../Manager/StatusManager.h"
+#include "../../Status/StatusEnemy.h"
+#include "../../Status/StatusBoss.h"
 #include "../../Collider/ColliderLine.h"
 #include "../../Collider/ColliderSphere.h"
 #include "../../Collider/ColliderCapsule.h"
+#include "Boss.h"
 
 namespace
 {
 	constexpr float LOCAL_ROT_Y = 180.0f;
 	constexpr VECTOR START_POS = { 0.0f, 2.5f, 500.0f };
 	const float ATTACK_RADIUS = 300.0f;
+	constexpr float SWORD_SCALE = 1.85f;
 
 	// 衝突判定用線分開始
 	constexpr VECTOR COL_LINE_START_LOCAL_POS = { 0.0f, 80.0f, 0.0f };
@@ -73,9 +77,7 @@ namespace
 };
 
 Boss::Boss(const std::unique_ptr<Player>& player)
-	: CharaBase::CharaBase()
-	, player_(player)
-	, status_(StatusManager::GetInstance().GetEnemyStatus(static_cast<int>(StatusEnemy::ENEMY_TYPE::BOSS)).GetEnemyParam())
+	: EnemyBase::EnemyBase(player, StatusEnemy::ENEMY_TYPE::BOSS)
 	, actionStatus_(StatusManager::GetInstance().GetBossStatus().GetBossAction())
 {
 }
@@ -83,6 +85,7 @@ Boss::Boss(const std::unique_ptr<Player>& player)
 void Boss::InitLoadPost(void)
 {
 	transform_.SetModel(ResourceManager::GetInstance().LoadModelDuplicate(ResourceManager::SRC::MODEL_BOSS));
+	sword_.SetModel(ResourceManager::GetInstance().LoadModelDuplicate(ResourceManager::SRC::MODEL_ENEMY_SWORD));
 }
 
 void Boss::InitTransform(void)
@@ -91,6 +94,16 @@ void Boss::InitTransform(void)
 		, Quaternion::Identity()
 		, Quaternion::AngleAxis(UtilityMath::Deg2Rad(LOCAL_ROT_Y), UtilityMath::AXIS_Y)
 		, START_POS);
+
+	VECTOR posSwordTop = MV1GetFramePosition(transform_.modelId, FRAME_NUM_SWORD_TOP);
+	VECTOR posSwordBottom = MV1GetFramePosition(transform_.modelId, FRAME_NUM_SWORD_BOTTOM);
+
+	sword_.InitTransform(SWORD_SCALE
+		, Quaternion::Identity()
+		, Quaternion::Euler(UtilityMath::Deg2Rad(LOCAL_ROT_SWORD))
+		, posSwordBottom, LOCAL_POS_SWORD);
+
+	UpdateSwordParam();
 }
 
 void Boss::InitCollider(void)
@@ -142,17 +155,17 @@ void Boss::InitAnimationPost(void)
 	// 強攻撃アニメーション
 	animation_->AddExternal(static_cast<int>(ANIMATION_TYPE::ATTACK_HEAVY)
 		, ResourceManager::GetInstance().LoadHandleId(ResourceManager::SRC::ANIMATION_PLAYER_SLASH_HEAVY)
-		, 30.0f);
+		, actionStatus_.at(ACTION_TYPE::ATTACK_HEAVY).animationSpeed);
 
 	// 被ダメージアニメーション
 	animation_->AddExternal(static_cast<int>(ANIMATION_TYPE::DAMAGE)
 		, ResourceManager::GetInstance().LoadHandleId(ResourceManager::SRC::ANIMATION_DAMAGE)
-		, 30.0f);
+		, actionStatus_.at(ACTION_TYPE::DAMAGE).animationSpeed);
 
 	// 撃破アニメーション
 	animation_->AddExternal(static_cast<int>(ANIMATION_TYPE::DEFEAT)
 		, ResourceManager::GetInstance().LoadHandleId(ResourceManager::SRC::ANIMATION_DEFEAT)
-		, 30.0f);
+		, actionStatus_.at(ACTION_TYPE::DEFEAT).animationSpeed);
 
 	PlayAnimation(ANIMATION_TYPE::STAND_UP, false);
 }
@@ -172,6 +185,7 @@ void Boss::InitActionPost(void)
 		, ToControllerParam(actionMap, ACTION_TYPE::ATTACK_HEAVY)
 		, MakeActionCommand([this]() { AttackHeavy(); })
 	);
+
 }
 
 void Boss::InitPost(void)
@@ -183,7 +197,7 @@ void Boss::InitPost(void)
 	animation_->Stop(INIT_ANIMATION_STOP);
 }
 
-void Boss::UpdateProcess(void)
+void Boss::UpdateProcessPost(void)
 {
 	if (animation_->GetPlayType() == static_cast<int>(ANIMATION_TYPE::STAND_UP)
 		&& !animation_->IsEnd()) { return; }
@@ -201,10 +215,12 @@ void Boss::UpdateProcess(void)
 
 			actionTime_ -= SceneManager::GetInstance().GetDeltaTime();
 
-			if (actionTime_ <= 0.0f)
+			if (actionTime_ <= 0.0f && animation_->IsEnd()
+				&& GetActionType() == ACTION_TYPE::NONE)
 			{
-				PlayAnimation(ANIMATION_TYPE::ATTACK_HEAVY, false);
-				actionController_->Active(static_cast<int>(ACTION_TYPE::ATTACK_HEAVY));
+				animation_->ReStart();
+				PlayAnimation(ANIMATION_TYPE::ATTACK_HEAVY, false, true);
+				ActiveAction(ACTION_TYPE::ATTACK_HEAVY);
 			}
 		}
 
@@ -224,8 +240,21 @@ void Boss::CollisionReserve(void)
 {
 }
 
+void Boss::DrawPre(void)
+{
+	if (sword_.modelId != -1)
+	{
+		MV1DrawModel(sword_.modelId);
+	}
+}
+
 void Boss::DrawDebug(void)
 {
+#ifdef _DEBUG
+	EnemyBase::DrawDebug();
+	DrawFormatString(Application::SCREEN_HALF_X, (8 * 2), 0xffffff, ", actionNum:%d", actionController_->GetCurActionNum());
+#endif
+
 	DrawFormatString(Application::SCREEN_HALF_X - 50, (8 * 2), 0xffffff, "BossHp:%d", hp_);
 }
 
@@ -242,7 +271,7 @@ void Boss::SetDamage(int damageHp, int damageStamina)
 	if (actionController_->IsEndActionActive())
 	{
 		// 行動終了時、ダメージアニメーション
-		PlayAnimation(ANIMATION_TYPE::DAMAGE, false);
+		PlayAnimation(ANIMATION_TYPE::DAMAGE, false, true);
 	}
 }
 
@@ -303,48 +332,68 @@ void Boss::ProcessMove(void)
 
 void Boss::AttackLight(void)
 {
-	SetColliderAttackArea(actionStatus_.at(StatusBoss::ACTION_TYPE::ATTACK_LIGHT).attackRadius);
+	auto& param = actionStatus_.at(StatusBoss::ACTION_TYPE::ATTACK_LIGHT);
+	curAttackPower_ = param.attackPower;
+	SetColliderAttackArea(param.attackRadius);
 }
 
 void Boss::AttackHeavy(void)
 {
-	SetColliderAttackArea(actionStatus_.at(StatusBoss::ACTION_TYPE::ATTACK_HEAVY).attackRadius);
+	auto& param = actionStatus_.at(StatusBoss::ACTION_TYPE::ATTACK_HEAVY);
+	curAttackPower_ = param.attackPower;
+	SetColliderAttackArea(param.attackRadius);
 }
 
-void Boss::PlayAnimation(Boss::ANIMATION_TYPE _type, bool isLoop)
+void Boss::PlayAnimation(Boss::ANIMATION_TYPE _type, bool isLoop, bool isReStart, bool isReversePlay)
 {
 	int type = static_cast<int>(_type);
+
+	if (isReStart && GetAnimationType() == _type)
+	{
+		animation_->ReStart();
+	}
 
 	// 指定したアニメーションが割り当てられているとき、処理終了
 	if (type == animation_->GetPlayType() && !animation_->IsEnd()) { return; }
 
-	animation_->Play(type, isLoop);
+	animation_->Play(type, isLoop, isReversePlay);
 }
 
-Boss::ACTION_TYPE Boss::GetActionType(void)
+Boss::ANIMATION_TYPE Boss::GetAnimationType(void) const
+{
+	int actionNum = actionController_->GetCurActionNum();
+	if (actionNum < 0 || actionNum >= static_cast<int>(ANIMATION_TYPE::MAX))
+	{
+#ifdef _DEBUG
+		OutputDebugString("\nボスのアニメーションの種類が取得できませんでした\n");
+#endif
+		return ANIMATION_TYPE::NONE;
+	}
+
+	return static_cast<ANIMATION_TYPE>(actionNum);
+}
+
+void Boss::ActiveAction(Boss::ACTION_TYPE type)
+{
+	int actionNum = static_cast<int>(type);
+	// 指定した行動が割り当てられているとき、処理終了
+	if (actionNum == actionController_->GetCurActionNum()
+		&& !actionController_->IsActionEnd()) { return; }
+
+	actionController_->Active(actionNum);
+}
+
+Boss::ACTION_TYPE Boss::GetActionType(void) const
 {
 	int actionNum = actionController_->GetCurActionNum();
 	if (actionNum < 0 || actionNum >= static_cast<int>(ACTION_TYPE::MAX))
 	{
+#ifdef _DEBUG
+		OutputDebugString("\nボスの行動の種類が取得できませんでした\n");
+#endif
 		return ACTION_TYPE::NONE;
 	}
 
 	return static_cast<ACTION_TYPE>(actionNum);
 }
 
-void Boss::LookPlayerPos(void)
-{
-	VECTOR pPos = player_->GetTransform().pos;
-
-	// ワールド座標
-	VECTOR ePos = VAdd(transform_.pos, transform_.localPos);
-
-	// プレイヤーと敵の距離
-	VECTOR diff = VSub(pPos, ePos);
-
-	// 正規化したプレイヤーの方向を追尾
-	moveDir_ = VNorm({ diff.x, 0.0f, diff.z });
-
-	// 向きに反映
-	transform_.quaRot = Quaternion::LookRotation(moveDir_, UtilityMath::AXIS_Y);
-}

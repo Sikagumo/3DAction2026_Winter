@@ -27,7 +27,7 @@ void AnimationController::AddInternal(int type, float _speed)
 	animation.animationIndex = type;
 
 	// アニメーション速度割り当て
-	animation.speedWalk = _speed;
+	animation.speed = _speed;
 
 	// アニメーション状態割り当て
 	animation.type = ANIMATION_TYPE::INTERNAL;
@@ -47,7 +47,7 @@ void AnimationController::AddInternal(int type, const VECTOR& _localPos, float _
 	animation.animationIndex = type;
 
 	// アニメーション速度割り当て
-	animation.speedWalk = _speed;
+	animation.speed = _speed;
 
 	// アニメーション状態割り当て
 	animation.type = ANIMATION_TYPE::INTERNAL;
@@ -75,7 +75,7 @@ void AnimationController::AddExternal(int type, int _handle, float _speed)
 	animation.modelId = _handle;
 
 	// アニメーション速度割り当て
-	animation.speedWalk = _speed;
+	animation.speed = _speed;
 
 	// アニメーション状態割り当て
 	animation.type = ANIMATION_TYPE::EXTERNAL;
@@ -96,7 +96,7 @@ void AnimationController::AddExternal(int type, int _handle
 	animation.modelId = _handle;
 
 	// アニメーション速度割り当て
-	animation.speedWalk = _speed;
+	animation.speed = _speed;
 
 	// アニメーション状態割り当て
 	animation.type = ANIMATION_TYPE::EXTERNAL;
@@ -123,7 +123,7 @@ void AnimationController::AddExternal(int type, int _handle
 	animation.modelId = _handle;
 
 	// アニメーション速度割り当て
-	animation.speedWalk = _speed;
+	animation.speed = _speed;
 
 	// アニメーション状態割り当て
 	animation.type = ANIMATION_TYPE::EXTERNAL;
@@ -146,17 +146,34 @@ void AnimationController::AddExternal(int type, int _handle
 }
 
 
-void AnimationController::Play(int type, bool isLoop, float playSpeed, float _blendTime)
+void AnimationController::Play(int type, bool isLoop, bool isReversePlay, float playSpeed, float _blendTime)
 {
+	if(type == -1) { return; }
+
+	auto it = animations_.find(type);
+	if (it == animations_.end()) { return; }
+	auto& playAnimation = it->second;
+
 	// 同じアニメーション時、処理を終了
-	if (playType_ == type || type == -1) { return; }
+	if (playType_ == type && !IsEnd() && playAnimation.isReversePlay == isReversePlay) { return; }
 
 	if (prePlayType_ != -1)
 	{
 		// モデルからアニメーションを外す
-		auto& preAnim = animations_[prePlayType_];
-		MV1DetachAnim(modelId_, preAnim.attachNo);
+		auto& preAnimation = animations_[prePlayType_];
+		MV1DetachAnim(modelId_, preAnimation.attachNo);
 		prePlayType_ = -1;
+	}
+
+	// 同じ種類を再生し直す(方向切り替え含む)場合は、自身をデタッチしてブレンド無しで再アタッチ
+	if (playType_ == type)
+	{
+		if (playAnimation.attachNo != -1)
+		{
+			MV1DetachAnim(modelId_, playAnimation.attachNo);
+			playAnimation.attachNo = -1;
+		}
+		playType_ = -1;
 	}
 
 	// 現在のアニメを前回に割り当て
@@ -192,14 +209,11 @@ void AnimationController::Play(int type, bool isLoop, float playSpeed, float _bl
 
 	blendTime_ = _blendTime;
 
-
-	auto& playAnimation = animations_[type];
-
-	// 初期化
-	playAnimation.step = 0.0f;
+	// 再生方向を割り当て
+	playAnimation.isReversePlay = isReversePlay;
 
 	// 再生速度割り当て
-	playSpeed_ = ((playSpeed >= 0.0f) ? playSpeed : playAnimation.speedWalk);
+	playSpeed_ = ((playSpeed >= 0.0f) ? playSpeed : playAnimation.speed);
 	
 
 	// モデルにアニメーションを付ける
@@ -232,6 +246,9 @@ void AnimationController::Play(int type, bool isLoop, float playSpeed, float _bl
 	// アニメーション総時間の取得
 	playAnimation.totalTime = MV1GetAttachAnimTotalTime(modelId_, playAnimation.attachNo);
 
+	// 開始位置(順再生:先頭 / 逆再生:末尾)。総時間の取得後に設定する
+	playAnimation.step = (isReversePlay ? playAnimation.totalTime : 0.0f);
+	MV1SetAttachAnimTime(modelId_, playAnimation.attachNo, playAnimation.step);
 
 	// 前回のアニメーションがある時、ブレンド率を1.0f(100%)にする
 	float blendRate = ((prePlayType_ == -1) ? 1.0f : 0.0f);
@@ -244,9 +261,6 @@ void AnimationController::Update(void)
 {
 	// 経過時間の取得
 	float deltaTime = SceneManager::GetInstance().GetDeltaTime();
-	auto& curAnimation = animations_[playType_];
-	auto& preAnimation = animations_[prePlayType_];
-
 
 	// 停止時に処理終了
 	if (isStop_ && timeStop_ > 0.0f)
@@ -257,17 +271,24 @@ void AnimationController::Update(void)
 		return;
 	}
 
-	// 再生中のアニメーション
-	if (playType_ != -1)
-	{
-		// アニメーション進行処理
-		curAnimation.step += (deltaTime * playSpeed_);
+	if (playType_ == -1) { return; }
 
-		if (curAnimation.step >= curAnimation.totalTime && isLoop_)
-		{
-			// 再生がループ状態で終了時、初期位置に戻す
-			curAnimation.step = 0.0f;
-		}
+	Animation dummyAnimation = {};
+	auto& curAnimation = animations_.at(playType_);
+	auto& preAnimation = ((prePlayType_ != -1) ? animations_.at(prePlayType_) : dummyAnimation);
+
+	// 再生中のアニメーション
+	if (IsReachedEnd(curAnimation) && isLoop_)
+	{
+		// 再生がループ状態で終了時、初期位置に戻す
+		ReStart();
+	}
+	else
+	{
+		// 方向に応じて加算/減算し、範囲内に収める
+		const float dir = (curAnimation.isReversePlay ? -1.0f : 1.0f);
+		curAnimation.step += (deltaTime * playSpeed_ * dir);
+		curAnimation.step = std::clamp(curAnimation.step, 0.0f, curAnimation.totalTime);
 
 		// アニメーション更新
 		MV1SetAttachAnimTime(modelId_, curAnimation.attachNo, curAnimation.step);
@@ -281,8 +302,6 @@ void AnimationController::Update(void)
 	{
 		// ブレンドタイマー増加
 		curBlendTime_ += deltaTime;
-
-
 
 		// 旧・新規アニメーションのブレンド率を割り当て
 		MV1SetAttachAnimBlendRate(modelId_, preAnimation.attachNo, (1.0f - term));
@@ -426,22 +445,31 @@ void AnimationController::Release(void)
 	animations_.clear();
 }
 
+void AnimationController::ReStart(void)
+{
+	if (playType_ == -1) { return; }
+
+	auto& animation = animations_.at(playType_);
+
+	// 再生位置を初期位置に戻す
+	animation.step = (animation.isReversePlay ? animation.totalTime : 0.0f);
+	isStop_ = false;
+
+	// 即時反映(次の Update を待たずに先頭ポーズにする)
+	MV1SetAttachAnimTime(modelId_, animation.attachNo, animation.step);
+}
+
 bool AnimationController::IsEnd(void) const
 {
 	// アニメーションが再生されていない・ループアニメーション時、false
 	if (playType_ == -1 || isLoop_) { return false; }
 
-	auto& animation = animations_.at(playType_);
-
-	// 再生時間が最大再生時間を超えたら、true
-	return (animation.step >= animation.totalTime);
+	return IsReachedEnd(animations_.at(playType_));
 }
 
 bool AnimationController::IsEndPoint(float _pointStart, float _pointEnd)
 {
 	if (playType_ == -1) { return false; }
-
-	Animation& animation = animations_.at(playType_);
 
 	// 再生位置
 	float start = std::clamp(_pointStart, 0.0f, 1.0f);
@@ -450,7 +478,7 @@ bool AnimationController::IsEndPoint(float _pointStart, float _pointEnd)
 	float end = std::clamp(_pointEnd, 0.0f, 1.0f);
 
 	// 再生位置の割合
-	float curRate = (animation.step / animation.totalTime);
+	float curRate = GetProgressRate(animations_.at(playType_));
 
 	// 再生位置が指定の割合になったときtrue
 	return (curRate >= start && curRate < end);
@@ -461,9 +489,22 @@ float AnimationController::GetPlayPointRate(void)
 
 	if (playType_ == -1) { return 0.0f; }
 
-	Animation& animation = animations_.at(playType_);
+	return GetProgressRate(animations_.at(playType_));
+}
 
-	return (animation.step / animation.totalTime);
+bool AnimationController::IsReachedEnd(const Animation& animation) const
+{
+	return (animation.isReversePlay
+			? (animation.step <= 0.0f)
+			: (animation.step >= animation.totalTime));
+}
+
+float AnimationController::GetProgressRate(const Animation & animation) const
+{
+	if (animation.totalTime <= 0.0f) { return 0.0f; }
+	float rate = (animation.step / animation.totalTime);
+
+	return (animation.isReversePlay ? (1.0f - rate) : rate);
 }
 
 void AnimationController::Stop(float _stopTime)
@@ -478,11 +519,8 @@ void AnimationController::SetAnimationStep(float _step)
 
 	auto& animation = animations_.at(playType_);
 
-	// 再生位置の制限
-	float step = std::clamp(_step, 0.0f, animation.totalTime);
-
-	// 再生位置割り当て
-	animation.step = _step;
+	// 再生位置の制限(元コードは clamp 後の値を使っていなかった)
+	animation.step = std::clamp(_step, 0.0f, animation.totalTime);
 }
 
 void AnimationController::SetAnimationStepRate(float _rate)
@@ -491,11 +529,8 @@ void AnimationController::SetAnimationStepRate(float _rate)
 
 	auto& animation = animations_.at(playType_);
 
-	float step = std::clamp(_rate, 0.0f, 1.0f);
-
-	// 再生位置割り当て
-	float rate = (1.0f / animation.totalTime);
-	animation.step = (rate * step);
+	// 再生位置 = 総時間×割合
+	animation.step = (animation.totalTime * std::clamp(_rate, 0.0f, 1.0f));
 }
 
 void AnimationController::SetModelId(int modelId)

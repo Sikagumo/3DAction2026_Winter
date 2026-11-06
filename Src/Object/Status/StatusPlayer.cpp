@@ -5,10 +5,3 @@ StatusPlayer::StatusPlayer(void)
 {
 	action_.clear();
 }
-
-void StatusPlayer::SetAnimationSpeed(float idle, float walk, float run)
-{
-	animationSpeedIdle_ = idle;
-	animationSpeedWalk_ = walk;
-	animationSpeedRun_ = run;
-}

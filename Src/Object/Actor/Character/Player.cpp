@@ -2,9 +2,12 @@
 #include <array>
 #include <cassert>
 #include <functional>
+#include "../../../Application.h"
 #include "../../../Manager/ResourceManager.h"
+#include "../../../Manager/SoundManager.h"
 #include "../../../Utility/UtilityMath.h"
 #include "../../../Utility/UtilityCommon.h"
+#include "../../../Utility/ModelFrameUtility.h"
 #include "../../../Utility/MatrixUtility.h"
 #include "../../Common/AnimationController.h"
 #include "../../Common/ActionController.h"
@@ -19,12 +22,8 @@
 
 namespace
 {
-	constexpr int FRAME_NUM_SWORD_TOP = 38;
-	constexpr int FRAME_NUM_SWORD_BOTTOM = 52;
 	constexpr VECTOR LOCAL_ROT = { 0.0f, 180.0f, 0.0f };
 	constexpr VECTOR START_POS = { 0.0f, 2.5f, 0.0f };
-	constexpr VECTOR LOCAL_POS_SWORD = { 0.0f, 0.0f, 0.0f };
-	constexpr VECTOR LOCAL_ROT_SWORD = { 25.0f, 0.0f, 0.0f };
 	const float ATTACK_RADIUS = 85.0f;
 
 	// 衝突判定用線分開始
@@ -46,7 +45,9 @@ namespace
 	// 衝突判定用カプセル球体半径
 	constexpr float COL_CAPSULE_RADIUS = 20.0f;
 
-	constexpr float PARRY_TIME = 0.5f;
+	constexpr float PARRY_TIME = 0.3f;
+
+	constexpr float DRAWING_ANIMATION_POINT = 0.5f;
 
 
 	/// @brief CSV由来のパラメータを行動コントローラに変換
@@ -79,7 +80,6 @@ namespace
 
 Player::Player(void)
 	: CharaBase::CharaBase()
-	, isDash_(false)
 	, status_(StatusManager::GetInstance().GetPlayerStatus().GetPlayerParam())
 	, actionStatus_(StatusManager::GetInstance().GetPlayerStatus().GetPlayerAction())
 {
@@ -101,7 +101,7 @@ void Player::InitTransform(void)
 	VECTOR posSwordTop = MV1GetFramePosition(transform_.modelId, FRAME_NUM_SWORD_TOP);
 	VECTOR posSwordBottom = MV1GetFramePosition(transform_.modelId, FRAME_NUM_SWORD_BOTTOM);
 
-	sword_.InitTransform(status_.scale
+	sword_.InitTransform(status_.scaleSword
 		, Quaternion::Identity()
 		, Quaternion::Euler(UtilityMath::Deg2Rad(LOCAL_ROT_SWORD))
 		, posSwordBottom, LOCAL_POS_SWORD);
@@ -135,45 +135,58 @@ void Player::InitCollider(void)
 
 void Player::InitAnimationPost(void)
 {
+	auto& animationSpeed = StatusManager::GetInstance().GetPlayerStatus().GetAnimationSpeed();
+
+	constexpr VECTOR ANIMATION_LOCAL_POS = { 0.0f, 50.0f, 0.0f};
 	// 待機アニメーション
 	animation_->AddExternal(static_cast<int>(ANIMATION_TYPE::IDLE)
 		, ResourceManager::GetInstance().LoadModelDuplicate(ResourceManager::SRC::ANIMATION_PLAYER_IDLE)
-		, 30.0f);
+		, animationSpeed.idle);
 
 	// 歩行アニメーション
 	animation_->AddExternal(static_cast<int>(ANIMATION_TYPE::WALK)
 		, ResourceManager::GetInstance().LoadModelDuplicate(ResourceManager::SRC::ANIMATION_PLAYER_WALK)
-		, VGet(0.0f, 50.0f, 0.0f), 30.0f);
+		, ANIMATION_LOCAL_POS, animationSpeed.walk);
 
 	// ダッシュアニメーション
 	animation_->AddExternal(static_cast<int>(ANIMATION_TYPE::RUN)
 		, ResourceManager::GetInstance().LoadModelDuplicate(ResourceManager::SRC::ANIMATION_PLAYER_RUN)
-		, VGet(0.0f, 50.0f, 0.0f), 30.0f);
+		, ANIMATION_LOCAL_POS, animationSpeed.run);
 
 	// 抜刀アニメーション
 	animation_->AddExternal(static_cast<int>(ANIMATION_TYPE::DRAWING_SWORD)
 		, ResourceManager::GetInstance().LoadModelDuplicate(ResourceManager::SRC::ANIMATION_DRAWING_SWORD)
-		, 75.0f);
+		, ANIMATION_LOCAL_POS, actionStatus_.at(ACTION_TYPE::DRAWING_SWORD).animationSpeed);
+
+	// 納刀アニメーション(アニメーションは抜刀を流用)
+	animation_->AddExternal(static_cast<int>(ANIMATION_TYPE::SHEATHING_SWORD)
+		, ResourceManager::GetInstance().LoadModelDuplicate(ResourceManager::SRC::ANIMATION_DRAWING_SWORD)
+		, ANIMATION_LOCAL_POS, actionStatus_.at(ACTION_TYPE::SHEATHING_SWORD).animationSpeed);
 
 	// 弱攻撃アニメーション
 	animation_->AddExternal(static_cast<int>(ANIMATION_TYPE::ATTACK_LIGHT)
 		, ResourceManager::GetInstance().LoadModelDuplicate(ResourceManager::SRC::ANIMATION_PLAYER_SLASH_LIGHT)
-		, 30.0f);
+		, actionStatus_.at(ACTION_TYPE::ATTACK_LIGHT).animationSpeed);
 
 	// 強攻撃アニメーション
 	animation_->AddExternal(static_cast<int>(ANIMATION_TYPE::ATTACK_HEAVY)
 		, ResourceManager::GetInstance().LoadModelDuplicate(ResourceManager::SRC::ANIMATION_PLAYER_SLASH_HEAVY)
-		, 30.0f);
+		, actionStatus_.at(ACTION_TYPE::ATTACK_HEAVY).animationSpeed);
 
 	// 防御アニメーション
 	animation_->AddExternal(static_cast<int>(ANIMATION_TYPE::DEFENSE)
 		, ResourceManager::GetInstance().LoadModelDuplicate(ResourceManager::SRC::ANIMATION_PLAYER_DEFENSE)
-		, 30.0f);
+		, actionStatus_.at(ACTION_TYPE::DEFENSE).animationSpeed);
+
+	// 被ダメージアニメーション
+	animation_->AddExternal(static_cast<int>(ANIMATION_TYPE::DAMAGE)
+		, ResourceManager::GetInstance().LoadModelDuplicate(ResourceManager::SRC::ANIMATION_DAMAGE)
+		, actionStatus_.at(ACTION_TYPE::DAMAGE).animationSpeed);
 
 	// 撃破アニメーション
 	animation_->AddExternal(static_cast<int>(ANIMATION_TYPE::DEFEAT)
 		, ResourceManager::GetInstance().LoadModelDuplicate(ResourceManager::SRC::ANIMATION_DEFEAT)
-		, 30.0f);
+		, actionStatus_.at(ACTION_TYPE::DEFEAT).animationSpeed);
 
 	PlayAnimation(ANIMATION_TYPE::IDLE);
 }
@@ -183,9 +196,14 @@ void Player::InitActionPost(void)
 	const auto& actionMap = StatusManager::GetInstance().GetPlayerStatus().GetPlayerAction();
 
 	// 抜刀
-	actionController_->SetAction(static_cast<int>(ACTION_TYPE::DRAWING_SWARD)
-		, ToControllerParam(actionMap, ACTION_TYPE::DRAWING_SWARD)
+	actionController_->SetAction(static_cast<int>(ACTION_TYPE::DRAWING_SWORD)
+		, ToControllerParam(actionMap, ACTION_TYPE::DRAWING_SWORD)
 		, MakeActionCommand([this]() { ActionDefense(); }));
+
+	// 納刀
+	actionController_->SetAction(static_cast<int>(ACTION_TYPE::SHEATHING_SWORD)
+		, ToControllerParam(actionMap, ACTION_TYPE::SHEATHING_SWORD)
+		, MakeActionCommand([this]() { ActionSheathingSword(); }));
 
 	// 防御
 	actionController_->SetAction(static_cast<int>(ACTION_TYPE::DEFENSE)
@@ -203,6 +221,17 @@ void Player::InitActionPost(void)
 		, ToControllerParam(actionMap, ACTION_TYPE::ATTACK_HEAVY)
 		, MakeActionCommand([this]() { ActionAttackHeavy(); })
 		);
+
+	// 被ダメージ
+	actionController_->SetAction(static_cast<int>(ACTION_TYPE::DAMAGE)
+		, ToControllerParam(actionMap, ACTION_TYPE::DAMAGE)
+		, MakeActionCommand([this]() { ActionNone(); })
+		);
+	// 強攻撃
+	actionController_->SetAction(static_cast<int>(ACTION_TYPE::DEFEAT)
+		, ToControllerParam(actionMap, ACTION_TYPE::DEFEAT)
+		, MakeActionCommand([this]() { ActionNone(); })
+		);
 }
 
 void Player::InitPost(void)
@@ -210,20 +239,28 @@ void Player::InitPost(void)
 	hp_ = status_.hp;
 	stamina_ = status_.stamina;
 	attackType_ = ATTACK_TYPE::NONE;
+	actionState_ = ACTION_STATE::IDLE;
 }
 
 void Player::UpdateProcess(void)
 {
+	if (hp_ <= 0)
+	{
+		if (GetAnimationType() != ANIMATION_TYPE::DEFEAT)
+		{
+			// 撃破処理
+			ActiveAction(ACTION_TYPE::DEFEAT);
+			PlayAnimation(ANIMATION_TYPE::DEFEAT, false);
+		}
+		return;
+	}
+
 	// 演出中は動作を無効化する
 	if (SceneManager::GetInstance().IsActivePerformance()) { return; }
 
-	if (hp_ <= 0)
-	{
-		PlayAnimation(ANIMATION_TYPE::DEFEAT, false);
-	}
-
 	// 移動操作
-	if (!actionController_->IsActiveAction())
+	if (!actionController_->IsActiveAction()
+		&& actionState_ != ACTION_STATE::DEFENSE)
 	{
 		if (curAttackPower_ > 0
 			&& actionController_->IsEndActionActive())
@@ -233,93 +270,95 @@ void Player::UpdateProcess(void)
 		}
 
 		// 被ダメージ中は処理終了
-		if (animation_->GetPlayType() == static_cast<int>(ANIMATION_TYPE::DAMAGE)) { return; }
-
-		// 移動処理
-		ProcessMove();
-	}
-
-	// 防御処理
-	ProcessDefense();
-
-	ProcessDodge();
-
-	UpdateSwordParam();
-
-	if (timeDrawingSward_ <= 0.0f)
-	{
-		if (InputManager::GetInstance().IsTrgDown(InputManager::TYPE::PLAYER_ATTACK_HEAVY)
-			|| InputManager::GetInstance().IsTrgDown(InputManager::TYPE::PLAYER_ATTACK_LIGHT))
+		if (GetAnimationType() != ANIMATION_TYPE::DAMAGE)
 		{
-			// 抜刀
-			timeDrawingSward_ = TIME_DRAWING_SWORD;
-			PlayAnimation(ANIMATION_TYPE::DRAWING_SWORD, false);
-			actionController_->Active(static_cast<int>(ACTION_TYPE::DRAWING_SWARD));
-
-			// 攻撃種類を決定
-			bool isAttackHeavy = InputManager::GetInstance().IsTrgDown(InputManager::TYPE::PLAYER_ATTACK_HEAVY);
-			attackType_ = ((isAttackHeavy) ? ATTACK_TYPE::HEAVY : ATTACK_TYPE::LIGHT1);
+			// 移動処理
+			ProcessMove();
 		}
 	}
 	else
 	{
-		timeDrawingSward_ -= SceneManager::GetInstance().GetDeltaTime();
+		ResetMove();
+	}
 
-		if (GetActionType() == ACTION_TYPE::DRAWING_SWARD)
+	//ProcessDodge();
+
+	// 抜刀処理
+	ProcessDrawingSword();
+
+	// 納刀処理
+	ProcessSheathingSword();
+
+	if (timeDrawingSward_ > 0.0f)
+	{
+		// 抜刀・納刀中は処理終了
+		if (GetActionType() == ACTION_TYPE::DRAWING_SWORD
+			|| GetActionType() == ACTION_TYPE::SHEATHING_SWORD) { return; }
+
+		// 防御処理
+		ProcessDefense();
+
+		if (InputManager::GetInstance().IsTrgDown(InputManager::TYPE::PLAYER_ATTACK_LIGHT))
 		{
-			if (actionController_->IsActionEnd())
-			{
-				int actionNum = -1;
-				ANIMATION_TYPE animationType = ANIMATION_TYPE::NONE;
-				if (attackType_ == ATTACK_TYPE::HEAVY)
-				{
-					actionNum = static_cast<int>(ACTION_TYPE::ATTACK_HEAVY);
-					animationType = ANIMATION_TYPE::ATTACK_HEAVY;
-				}
-				else
-				{
-					actionNum = static_cast<int>(ACTION_TYPE::ATTACK_LIGHT);
-					animationType = ANIMATION_TYPE::ATTACK_LIGHT;
-				}
-
-				// 抜刀終了時、即座に行動を実行
-				actionController_->Active(actionNum);
-				PlayAnimation(animationType);
-			}
-
-			return;
+			ActiveAttackLight();
 		}
 
-		ProcessAttackLight();
-		ProcessAttackHeavy();
+		if (InputManager::GetInstance().IsTrgDown(InputManager::TYPE::PLAYER_ATTACK_HEAVY))
+		{
+			ActiveAttackHeavy();
+		}
 	}
 }
 
 void Player::UpdateSwordParam(void)
 {
-	VECTOR posSwordTop = MV1GetFramePosition(transform_.modelId, FRAME_NUM_SWORD_TOP);
-	VECTOR posSwordBottom = MV1GetFramePosition(transform_.modelId, FRAME_NUM_SWORD_BOTTOM);
+	ModelFrameUtility::SetFrameWorldMatrix(
+		transform_, FRAME_NUM_SWORD_TOP, sword_, LOCAL_POS_SWORD, VGet(0.0f, 0.0f, 0.0f));
 
-	sword_.pos = posSwordBottom;
-	sword_.quaRot = Quaternion::Mult(transform_.quaRot, Quaternion::Euler(UtilityMath::Deg2Rad(LOCAL_ROT_SWORD)));
+	// matRot(プレイヤーの向き+手の回転)を quaRot に変換して反映する
+	sword_.quaRot = Quaternion::GetRotation(sword_.matRot);
 	sword_.Update();
+}
+
+void Player::Draw(void)
+{
+	constexpr COLOR_F PARRY_COLOR = { 1.0f, 1.0f, 0.0f, 1.0f };
+	constexpr COLOR_F DAMAGE_COLOR = { 1.0f, 0.25f, 0.25f, 1.0f };
+	COLOR_F diffuseColor = COLOR_F(1.0f, 1.0f, 1.0f, 1.0f);
+
+	// ダメージ有効時、モデル変更
+	diffuseColor = ((timeInv_ > 0.0f) ? DAMAGE_COLOR : diffuseColor);
+
+	// パリィ有効時、白く光らせる
+	diffuseColor = ((parryTime_ > 0.0f && actionState_ == ACTION_STATE::DEFENSE) ? PARRY_COLOR : diffuseColor);
+
+	MV1SetDifColorScale(transform_.modelId, diffuseColor);
+
+	CharaBase::Draw();
 }
 
 void Player::DrawDebug(void)
 {
+#ifdef _DEBUG
 	DrawFormatString(0, 0, 0xff0000, "Player:speed(time:%.2f, speed:%.2f)"
 		, TimeMove_, moveSpeed_);
 
 	actionController_->DrawDebug();
+#endif
+
+	DrawFormatString(0, Application::SCREEN_HALF_Y + (8 * 3), 0xffffff, "PlayerHp:%d", hp_, actionController_->GetCurActionNum());
 }
 void Player::DrawPre(void)
 {
-	MV1DrawModel(sword_.modelId);
+	if (isSwordActive_)
+	{
+		MV1DrawModel(sword_.modelId);
+	}
 }
 
 void Player::ChangeAction(ACTION_TYPE action)
 {
-
+	ActiveAction(action);
 }
 
 void Player::CollisionReserve(void)
@@ -347,36 +386,62 @@ void Player::CollisionReserve(void)
 
 void Player::SetDamage(int damageHp, int damageStamina)
 {
-	if (timeInv_ > 0.0f
-		|| animation_->GetPlayType() == static_cast<int>(ANIMATION_TYPE::DEFEAT)) { return; }
+	if (timeInv_ > 0.0f || hp_ <= 0) {
+		return;
+	}
 
 	timeInv_ = DAMAGE_INV_TIME;
 
 	float damagePowerHp = static_cast<float>(damageHp);
 	float damagePowerStamina = static_cast<float>(damageStamina);
 
-	if (actionController_->GetCurActionNum() == static_cast<int>(ACTION_TYPE::DEFENSE))
+	if (actionState_ == ACTION_STATE::DEFENSE
+		|| GetAnimationType() == ANIMATION_TYPE::DEFENSE)
 	{
-		// 守備状態中はダメージを軽減し、受け流し成功時はダメージを無効化
-		damagePowerHp = ((parryTime_ > 0.0f) ? 0.0f : (damagePowerHp * DEFENSE_CUT_DAMAGE));
-		damagePowerStamina = ((parryTime_ > 0.0f) ? 0.0f : (damagePowerStamina * DEFENSE_CUT_DAMAGE));
+		if (parryTime_ > 0.0f)
+		{
+#ifdef _DEBUG
+			printfDx("パリィ成功！");
+#endif
+			// パリィ成功時、ダメージを無効化
+			SoundManager::GetInstance().Play(SoundManager::SRC::SE_PARRY, false);
+			SceneManager::GetInstance().GetPerformance().StartHitSlow(0.5f, 2);
+			return;
+		}
+		else
+		{
+			// 守備状態中はダメージを軽減し、受け流し成功時はダメージを無効化
+			damagePowerHp = (damagePowerHp * DEFENSE_CUT_DAMAGE);
+			damagePowerStamina = (damagePowerStamina * DEFENSE_CUT_DAMAGE);
+		}
 	}
 	else if (actionController_->GetCurActionNum() == static_cast<int>(ACTION_TYPE::DODGE)
-			  && !actionController_->IsEndActionActive())
+		&& !actionController_->IsEndActionActive())
 	{
-		// 回避成功時、ダメージを無効化j
-		damagePowerHp = 0.0f;
-		damagePowerStamina = 0.0f;
+		// 回避成功時、処理終了
+		return;
 	}
 
 	hp_ -= static_cast<int>(damagePowerHp);
 	stamina_ -= static_cast<int>(damagePowerStamina);
 
-	if (actionController_->IsEndActionActive())
+	// 行動終了時、ダメージ演出
+	PlayAnimation(ANIMATION_TYPE::DAMAGE, false, false, true);
+	ActiveAction(ACTION_TYPE::DAMAGE);
+	ResetMove();
+	actionState_ = ACTION_STATE::IDLE;
+
+#ifdef _DEBUG
+	if (actionState_ == ACTION_STATE::DEFENSE
+		&& GetAnimationType() == ANIMATION_TYPE::DEFENSE)
 	{
-		// 行動終了時、ダメージアニメーション
-		PlayAnimation(ANIMATION_TYPE::DAMAGE, false);
+		printfDx("パリィ失敗");
 	}
+	else
+	{
+		printfDx("ダメージ");
+	}
+#endif
 }
 
 void Player::ProcessMove(void)
@@ -384,9 +449,6 @@ void Player::ProcessMove(void)
 	InputManager& input = InputManager::GetInstance();
 
 	VECTOR dir = UtilityMath::VECTOR_ZERO;
-
-	// ダッシュ処理
-	isDash_ = (input.IsNew(InputManager::TYPE::PLAYER_DASH));
 
 	// 移動処理
 	if (input.IsNew(InputManager::TYPE::PLAYER_MOVE_BACK)) { dir.z += 1.0f; }
@@ -396,15 +458,19 @@ void Player::ProcessMove(void)
 
 	if (!UtilityMath::EqualsVZero(dir))
 	{
+		// 移動中にダッシュ入力時、状態切替
+		const bool IS_DASH = input.IsNew(InputManager::TYPE::PLAYER_DASH);
+
 		// 移動を正規化
 		const float len = std::sqrtf((dir.x * dir.x) + (dir.z * dir.z));
 		dir.x /= len;
 		dir.z /= len;
-
+		
 		TimeMove_ += SceneManager::GetInstance().GetDeltaTime();
 
-		// 徐々に最高速度に到達させる
-		const float SPEED_MAX = ((isDash_) ? status_.speedDash : status_.speedWalk);
+		// ダッシュ時と通常時で最高速度を切替
+		const float SPEED_MAX = (IS_DASH ? status_.speedDash : status_.speedWalk);
+
 		if (moveSpeed_ < SPEED_MAX)
 		{
 			const float rate = UtilityCommon::EaseInOutQuart(TimeMove_ / status_.speedAccTime);
@@ -412,12 +478,14 @@ void Player::ProcessMove(void)
 		}
 
 		// アニメーション再生
-		if (isDash_)
+		if (IS_DASH)
 		{
+			actionState_ = ACTION_STATE::DASH;
 			PlayAnimation(ANIMATION_TYPE::RUN);
 		}
 		else
 		{
+			actionState_ = ACTION_STATE::WALK;
 			PlayAnimation(ANIMATION_TYPE::WALK);
 		}
 
@@ -448,11 +516,21 @@ void Player::ActionDodge(void)
 
 void Player::ProcessDefense(void)
 {
-	if (InputManager::GetInstance().IsTrgDown(InputManager::TYPE::PLAYER_DEFENSE))
+	if (InputManager::GetInstance().IsTrgDown(InputManager::TYPE::PLAYER_DEFENSE)
+		&& !actionController_->IsActiveAction())
 	{
-		actionController_->Active(static_cast<int>(ACTION_TYPE::DEFENSE));
+		ActiveAction(ACTION_TYPE::DEFENSE);
 		ResetMove();
 		PlayAnimation(ANIMATION_TYPE::DEFENSE, false);
+		actionState_ = ACTION_STATE::DEFENSE;
+	}
+	if (actionState_ == ACTION_STATE::DEFENSE)
+	{
+		if (!InputManager::GetInstance().IsNew(InputManager::TYPE::PLAYER_DEFENSE)
+			|| GetActionType() != ACTION_TYPE::DEFENSE && GetAnimationType() == ANIMATION_TYPE::DEFENSE)
+		{
+			actionState_ = ACTION_STATE::IDLE;
+		}
 	}
 
 	if (GetActionType() == ACTION_TYPE::DEFENSE)
@@ -463,17 +541,17 @@ void Player::ProcessDefense(void)
 void Player::ActionDefense(void)
 {
 	parryTime_ = PARRY_TIME;
+	timeDrawingSward_ = TIME_DRAWING_SWORD;
+
+	// 剣の表示
+	isSwordActive_ = true;
 }
 
-void Player::ProcessAttackLight(void)
+void Player::ActiveAttackLight(void)
 {
-	if (InputManager::GetInstance().IsTrgDown(InputManager::TYPE::PLAYER_ATTACK_LIGHT))
-	{
-		timeDrawingSward_ = TIME_DRAWING_SWORD;
-		actionController_->Active(static_cast<int>(ACTION_TYPE::ATTACK_LIGHT));
-		ResetMove();
-		PlayAnimation(ANIMATION_TYPE::ATTACK_LIGHT, false);
-	}
+	timeDrawingSward_ = TIME_DRAWING_SWORD;
+	ActiveAction(ACTION_TYPE::ATTACK_LIGHT);
+	PlayAnimation(ANIMATION_TYPE::ATTACK_LIGHT, false, false, true);
 }
 
 void Player::ActionAttackLight(void)
@@ -482,15 +560,12 @@ void Player::ActionAttackLight(void)
 	SetColliderAttackArea(ATTACK_RADIUS);
 }
 
-void Player::ProcessAttackHeavy(void)
+void Player::ActiveAttackHeavy(void)
 {
-	if (InputManager::GetInstance().IsTrgDown(InputManager::TYPE::PLAYER_ATTACK_HEAVY))
-	{
-		timeDrawingSward_ = TIME_DRAWING_SWORD;
-		actionController_->Active(static_cast<int>(ACTION_TYPE::ATTACK_HEAVY));
-		ResetMove();
-		PlayAnimation(ANIMATION_TYPE::ATTACK_HEAVY, false);
-	}
+	timeDrawingSward_ = TIME_DRAWING_SWORD;
+
+	ActiveAction(ACTION_TYPE::ATTACK_HEAVY);
+	PlayAnimation(ANIMATION_TYPE::ATTACK_HEAVY, false, false, true);
 }
 
 void Player::ActionAttackHeavy(void)
@@ -501,21 +576,156 @@ void Player::ActionAttackHeavy(void)
 	timeDrawingSward_ = TIME_DRAWING_SWORD;
 }
 
+void Player::ProcessDrawingSword(void)
+{
+	bool isInputHeavy = InputManager::GetInstance().IsTrgDown(InputManager::TYPE::PLAYER_ATTACK_HEAVY);
+	bool isInputLight = InputManager::GetInstance().IsTrgDown(InputManager::TYPE::PLAYER_ATTACK_LIGHT);
+	bool isInputDefense = InputManager::GetInstance().IsNew(InputManager::TYPE::PLAYER_DEFENSE);
+
+	if (!isSwordActive_)
+	{
+		if ((isInputHeavy || isInputLight || isInputDefense)
+			&& !isSwordActive_ && timeDrawingSward_ <= 0.0f)
+		{
+			// 抜刀
+			timeDrawingSward_ = TIME_DRAWING_SWORD;
+			PlayAnimation(ANIMATION_TYPE::DRAWING_SWORD, false);
+			ActiveAction(ACTION_TYPE::DRAWING_SWORD);
+			isSwordActive_ = true;
+
+			isReservedDefense_ = isInputDefense;
+
+			if (!isInputDefense)
+			{
+				// 攻撃種類を決定
+				attackType_ = ((isInputHeavy) ? ATTACK_TYPE::HEAVY : ATTACK_TYPE::LIGHT1);
+			}
+		}
+	}
+	else if (attackType_ != ATTACK_TYPE::NONE && !isReservedDefense_)
+	{
+		if (isInputDefense)
+		{
+			isReservedDefense_ = isInputDefense;
+		}
+		else
+		{
+			if (isInputLight)
+			{
+				attackType_ = ATTACK_TYPE::LIGHT1;
+			}
+			else if (isInputHeavy)
+			{
+				attackType_ = ATTACK_TYPE::HEAVY;
+			}
+		}
+	}
+
+	if (timeDrawingSward_ > 0.0f)
+	{
+		timeDrawingSward_ -= SceneManager::GetInstance().GetDeltaTime();
+
+		const bool isReserved = (attackType_ != ATTACK_TYPE::NONE || isReservedDefense_);
+		const bool isDrawing = (animation_->GetPlayType() == static_cast<int>(ANIMATION_TYPE::DRAWING_SWORD));
+
+		if (isReserved && isDrawing
+			&& animation_->GetPlayPointRate() >= DRAWING_ANIMATION_POINT)
+		{
+			if (attackType_ != ATTACK_TYPE::NONE)
+			{
+				if (attackType_ == ATTACK_TYPE::HEAVY)
+				{
+					ActiveAttackHeavy();
+				}
+				else if (attackType_ == ATTACK_TYPE::LIGHT1)
+				{
+					ActiveAttackLight();
+				}
+			}
+			else
+			{
+				ActiveAction(ACTION_TYPE::DEFENSE);
+				PlayAnimation(ANIMATION_TYPE::DEFENSE, false, false, true);
+				actionState_ = ACTION_STATE::DEFENSE;
+			}
+
+			isReservedDefense_ = false;
+		}
+	}
+}
+
 void Player::ActionDrawingSword(void)
 {
 	timeDrawingSward_ = TIME_DRAWING_SWORD;
 	ResetMove();
 }
 
-void Player::PlayAnimation(Player::ANIMATION_TYPE _type, bool isLoop, bool isBlendAnimation)
+void Player::ProcessSheathingSword(void)
+{
+	if (isSwordActive_
+		&& timeDrawingSward_ <= 0.0f
+		&& GetActionType() != ACTION_TYPE::SHEATHING_SWORD)
+	{
+		// 納刀処理
+		ActiveAction(ACTION_TYPE::SHEATHING_SWORD);
+		PlayAnimation(ANIMATION_TYPE::SHEATHING_SWORD, false, true);
+		ResetMove();
+		attackType_ = ATTACK_TYPE::NONE;
+	}
+}
+
+void Player::ActionSheathingSword(void)
+{
+	isSwordActive_ = false;
+	ResetMove();
+}
+
+void Player::PlayAnimation(Player::ANIMATION_TYPE _type, bool isLoop, bool isReversePlay, bool isReStart, bool isBlendAnimation)
 {
 	int type = static_cast<int>(_type);
+
+	if (isReStart && GetAnimationType() == _type)
+	{
+		animation_->ReStart();
+	}
 
 	// 指定したアニメーションが割り当てられているとき、処理終了
 	if (type == animation_->GetPlayType() && !animation_->IsEnd()) { return; }
 
-	animation_->Play(type, isLoop, -1, 
-		((isBlendAnimation) ? AnimationController::BLEND_TIME_DEFAULT : 0.0f));
+	constexpr float BLEND_TIME_DEFENSE = 0.1f;
+	float blendTime = (isBlendAnimation ? AnimationController::BLEND_TIME_DEFAULT : 0.0f);
+	blendTime = ((_type == ANIMATION_TYPE::DEFENSE && isBlendAnimation) ? BLEND_TIME_DEFENSE : blendTime);
+
+	animation_->Play(type, isLoop, isReversePlay, -1, blendTime);
+}
+
+Player::ANIMATION_TYPE Player::GetAnimationType(void)
+{
+	int actionNum = actionController_->GetCurActionNum();
+	if (actionNum < 0 || actionNum >= static_cast<int>(ANIMATION_TYPE::MAX))
+	{
+#ifdef _DEBUG
+		std::string text = "\nプレイヤーのアニメーションの種類が取得できませんでした。アニメーション番号：";
+		std::to_string(actionNum);
+		OutputDebugString(text.c_str());
+#endif
+		return ANIMATION_TYPE::NONE;
+	}
+
+	return static_cast<ANIMATION_TYPE>(actionNum);
+}
+
+void Player::ActiveAction(Player::ACTION_TYPE type)
+{
+	int actionNum = static_cast<int>(type);
+
+	// 指定した行動が割り当てられているとき、処理終了
+	if (actionNum == actionController_->GetCurActionNum()
+		&& !actionController_->IsActionEnd()) {
+		return;
+	}
+
+	actionController_->Active(actionNum);
 }
 
 Player::ACTION_TYPE Player::GetActionType(void)
@@ -523,6 +733,9 @@ Player::ACTION_TYPE Player::GetActionType(void)
 	int actionNum = actionController_->GetCurActionNum();
 	if (actionNum < 0 || actionNum >= static_cast<int>(ACTION_TYPE::MAX))
 	{
+#ifdef _DEBUG
+		OutputDebugString("\nプレイヤーの行動の種類が取得できませんでした\n");
+#endif
 		return ACTION_TYPE::NONE;
 	}
 

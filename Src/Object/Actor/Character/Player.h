@@ -1,5 +1,5 @@
 #pragma once
-#include "./CharaBase.h"
+#include "CharaBase.h"
 #include <unordered_map>
 #include "../../Status/StatusPlayer.h"
 
@@ -14,7 +14,8 @@ public:
 		IDLE,          // 待機
 		WALK,          // 歩行
 		RUN,           // ダッシュ
-		DRAWING_SWORD,  // 弱攻撃
+		DRAWING_SWORD,  // 抜刀
+		SHEATHING_SWORD,  // 抜刀
 		ATTACK_LIGHT,  // 弱攻撃
 		ATTACK_HEAVY, // 強攻撃
 		DEFENSE,       // 守備
@@ -35,6 +36,7 @@ public:
 	Player(void);
 	~Player(void)override = default;
 
+	void Draw(void)override;
 	void DrawDebug(void)override;
 
 	void ChangeAction(StatusPlayer::ACTION_TYPE action);
@@ -73,15 +75,19 @@ private:
 
 	const StatusPlayer::PlayerParam& status_;
 	const std::unordered_map<StatusPlayer::ACTION_TYPE, StatusPlayer::ActionParam>& actionStatus_;
-	static constexpr float TIME_DRAWING_SWORD = 15.0f;
+	static constexpr float TIME_DRAWING_SWORD = 5.0f;
+
+	// 行動状態
+	ACTION_STATE actionState_ = ACTION_STATE::NONE;
 
 	// 攻撃の種類
 	ATTACK_TYPE attackType_ = ATTACK_TYPE::NONE;
 
-	bool isDash_ = false;
-
 	// 抜刀中か否か
 	bool isDrawingSward_ = false;
+
+	// 防御するか否か
+	bool isReservedDefense_ = false;
 
 	// 抜刀中の現在時間
 	float timeDrawingSward_ = 0.0f;
@@ -103,21 +109,32 @@ private:
 	void ActionDefense(void);
 
 	/// @brief 弱攻撃
-	void ProcessAttackLight(void);
+	void ActiveAttackLight(void);
 	void ActionAttackLight(void);
 
 	/// @brief 強攻撃
-	void ProcessAttackHeavy(void);
+	void ActiveAttackHeavy(void);
 	void ActionAttackHeavy(void);
 
-	/// @brief 抜刀
+	/// @brief 抜刀処理
+	void ProcessDrawingSword(void);
 	void ActionDrawingSword(void);
+
+	/// @brief 納刀処理
+	void ProcessSheathingSword(void);
+	void ActionSheathingSword(void);
 
 	/// @brief アニメーション再生
 	/// @param type アニメーションの種類
 	/// @param isLoop ループ再生するか否か
+	/// @param isReStart 再スタートするか否か
+	/// @param isReversePlay 逆再生するか否か
 	/// @param isBlendAnimation ブレンドアニメーションをするか否か
-	void PlayAnimation(ANIMATION_TYPE type, bool isLoop = true, bool isBlendAnimation = true);
+	void PlayAnimation(ANIMATION_TYPE type, bool isLoop = true, bool isReversePlay = false, bool isReStart = false, bool isBlendAnimation = true);
+
+	ANIMATION_TYPE GetAnimationType(void);
+
+	void ActiveAction(ACTION_TYPE type);
 
 	ACTION_TYPE GetActionType(void);
 };

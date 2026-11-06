@@ -1,10 +1,10 @@
 #include "CharaBase.h"
 #include "../../Common/AnimationController.h"
+#include "../../Common/ActionController.h"
 #include "../../../Utility/Utilitymath.h"
 #include "../../../Utility/UtilityCommon.h"
 #include "../../../Manager/SceneManager.h"
 #include "../../../Manager/ResourceManager.h"
-#include "../../Common/ActionController.h"
 #include "../../Collider/ColliderBase.h"
 #include "../../Collider/ColliderLine.h"
 #include "../../Collider/ColliderSphere.h"
@@ -36,7 +36,12 @@ CharaBase::CharaBase(void)
 	, prevPos_(UtilityMath::VECTOR_ZERO)
 	, moveDir_(UtilityMath::VECTOR_ZERO)
 	, movePow_(UtilityMath::VECTOR_ZERO)
+	, jumpPow_(UtilityMath::VECTOR_ZERO)
 	, sword_(Transform())
+{
+}
+
+CharaBase::~CharaBase(void)
 {
 }
 
@@ -45,6 +50,8 @@ void CharaBase::InitLoad(void)
 {
 	// 丸影画像
 	shadowHandle_ = ResourceManager::GetInstance().LoadHandleId(ResourceManager::SRC::IMAGE_SHADOW);
+
+	isSwordActive_ = false;
 
 	// 各読み込み処理
 	InitLoadPost();
@@ -72,7 +79,7 @@ void CharaBase::Update(void)
 
 	actionController_->Update();
 
-	
+
 	//functionAction_();
 
 	// 各キャラクターごとの更新処理
@@ -82,6 +89,12 @@ void CharaBase::Update(void)
 	if (transform_.pos.y < LIMIT_POS_Y)
 	{
 		transform_.pos.y = -(LIMIT_POS_Y);
+	}
+
+	if (actionController_->GetActionState() == ActionController::ACTION_STATE::END)
+	{
+		// 攻撃当たり判定初期化
+		ResetColliderAttackArea();
 	}
 
 	timeInv_ = ((timeInv_ > 0.0f) ? (timeInv_ - SceneManager::GetInstance().GetDeltaTime()) : 0.0f);
@@ -296,7 +309,7 @@ void CharaBase::DrawShadowRound(void)
 	const float SHADOW_SIZE = 50.0f;
 	MV1_COLL_RESULT_POLY_DIM HitResDim;
 	MV1_COLL_RESULT_POLY* HitRes;
-	VERTEX3D Vertex[3];
+	VERTEX3D Vertex[3] = {};
 	VECTOR SlideVec;
 
 	// ライティングを無効にする
@@ -385,7 +398,7 @@ void CharaBase::DrawShadowRound(void)
 	SetUseZBuffer3D(FALSE);
 }
 
-void CharaBase::SetColliderAttackArea(float _radius)
+void CharaBase::SetColliderAttackArea(float radius)
 {
 	const int TYPE_ATTACK_AREA = static_cast<int>(COLLIDER_TYPE::ATTACK_AREA);
 	const auto it = ownColliders_.find(TYPE_ATTACK_AREA);
@@ -401,11 +414,11 @@ void CharaBase::SetColliderAttackArea(float _radius)
 	ColliderSphere& sphere = dynamic_cast<ColliderSphere&>(*ownColliders_.at(TYPE_ATTACK_AREA));
 
 	// 半径割り当て
-	sphere.SetRadius(_radius);
+	sphere.SetRadius(radius);
 
 	// ローカル座標調整
 	VECTOR localPos = sphere.GetLocalPos();
-	localPos.z = (sphere.LOCAL_POS_INIT.z + _radius);
+	localPos.z = (sphere.LOCAL_POS_INIT.z + radius);
 	sphere.SetLocalPos(localPos);
 }
 

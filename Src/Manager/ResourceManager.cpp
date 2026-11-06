@@ -124,14 +124,14 @@ void ResourceManager::Initialize(void)
 	imagesAllNum = 4;
 	imagesNumX = 1;
 	imagesNumY = 4;
-	_SetResource(LOAD_TYPE::IMAGES, SRC::IMGS_POUSE_TEX, PATH_IMAGE + "pouzuNomal.png"
+	_SetResource(LOAD_TYPE::IMAGES, SRC::IMGS_POUSE_TEX, PATH_IMAGE + "PauseNomal.png"
 		, imagesAllNum, imagesNumX, imagesNumY);
 
 	// ポーズシーンの選択時の文字
 	imagesAllNum = 4;
 	imagesNumX = 1;
 	imagesNumY = 4;
-	_SetResource(LOAD_TYPE::IMAGES, SRC::IMGS_SELECT_PUSE_TEX, PATH_IMAGE + "pouzuRain.png"
+	_SetResource(LOAD_TYPE::IMAGES, SRC::IMGS_SELECT_PUSE_TEX, PATH_IMAGE + "PauseRain.png"
 		, imagesAllNum, imagesNumX, imagesNumY);
 	*/
 
@@ -143,7 +143,6 @@ void ResourceManager::Initialize(void)
 
 	// プレイヤーモデル
 	_SetResource(LOAD_TYPE::MODEL, SRC::MODEL_PLAYER, PATH_MODEL + "Player/Player.mv1");
-	_SetResource(LOAD_TYPE::MODEL, SRC::MODEL_PLAYER_SWORD, PATH_MODEL + "Sword/Sword.mv1");
 
 	// ステージモデル
 	_SetResource(LOAD_TYPE::MODEL, SRC::MODEL_STAGE, PATH_MODEL + "Stage/Stage.mv1");
@@ -151,6 +150,10 @@ void ResourceManager::Initialize(void)
 
 	// ボスモデル
 	_SetResource(LOAD_TYPE::MODEL, SRC::MODEL_BOSS, PATH_MODEL + "Boss/Boss.mv1");
+
+	// 剣モデル
+	_SetResource(LOAD_TYPE::MODEL, SRC::MODEL_PLAYER_SWORD, PATH_MODEL + "Sword/Player/Sword.mv1");
+	_SetResource(LOAD_TYPE::MODEL, SRC::MODEL_ENEMY_SWORD, PATH_MODEL + "Sword/Enemy/Sword.mv1");
 
 	/* アニメーション */
 	_SetResource(LOAD_TYPE::ANIMATION, SRC::ANIMATION_DAMAGE, PATH_ANIMATION + "Damage.mv1");
@@ -160,31 +163,23 @@ void ResourceManager::Initialize(void)
 	_SetResource(LOAD_TYPE::ANIMATION, SRC::ANIMATION_PLAYER_WALK, PATH_ANIMATION + "Walk.mv1");
 	_SetResource(LOAD_TYPE::ANIMATION, SRC::ANIMATION_PLAYER_RUN, PATH_ANIMATION + "Run.mv1");
 	_SetResource(LOAD_TYPE::ANIMATION, SRC::ANIMATION_PLAYER_DODGE, PATH_ANIMATION + "Rolling.mv1");
-	_SetResource(LOAD_TYPE::ANIMATION, SRC::ANIMATION_PLAYER_DEFENSE, PATH_ANIMATION + "DefenseActive.mv1");
+	_SetResource(LOAD_TYPE::ANIMATION, SRC::ANIMATION_PLAYER_DEFENSE, PATH_ANIMATION + "DefenseHold.mv1");
+	//_SetResource(LOAD_TYPE::ANIMATION, SRC::ANIMATION_PLAYER_DEFENSE, PATH_ANIMATION + "DefenseActive.mv1");
 	_SetResource(LOAD_TYPE::ANIMATION, SRC::ANIMATION_PLAYER_DEFEAT, PATH_ANIMATION + "Defeat.mv1");
 	_SetResource(LOAD_TYPE::ANIMATION, SRC::ANIMATION_PLAYER_SLASH_LIGHT, PATH_ANIMATION + "SlashLight.mv1");
 	_SetResource(LOAD_TYPE::ANIMATION, SRC::ANIMATION_PLAYER_SLASH_HEAVY, PATH_ANIMATION + "SlashHeavy.mv1");
 	_SetResource(LOAD_TYPE::ANIMATION, SRC::ANIMATION_BOSS_STAND_UP, PATH_ANIMATION + "StandUp.mv1");
 
 	/* BGM */
-	_SetResource(LOAD_TYPE::SOUND, SRC::BGM_TITLE_SEA, PATH_BGM + "Sea.mp3");
-	_SetResource(LOAD_TYPE::SOUND, SRC::BGM_TITLE_THUNDER, PATH_BGM + "Thunderstorm.mp3");
+	_SetResource(LOAD_TYPE::SOUND, SRC::BGM_TITLE, PATH_BGM + "TitleBGM.mp3");
 	_SetResource(LOAD_TYPE::SOUND, SRC::BGM_GAME, PATH_BGM + "GameBGM.mp3");
-	_SetResource(LOAD_TYPE::SOUND, SRC::BGM_RESULT, PATH_BGM + "Result.mp3");
-	_SetResource(LOAD_TYPE::SOUND, SRC::BGM_LOBBY, PATH_BGM + "BGM_LOBBY.mp3");
+	//_SetResource(LOAD_TYPE::SOUND, SRC::BGM_RESULT, PATH_BGM + "Result.mp3");
+	//_SetResource(LOAD_TYPE::SOUND, SRC::BGM_LOBBY, PATH_BGM + "BGM_LOBBY.mp3");
 
 	/* 効果音 */
 	_SetResource(LOAD_TYPE::SOUND, SRC::SE_SELECT, PATH_SE + "Select.mp3");
-	_SetResource(LOAD_TYPE::SOUND, SRC::SE_PBULLET_POISON, PATH_SE + "PoisonBulletHit.mp3");
-	_SetResource(LOAD_TYPE::SOUND, SRC::SE_HIT_POISON, PATH_SE + "HitPoison.mp3");
-	_SetResource(LOAD_TYPE::SOUND, SRC::SE_HIT_BLAST, PATH_SE + "HitBlast.mp3");
-	_SetResource(LOAD_TYPE::SOUND, SRC::SE_PLAYER_DAMAGE, PATH_SE + "PlayerDamage.mp3");
-	_SetResource(LOAD_TYPE::SOUND, SRC::SE_PLAYER_RECOVERY, PATH_SE + "PlayerRecovery.mp3");
-	_SetResource(LOAD_TYPE::SOUND, SRC::SE_BOSS_MG_FIRE, PATH_SE + "MGFire.mp3");
-	_SetResource(LOAD_TYPE::SOUND, SRC::SE_BOSS_LANDING, PATH_SE + "BossLanding.mp3");
-	_SetResource(LOAD_TYPE::SOUND, SRC::SE_BOSS_ROAD, PATH_SE + "Road.mp3");
-	_SetResource(LOAD_TYPE::SOUND, SRC::SE_LOBBY_SELCET, PATH_SE + "LobbySelect.mp3");
-	_SetResource(LOAD_TYPE::SOUND, SRC::SE_UI_SELECT, PATH_SE + "UIselect.mp3");
+	_SetResource(LOAD_TYPE::SOUND, SRC::SE_PARRY, PATH_SE + "Parry.mp3");
+	_SetResource(LOAD_TYPE::SOUND, SRC::SE_SLASH_LIGHT, PATH_SE + "SlashLight.mp3");
 	_SetResource(LOAD_TYPE::SOUND, SRC::SE_UI_CANCEL, PATH_SE + "Cancel.mp3");
 
 	/* シェーダ */
@@ -203,18 +198,18 @@ void ResourceManager::InitializeGameScene(void)
 
 }
 
-void ResourceManager::_SetResource(Resource::LOAD_TYPE _loadType, SRC _src, std::string path
+void ResourceManager::_SetResource(Resource::LOAD_TYPE _loadType, SRC src, std::string path
 								   , int allNum, int numX, int numY)
 {
 	if (allNum == -1)
 	{
 		// その他読み込み
-		resourcesMap_.emplace(_src, Resource(_loadType, path));
+		resourcesMap_.emplace(src, Resource(_loadType, path));
 	}
 	else
 	{
 		// 複数画像読み込み
-		resourcesMap_.emplace(_src,
+		resourcesMap_.emplace(src,
 			Resource(_loadType, path, allNum, numX, numY));
 	}
 	
@@ -251,28 +246,28 @@ void ResourceManager::DestroyInstance(void)
 }
 
 
-Resource ResourceManager::Load(SRC _src)
+Resource ResourceManager::Load(SRC src)
 {
 	/* 読み込み処理 */
-	Resource* res = _Load(_src);
+	Resource* res = _Load(src);
 
 	if (res == nullptr) return Resource();
 
 	return *res;
 }
-const int ResourceManager::LoadHandleId(SRC _src)
+const int ResourceManager::LoadHandleId(SRC src)
 {
 	// リソースの
-	return Load(_src).LoadHandleId();
+	return Load(src).LoadHandleId();
 }
-void ResourceManager::LoadHandleIds(SRC _src, int* target)
+void ResourceManager::LoadHandleIds(SRC src, int* target)
 {
 	// 複数画像ではない場合、処理終了
-	Resource::LOAD_TYPE loadType = resourcesMap_[_src].GetLoadType();
+	Resource::LOAD_TYPE loadType = resourcesMap_[src].GetLoadType();
 	if (loadType != Resource::LOAD_TYPE::IMAGES) { return; }
 
 	// 複数画像の対象にコピー
-	Load(_src).CopyHandle(target);
+	Load(src).CopyHandle(target);
 
 #ifdef _DEBUG
 	if (*target == -1)
@@ -282,9 +277,9 @@ void ResourceManager::LoadHandleIds(SRC _src, int* target)
 #endif
 }
 
-std::string ResourceManager::GetHandlePath(SRC _src)
+std::string ResourceManager::GetHandlePath(SRC src)
 {
-	return Load(_src).GetHandlePath();
+	return Load(src).GetHandlePath();
 }
 
 Resource* ResourceManager::_Load(SRC src)
@@ -316,9 +311,9 @@ Resource* ResourceManager::_Load(SRC src)
 }
 
 
-const int ResourceManager::LoadHandleIdsOnce(SRC _src, int _imageNum)
+const int ResourceManager::LoadHandleIdsOnce(SRC src, int _imageNum)
 {
-	return Load(_src).GetHandleImagesId(_imageNum);
+	return Load(src).GetHandleImagesId(_imageNum);
 }
 
 int ResourceManager::LoadModelDuplicate(SRC src)

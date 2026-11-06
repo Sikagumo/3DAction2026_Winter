@@ -72,7 +72,7 @@ void Camera::InitCollider(void)
 void Camera::InitPost(void)
 {
 	// 初期化処理
-	ChangeMode(MODE::NONE);
+	SetCameraMode(MODE::NONE);
 
 	// ロックオン対象なし
 	hasTarget_ = false;
@@ -134,7 +134,7 @@ VECTOR Camera::GetForward(void) const
 	return UtilityMath::VNormalize((VSub(targetPos_, transform_.pos)));
 }
 
-void Camera::ChangeMode(MODE _mode)
+void Camera::SetCameraMode(MODE _mode)
 {
 	// カメラの初期設定
 	SetDefault();
@@ -412,8 +412,6 @@ void Camera::SetBeforeDrawTracking(void)
 	}
 	else
 	{
-		ChangeMode(MODE::FIXED_POINT);
-
 		transform_.pos = easing_.toPosition;
 		targetPos_ = easing_.toTarget;
 	}
@@ -610,17 +608,17 @@ void Camera::ResolveCollision(void)
 void Camera::SetTrackingTarget(const VECTOR& fromPos, const VECTOR& fromDir, const VECTOR& fromTarget
 	, const VECTOR& toPos, const VECTOR& toDir, const VECTOR& toTarget, float easingTime)
 {
-	ChangeMode(MODE::TRACKING);
+	SetCameraMode(MODE::TRACKING);
 	easing_.term = 0.0f;
 
 	// 開始地点
-	transform_.quaRot = Quaternion::Euler(fromDir);
+	transform_.quaRot = Quaternion::Euler(UtilityMath::VNormalize(fromDir));
 	easing_.fromPosition = fromPos;
 	easing_.fromTarget   = fromTarget;
 
 	// 終了地点
 	easing_.toPosition = toPos;
-	easing_.toRotation = Quaternion::Euler(toDir);
+	easing_.toRotation = Quaternion::Euler(UtilityMath::VNormalize(toDir));
 	easing_.toTarget   = toTarget;
 
 	// イージング時間
@@ -629,7 +627,8 @@ void Camera::SetTrackingTarget(const VECTOR& fromPos, const VECTOR& fromDir, con
 
 void Camera::SetTrackingTarget(const VECTOR& toPos, const VECTOR& toDir, const VECTOR& toTarget, float easingTime)
 {
-	ChangeMode(MODE::TRACKING);
+	SetCameraMode(MODE::TRACKING);
+
 	easing_.term = 0.0f;
 
 	// 開始地点
@@ -638,7 +637,7 @@ void Camera::SetTrackingTarget(const VECTOR& toPos, const VECTOR& toDir, const V
 
 	// 終了地点
 	easing_.toPosition = toPos;
-	easing_.toRotation = Quaternion::Euler(toDir);
+	easing_.toRotation = Quaternion::Euler(UtilityMath::VNormalize(toDir));
 	easing_.toTarget   = toTarget;
 
 	// イージング時間

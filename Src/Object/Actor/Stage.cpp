@@ -3,7 +3,7 @@
 #include "../../Utility/UtilityMath.h"
 #include "../../Manager/SceneManager.h"
 #include "../../Manager/ResourceManager.h"
-#include "./Character/Player.h"
+#include "Character/Player.h"
 #include "../Collider/ColliderBase.h"
 #include "../Collider/ColliderModel.h"
 #include "../Common/Transform.h"

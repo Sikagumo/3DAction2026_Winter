@@ -1,20 +1,20 @@
 #pragma once
-#include "./CharaBase.h"
+#include "EnemyBase.h"
+#include "../../Status/StatusBoss.h"
 #include <unordered_map>
 #include <memory>
-#include "../../Status/StatusEnemy.h"
-#include "../../Status/StatusBoss.h"
-#include "./Player.h"
-class CharaBase;
+class EnemyBase;
+class StatusBoss;
 class Player;
-class StatusEnemy;
 
-class Boss : public CharaBase
+class Boss : public EnemyBase
 {
 public:
 
 	enum class ANIMATION_TYPE
 	{
+		NONE = -1, // 無効状態
+
 		STAND_UP,     // 立ち上がり
 		IDLE,         // 待機
 		WALK,         // 歩行
@@ -47,9 +47,11 @@ protected:
 	void InitPost(void)override;
 
 	/// @brief 更新処理
-	void UpdateProcess(void)override;
+	void UpdateProcessPost(void)override;
 
 	void CollisionReserve(void)override;
+
+	void DrawPre(void)override;
 
 
 private:
@@ -59,14 +61,9 @@ private:
 
 	static constexpr float TIME_ACTION_INTERVAL = 5.0f;
 
-	const std::unique_ptr<Player>& player_;
-	const StatusEnemy::EnemyParam& status_;
 	const std::unordered_map<StatusBoss::ACTION_TYPE, StatusBoss::ActionParam>& actionStatus_;
 
-	int curActionNum_ = -1;
-
-	// 行動時間
-	float actionTime_ = 0.0f;
+	ACTION_TYPE nextActionType_;
 
 	// 操作
 	void ProcessMove(void);
@@ -74,10 +71,16 @@ private:
 	void AttackLight(void);
 	void AttackHeavy(void);
 
-	/// @brief プレイヤーの方向を追尾
-	void LookPlayerPos(void);
+	/// @brief アニメーション再生
+	/// @param type アニメーションの種類
+	/// @param isLoop ループ再生するか否か
+	/// @param isReStart 再スタートするか否か
+	/// @param isReversePlay 逆再生するか否か
+	void PlayAnimation(ANIMATION_TYPE type, bool isLoop = true, bool isReStart = false, bool isReversePlay = false);
 
-	void PlayAnimation(ANIMATION_TYPE type, bool isLoop = true);
+	ANIMATION_TYPE GetAnimationType(void)const;
 
-	ACTION_TYPE GetActionType(void);
+	void ActiveAction(ACTION_TYPE type);
+
+	ACTION_TYPE GetActionType(void)const;
 };

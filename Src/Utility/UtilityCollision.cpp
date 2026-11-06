@@ -1,7 +1,7 @@
 #include "UtilityCollision.h"
 #include <DxLib.h>
 #include "../Common/Vector2.h"
-#include "./UtilityMath.h"
+#include "UtilityMath.h"
 #include "../Object/Collider/ColliderSphere.h"
 #include "../Object/Collider/ColliderCapsule.h"
 
@@ -35,7 +35,7 @@ bool UtilityCollision::IsHitCircleCollision2D(const Vector2& pos1, float capsule
 	dis.y -= pos2.y;
 
 
-	float midPos = ((dis.x * dis.x) + (dis.y * dis.y));
+	float midPos = static_cast<float>((dis.x * dis.x) + (dis.y * dis.y));
 	float rad = (capsuleRadius1 + capsuleRadius2); // 両者の半径
 
 	// 両者の距離が半径よりも短い時、true
@@ -89,7 +89,7 @@ bool UtilityCollision::IsHitSphereToCapsule(const VECTOR& spherePos, float spher
 	VECTOR capRidePos = VAdd(capTopPos1, VScale(cap1to2ENor, dot));
 
 	// カプセル繋ぎのベクトルの長さを取る
-	float len = UtilityMath::Magnitude(cap1to2);
+	float len = static_cast<float>(UtilityMath::Magnitude(cap1to2));
 
 	// 球体がカプセル繋ぎ上にいるか判別するため、比率を取る
 	float rate = (dot / len);
@@ -179,7 +179,7 @@ void UtilityCollision::CollisionsReflectXZ(VECTOR& targetPos1, float targetRad1,
 	targetPos1 = { target1XZ.x, targetPos1.y, target1XZ.z };
 	targetPos2 = { target2XZ.x, targetPos2.y, target2XZ.z };
 }
-const VECTOR& UtilityCollision::CollisionReflectXZ(float targetPosY, const VECTOR& fromPos, float fromRad, const VECTOR& _toPos, float _toRad)
+VECTOR UtilityCollision::CollisionReflectXZ(float targetPosY, const VECTOR& fromPos, float fromRad, const VECTOR& _toPos, float _toRad)
 {
 	VECTOR ret = UtilityMath::VECTOR_ZERO;
 

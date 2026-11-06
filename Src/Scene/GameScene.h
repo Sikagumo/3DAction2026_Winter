@@ -1,5 +1,5 @@
 #pragma once
-#include "./SceneBase.h"
+#include "SceneBase.h"
 #include <memory>
 #include <map>
 #include <DxLib.h>
@@ -89,4 +89,8 @@ private:
 	void SetShaderScreen(void);
 
 	void Collision(void);
+
+	/// @brief 状態別更新処理
+	void UpdateStatePerformance(void); // 演出
+	void UpdateStateGameActive(void); // ゲーム実行
 };

@@ -1,7 +1,7 @@
 #include "ActionController.h"
 #include <DxLib.h>
 #include "../../Manager/SceneManager.h"
-#include "./AnimationController.h"
+#include "AnimationController.h"
 
 ActionController::ActionController(std::unique_ptr<AnimationController>& animation)
 	: animation_(animation)

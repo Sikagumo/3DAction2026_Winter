@@ -24,63 +24,40 @@ public:
 	struct SoundInfo
 	{
 		// 再生する種類
-		TYPE type;
+		TYPE type = TYPE::NONE;
 
 		// リソース
-		std::string path;
+		int src = -1;
 
 		// ハンドルID
-		int handle;
+		int handle = -1;
 
 		// 最大音声
-		int maxVolume;
+		int maxVolume = 255;
+
+		// 基本周波数
+		int baseFrequency = -1;
 
 		// 再生位置(3D用)
-		VECTOR pos;
+		VECTOR pos = {};
 
 		// 有効範囲(3D用)
-		float radius;
+		float radius = 0.0f;
 
 		// 再生しているか否か
-		bool isPlay;
+		bool isPlay = false;
 
 		// 再生しているか否か
-		bool isPlayOld;
+		bool isPlayOld = false;
 
 		// 再生しているか否か
-		bool isBgm;
-
-		SoundInfo(void)
-		{
-			type = TYPE::NONE;
-			handle = -1;
-			path = "";
-			maxVolume = 255;
-			pos = VGet(0.0f, 0.0f, 0.0f);
-			radius = 0.0f;
-			isPlay = false;
-			isPlayOld = false;
-			isBgm = false;
-		};
-
-		SoundInfo(TYPE _type, const std::string& filePath, bool isBGM)
-		{
-			type = _type;
-			handle = -1;
-			path = filePath;
-			maxVolume = 255;
-			pos = VGet(0.0f, 0.0f, 0.0f);
-			radius = 0.0f;
-			isPlay = false;
-			isPlayOld = false;
-			isBgm = isBGM;
-		};
+		bool isBgm = false;
 	};
 
 
 	Sound(void);
 
-	Sound(TYPE type, const std::string& path, bool isBGM);
+	Sound(TYPE type, int handle, bool isBGM);
 
 	~Sound(void) = default;
 
@@ -99,10 +76,10 @@ public:
 	/// @brief 2Dサウンドの再生処
 	/// @param _times 再生種類を取得
 	/// @param isPitch ピッチを上げるか否か
-	/// @param _pitchRange ピッチの増加範囲
+	/// @param pitchRange ピッチの増加範囲
 	/// @param isForce
 	/// @returns 音声未割当時、false
-	bool Play(TIMES times, bool isPitch = false, int _pitchRange = 1, bool isForce = false);
+	bool Play(TIMES times, bool isPitch = false, int pitchRange = 1, bool isForce = false);
 
 	/// @brief 3Dサウンドの再生処
 	/// @param times 再生種類を取得
@@ -114,32 +91,32 @@ public:
 	void Stop(void);
 
 	/// @brief サウンドがあるか判定
-	bool CheckSoundHandle(void);
+	bool CheckSoundHandle(void)const;
 
 	/// @brief 音声が読み込まれているか否か
-	bool IsLoad(void);
+	bool IsLoad(void)const;
 
 
 	/// @brief 現在の音量を割り当て
 	/// @param per 音量
-	void SetVolume(float _volume = 1.0f);
+	void SetVolume(float volume = 1.0f)const;
 
 	/// @brief 最大音量を割り当て
-	/// @param _volume 最大音量
-	void SetMaxVolume(float _volume = 1.0f);
+	/// @param volume 最大音量
+	void SetMaxVolume(float volume = 1.0f);
 
 
 	/// @brief 再生を開始したか判定
-	bool IsStart(void);
+	bool IsStart(void)const;
 
 	/// @brief 再生を開始したか判定
-	bool IsPlay(void);
+	bool IsPlay(void)const;
 
 	/// @brief 再生が終了したか判定
-	bool IsEnd(void);
+	bool IsEnd(void)const;
 
 	/// @brief BGMか判定
-	bool IsBGM(void);
+	bool IsBGM(void)const;
 
 
 private:
@@ -148,4 +125,7 @@ private:
 	static constexpr float MUSICAL_SCALE_HALF = (100.0f / 2.0f);
 
 	SoundInfo sound_;
+
+	/// @brief 音声割り当て
+	void SetSoundInfo(TYPE type, int handle, bool isBgm);
 };
